@@ -1,0 +1,43 @@
+{
+  "source": "Supplied Website Structure and Content Plan, pages 4-14; previous read-only site audit",
+  "statusLegend": {"brief": "Present in planning document; public approval not established", "missing": "Not provided as an approved asset in this handoff", "candidate": "Observed on live site; reuse/rights not yet verified", "approved": "Explicit approval with evidence recorded"},
+  "countryRequirements": {
+    "heroImage": "1 approved image with focal point, alt, caption, credit and rights",
+    "supportingImages": "2 approved supporting images with the same metadata",
+    "introduction": "60-100 words",
+    "symbol": "Verified name, artwork, cultural meaning, source, acknowledgement and permissions",
+    "designerBiography": "120-180 words; approved spelling, studio, role and links",
+    "interpretation": "100-150 words approved by designer",
+    "credits": "Complete model, garment, photography and production attribution as applicable",
+    "relatedExperience": "At least one verified journey/event link where available"
+  },
+  "countries": [
+    {"slug":"cameroon","country":"Cameroon","regionAsBrief":"West Africa","designerAsBrief":"Muks’ Couture","note":"Confirm regional grouping; representative and competition/archive credits.","rosterStatus":"brief","packageStatus":"missing","approvedAssets":[],"readyToPublish":false},
+    {"slug":"nigeria","country":"Nigeria","regionAsBrief":"West Africa","designerAsBrief":"Goody’s Stitches","note":"Approve creation story and completed-look imagery.","rosterStatus":"brief","packageStatus":"missing","approvedAssets":[],"readyToPublish":false},
+    {"slug":"ghana","country":"Ghana","regionAsBrief":"West Africa","designerAsBrief":"Afua Sam — STUDIO D’MAXSI / The A Concept","note":"Confirm preferred studio naming hierarchy.","rosterStatus":"brief","packageStatus":"missing","approvedAssets":[],"readyToPublish":false},
+    {"slug":"ethiopia","country":"Ethiopia","regionAsBrief":"East Africa","designerAsBrief":"YYASMINA STAR","note":"Selected representative in brief; METII and NATANLI remain competition archive participants, not replacement representatives.","rosterStatus":"brief","packageStatus":"missing","approvedAssets":[],"readyToPublish":false},
+    {"slug":"kenya","country":"Kenya","regionAsBrief":"East Africa","designerAsBrief":"Amos Onyango — LAWY Afrik Foundation Limited","note":"Confirm organization description and professional credit.","rosterStatus":"brief","packageStatus":"missing","approvedAssets":[],"readyToPublish":false},
+    {"slug":"egypt","country":"Egypt","regionAsBrief":"North Africa","designerAsBrief":"MOJA Design Studio","note":"Confirm designer contact, biography and completed looks.","rosterStatus":"brief","packageStatus":"missing","approvedAssets":[],"readyToPublish":false},
+    {"slug":"morocco","country":"Morocco","regionAsBrief":"North Africa","designerAsBrief":"Naima El Messaoudi — Caftan Joujou","note":"Confirm personal/studio-name order and garment cultural details.","rosterStatus":"brief","packageStatus":"missing","approvedAssets":[],"readyToPublish":false},
+    {"slug":"central-african-republic","country":"Central African Republic","regionAsBrief":"Central Africa","designerAsBrief":"Diana-Melissa Ngoumape","note":"Clarify designer/model/representative roles and collaborators.","rosterStatus":"brief","packageStatus":"missing","approvedAssets":[],"readyToPublish":false},
+    {"slug":"south-africa","country":"South Africa","regionAsBrief":"Southern Africa","designerAsBrief":"Fatima Barnes","note":"Confirm professional affiliation and approved profile language.","rosterStatus":"brief","packageStatus":"missing","approvedAssets":[],"readyToPublish":false}
+  ],
+  "siteContent": [
+    {"id":"home-definition","sourcePage":4,"status":"brief","ownerRole":"Founder/content lead","next":"Approve definition, creator credit and two hero actions."},
+    {"id":"home-hero","sourcePage":11,"status":"candidate","ownerRole":"Media lead","next":"Select one authentic live-site image; provide original, focal point and explicit reuse rights."},
+    {"id":"initiative-story","sourcePage":5,"status":"brief","ownerRole":"Founder/content lead","next":"Approve 120-180 word introduction, twelve-color narrative and creator profile."},
+    {"id":"founder-portrait","sourcePage":5,"status":"missing","ownerRole":"Media lead","next":"Supply approved portrait and credit."},
+    {"id":"edition-one","sourcePage":5,"status":"brief","ownerRole":"Founder/content lead","next":"Confirm roster and region grouping."},
+    {"id":"smithsonian-event","sourcePage":9,"status":"brief","ownerRole":"Event liaison","next":"Confirm official title, September 26 2026 date, time, timezone, venue, URL and partner credit."},
+    {"id":"journey-highlights","sourcePage":9,"status":"brief","ownerRole":"Content lead","next":"Validate six supplied milestones and select concise launch highlights."},
+    {"id":"press-kit","sourcePage":10,"status":"missing","ownerRole":"Media lead","next":"Supply current approved PDF, version/date and permitted download URL."},
+    {"id":"press-release-fast-facts","sourcePage":9,"status":"missing","ownerRole":"Media lead","next":"Supply current approved documents; do not relabel planning PDF as press kit."},
+    {"id":"media-download-images","sourcePage":10,"status":"missing","ownerRole":"Media lead","next":"Supply approved download-size files, captions, credits and usage terms."},
+    {"id":"future-editions","sourcePage":10,"status":"brief","ownerRole":"Founder/content lead","next":"Approve planned twelve-country wording; no named unconfirmed participants."},
+    {"id":"public-contact","sourcePage":10,"status":"candidate","ownerRole":"Founder/content lead","next":"Confirm Info@thepanafricanfabric.com for public/media/accessibility use; remove conflicting placeholders at launch."},
+    {"id":"instagram","sourcePage":10,"status":"brief","ownerRole":"Media lead","next":"Confirm @thepanafricanfabric destination; no Wix placeholder accounts."},
+    {"id":"privacy-image-use","sourcePage":14,"status":"missing","ownerRole":"Site owner","next":"Approve actual privacy, subscription consent, image-use and accessibility-contact copy."}
+  ],
+  "approvalEvidence": [],
+  "note": "Missing means not available as an approved package here, not that the organization has no such material. Do not generate biographies, symbol meanings or image credits to fill these gaps."
+}
