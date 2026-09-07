@@ -1,0 +1,14 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Container from '../components/Container.astro';
+import Button from '../components/Button.astro';
+import { navigation } from '../data/navigation';
+export const prerender = false;
+const entry = navigation.find(({ href }) => href === `/${Astro.params.section}`);
+if (!entry) return new Response('Not found', { status: 404 });
+const { label } = entry;
+---
+<Layout title={label}><section id={label === 'Media' ? 'press-kit' : undefined} class="section unavailable"><Container width="editorial">
+  {import.meta.env.DEV ? <><p class="eyebrow">Phase 1 / Navigation preview</p><h1>{label}</h1><p class="lead">This route demonstrates the shared header, navigation and footer.</p><p>Page content is reserved for the next approved phase. No unpublished CMS records are displayed here.</p>{label === 'Media' && <p>The press kit action will be enabled when an approved downloadable asset is supplied.</p>}</> : <><h1>Content is not available yet.</h1><p>Please return later.</p></>}
+  <Button href="/" variant="secondary">Return home <span aria-hidden="true">→</span></Button>
+</Container></section></Layout>

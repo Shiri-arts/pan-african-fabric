@@ -4,3 +4,11 @@ node_modules/
 .idea/
 .wix/
 jsconfig.json
+# Local migration tooling and verification artifacts
+/tmp/
+/output/
+.env
+.env.*
+!.env.example
+/.playwright-cli/
+/wix-error.log

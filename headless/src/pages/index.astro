@@ -1,0 +1,39 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Container from '../components/Container.astro';
+import Button from '../components/Button.astro';
+import { getPublicContent } from '../lib/public-content.mjs';
+const content = getPublicContent('Editions');
+const draft = import.meta.env.DEV && content.state === 'disabled-phase-1' ? (await import('../data/review.server')).review : undefined;
+---
+<Layout>
+  {draft ? <>
+    <section class="hero section">
+      <Container>
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">An initiative by Shiri Achu</p>
+            <h1>The Pan-African<br />Fabric</h1>
+            <p class="hero-tagline">{draft.tagline}</p>
+            <p class="lead">{draft.definition}</p>
+            <div class="actions"><Button href="/edition-one">Explore Edition One <span aria-hidden="true">↗</span></Button><Button href="/initiative" variant="text">The initiative <span aria-hidden="true">→</span></Button></div>
+          </div>
+          <aside class="media-review" aria-label="Hero media review slot">
+            <span class="eyebrow">Image direction</span>
+            <div class="media-review-center"><span class="media-review-number" aria-hidden="true">01</span><p>Space for the fabric.<br />Space for its stories.</p></div>
+            <p class="caption">Approved fabric or garment photography will appear here, with a descriptive caption and full credit.</p>
+          </aside>
+        </div>
+        <div class="edition-line"><span>Edition One</span><span>Nine countries</span><span>Five regions</span><span>Art · Textile · Fashion</span></div>
+      </Container>
+    </section>
+    <section class="section edition-section">
+      <Container>
+        <div class="section-intro"><div><p class="eyebrow">01 / Edition One</p><h2>{draft.editionHeading}</h2></div><div><p>{draft.editionIntro}</p><Button href="/edition-one" variant="text">Explore the edition <span aria-hidden="true">→</span></Button></div></div>
+        <ul class="country-list" aria-label="Edition One countries in the supplied brief">{draft.countries.map((country, index) => <li><span class="country-number">{String(index + 1).padStart(2, '0')}</span><span>{country}</span></li>)}</ul>
+        <p class="caption section-caption">Country names follow the supplied brief. Country profiles, designer stories and imagery are outside this Phase 1 shell review.</p>
+      </Container>
+    </section>
+    <section class="section closing-section"><Container><div class="closing-row"><div><p class="eyebrow">The next chapter</p><h2>Follow the story.</h2></div><Button href="/future-editions" variant="secondary">Explore future editions <span aria-hidden="true">→</span></Button></div></Container></section>
+  </> : <section class="section unavailable"><Container width="editorial"><p class="eyebrow">The Pan-African Fabric</p><h1>Content is not available yet.</h1><p>Please return later.</p></Container></section>}
+</Layout>

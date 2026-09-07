@@ -1,0 +1,19 @@
+---
+import Container from './Container.astro';
+import { navigation } from '../data/navigation';
+interface Props { description?: string; creator?: string; }
+---
+<footer class="site-footer">
+  <Container>
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="/" class="brand-name">The Pan-African Fabric</a>
+        {Astro.props.description && <p>{Astro.props.description}</p>}
+        {Astro.props.creator && <p class="caption">{Astro.props.creator}</p>}
+      </div>
+      <nav aria-label="Footer navigation"><h2 class="eyebrow">Explore</h2><ul>{navigation.map(({ href, label }) => <li><a href={href}>{label}</a></li>)}</ul></nav>
+      <div><h2 class="eyebrow">Connect</h2><ul><li><a href="https://www.instagram.com/thepanafricanfabric/">Instagram <span aria-hidden="true">↗</span></a></li><li><a href="https://shiriachuart.com">Shiri Achu Art <span aria-hidden="true">↗</span></a></li></ul></div>
+    </div>
+    <div class="footer-bottom"><span>The Pan-African Fabric</span><a href="#main">Back to top <span aria-hidden="true">↑</span></a></div>
+  </Container>
+</footer>
