@@ -230,6 +230,67 @@ interaction and behaviour suites unchanged and passing; `astro check` 65 files 0
 tests 8/8; both builds complete; production verifier 11 routes 200, 6 routes 404, with
 10 approved-content assertions and four countdown-integrity assertions.
 
+## Batch 3 — homepage structure (2026-09-08)
+
+### The problem, measured
+
+The homepage carried three consecutive Edition One sections. Measured before the
+change: they were **52% of the homepage on desktop and 62% on mobile**, and sections
+02 and 03 alone were 4,586px on a phone — about five and a half screens.
+
+| Section | 1440px | 390px |
+|---|---|---|
+| 01 Edition One | 1826px | 2274px |
+| 02 The countries | 1069px | 2223px |
+| 03 Designers and garments | 952px | 2363px |
+
+The overlap was total, not partial: the colour panels, the country cards and the
+designer slots all pointed at the same nine country pages. All 12 colour-panel links
+reappeared as country cards, and all 9 designer links did too.
+
+In a production build, section 03 was nine cards all reading "Designer to be
+announced", because the roster is an unapproved working source.
+
+### Client decisions
+
+- **02 folds into 01** as a compact index beneath the twelve-colour grid.
+- **03 becomes a slim teaser** on the homepage; the full framework moves to
+  `/edition-one`, which had no designer section before.
+
+### Result
+
+| | before | after |
+|---|---|---|
+| Homepage height, 1440px | 7,373px | **6,096px** (-17%) |
+| Homepage height, 390px | 11,000px | **7,555px** (-31%) |
+| Duplicate country links | 21 | **0** |
+
+`CountryIndex.astro` carries each country's name, region and approved-content
+availability as text, with a colour rail repeating its Edition One colours. The rail
+is decoration only, and a hairline was added so the near-white Central African
+Republic rail stays visible against ivory.
+
+The homepage now reads: hero, countdown, 01 Edition One (colours and countries),
+02 Designers teaser, 03 Stories, 04 Partner With Us, fast facts. `/edition-one` gains
+`05 The designers` and its sections renumber to seven.
+
+### Deviation from the brief, recorded
+
+The implementation brief lists the colour grid, the nine-country index and the
+designer framework as three separate homepage sections (items 3, 4 and 5). This batch
+merges the first two and relocates the third, on the client's explicit instruction,
+which the brief's own source-priority list ranks above its page requirements. The
+substance of item 4 is preserved: region and availability state are still previewed on
+the homepage, in the compact index. Item 5 is preserved on the canonical page rather
+than removed.
+
+### Verification
+
+Re-ran after the change: `astro check` 66 files 0/0/0; tests 8/8; both builds complete;
+production verifier 11 routes 200, 6 routes 404; responsive 72/72 across 12 routes and
+6 widths with no overflow, one h1 each, no control under 44px, zero page and console
+errors; interaction, behaviour and countdown suites all passing.
+
 ## Known issues and limitations
 
 - **No screen-reader testing** was performed. No conformance claim is made. The target
@@ -324,6 +385,12 @@ Batch 2 continues the same sequence:
 25. The single-line wordmark and the icon-only narrow-width menu button.
 26. The homepage event countdown bar.
 27. Countdown coverage in the production verifier, and this record.
+
+Batch 3:
+
+28. The compact country index and the homepage restructure.
+29. The designer framework relocated to `/edition-one`.
+30. This record.
 
 Pushed to `wix-headless-migration`. Not merged to `main`, and never force-pushed: the
 history was arranged before the branch was published.
