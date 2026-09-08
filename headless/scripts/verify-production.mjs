@@ -57,7 +57,15 @@ const approvedContent = {
     'The Inaugural Pan-African Fabric &amp; Fashion Showcase',
     'Saturday, September 26, 2026',
     'Central African Republic',
+    'Nigeria',
+  ],
+  // Colour names are supplied client data. They left the homepage tiles when the
+  // grid became country-led, so they are asserted where they now live.
+  '/edition-one': [
     'Hot pink',
+    'Dark green',
+    'Mint green',
+    'Central African Republic',
   ],
   '/events/inaugural-pan-african-fabric-fashion-showcase': [
     'The Inaugural Pan-African Fabric &amp; Fashion Showcase',

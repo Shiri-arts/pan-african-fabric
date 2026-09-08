@@ -291,6 +291,78 @@ production verifier 11 routes 200, 6 routes 404; responsive 72/72 across 12 rout
 6 widths with no overflow, one h1 each, no control under 44px, zero page and console
 errors; interaction, behaviour and countdown suites all passing.
 
+## Batch 4 — colour correction, country tiles, nav previews (2026-09-08)
+
+### A measurement that corrects an earlier decision
+
+Batch 1 recorded that Hot pink could not carry normal-size text and that this is why
+the colour cards were half-coloured with a neutral label band. That was true against
+the house charcoal and against white, but not against pure black. Re-measured:
+
+| | white | charcoal | pure black |
+|---|---|---|---|
+| Hot pink `#E3327C` | 4.19 | 3.82 | **5.01** |
+| Orange `#D76921` | 3.54 | 4.52 | **5.93** |
+
+**All twelve colours clear 4.5:1 for normal-size text.** Orange and Hot pink now use
+pure black; the rest keep white or the house charcoal. Fully-coloured cards are
+therefore accessible with no scrim, no large-text restriction and no change to any
+supplied colour value. `largeTextOnly` stays in the model but no colour sets it.
+
+### Client decisions
+
+- The event bar must not merge into the hero.
+- It should have a shine effect.
+- Text animates once and rests; the timer does not move. Chosen over a ticker after
+  the WCAG 2.2.2 implication was raised.
+- "Twelve colours. One fabric." replaced with **"One fabric. Nine countries."** The
+  initiative is not showcasing colour.
+- Colour names come off the cards.
+- Cards are fully coloured, not half.
+- The separate "9 countries across 5 African regions" block goes.
+- Menu items reveal their page sections on hover.
+
+### What changed
+
+**Nine country tiles** replace the twelve-panel colour grid on the homepage. Each
+country appears exactly once, so the grid *is* the country index and the compact list
+added in batch 3 is gone. A two-colour country shows its second colour as an edge
+band, so both colours are present and no text ever crosses a contrast boundary. The
+twelve-colour grid itself remains on `/edition-one`, where colour is the subject.
+
+**The event bar** sits on the ivory ground with clear space above and its own
+contained dark box, so it reads as a separate object. The colour track carries a
+finite gloss sweep, and title and date animate in once and then rest. Nothing moves
+continuously, so WCAG 2.2.2 requires no pause control. Reduced motion drops the
+sweep, the entry pass and the segment rise.
+
+**Menu section previews.** Each item reveals its page's real sections. Open and close
+are pure CSS on `:hover` and `:focus-within`, so it works with JavaScript off and is
+never pointer-only; Escape dismisses, which covers the dismissible requirement for
+content shown on hover or focus. Below 1100px the sections are part of the existing
+accordion, because touch has no hover. All 25 previewed anchors were verified to
+resolve to a real element on their page.
+
+### Defects found by verification
+
+- **Kenya's labels failed AA.** A 0.85 opacity on the region and status labels dropped
+  red from 4.64:1 to 3.56:1. The opacity was removed; hierarchy now comes from size,
+  letterspacing and case. A rendered-contrast test now measures every label on every
+  tile against its own ground: 9 tiles x 5 labels, all passing.
+- The Edition One section head left a large void, because a short title bottom-aligned
+  against a much taller supporting column. Added a top-aligned variant.
+- The colour track was inset by the container padding; the width constraint and the
+  dark box are now separate elements.
+
+### Verification
+
+`astro check` 67 files 0/0/0; tests 8/8; both builds complete; production verifier
+11 routes 200, 6 routes 404 with 14 approved-content assertions. Responsive 72/72
+across 12 routes and 6 widths. Interaction, behaviour and countdown suites passing.
+New: a navigation suite (hover, keyboard focus, hoverable, Escape and focus return,
+top-level navigation still working, no-JavaScript, mobile accordion, 25 anchors) and
+a tile-contrast suite.
+
 ## Known issues and limitations
 
 - **No screen-reader testing** was performed. No conformance claim is made. The target
@@ -391,6 +463,14 @@ Batch 3:
 28. The compact country index and the homepage restructure.
 29. The designer framework relocated to `/edition-one`.
 30. This record.
+
+Batch 4:
+
+31. Accessible text colours re-measured across all twelve colours.
+32. Nine fully-coloured country tiles replacing the homepage colour grid.
+33. The event bar separated, with a shine pass and a one-time text entry.
+34. Menu items previewing their page sections on hover and focus.
+35. This record.
 
 Pushed to `wix-headless-migration`. Not merged to `main`, and never force-pushed: the
 history was arranged before the branch was published.
