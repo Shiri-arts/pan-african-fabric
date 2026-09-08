@@ -419,6 +419,49 @@ orphan control.
 the pause control ships and the duplicate copy is hidden. Responsive 72/72. Interaction,
 behaviour, countdown, navigation and tile-contrast suites all passing.
 
+## Batch 6 — banner control fixes (2026-09-08)
+
+Two faults reported against the banner shipped in batch 5, plus one found alongside.
+
+### Play did not restart the motion
+
+The real fault, and the reason it looked broken. Pausing and playing were driven by
+`.countdown:hover` and `.countdown:focus-within` alongside the explicit control. The
+control lives inside the banner, so pressing play left the pointer over the button and
+focus on it, both of which still matched those selectors: the banner removed
+`is-paused` and stayed frozen anyway.
+
+Holding is now computed in script from whether the pointer or focus is inside the
+banner **but not on the control**, and applied as `is-holding`. The CSS rules are plain
+class selectors, so the explicit control can never be defeated by a hover state.
+
+The regression test was verified to catch the original fault: with the old rule
+restored, three assertions fail with exactly the reported symptom, and they pass again
+with the fix.
+
+### The control text is gone
+
+"Pause event banner" no longer renders. The control is a 48px icon-only square.
+
+### The control had no accessible name below 640px
+
+Found while removing the text. The label was `display: none` under 640px, which
+removes it from the accessibility tree entirely, so the button was unnamed on every
+phone. The label is now visually hidden at all widths instead: never seen, always
+available. A test asserts the name is present at 1440px and at 390px.
+
+### Verification
+
+Marquee suite extended: play must resume with the pointer still on the control, the
+line must actually travel again afterwards, and a second pause and play round trip
+must work. Control checks cover the invisible label, the retained accessible name at
+two widths, and the 44px target.
+
+All seven browser suites pass: responsive, interaction, behaviour, countdown,
+navigation, tiles, marquee. `astro check` 67 files 0/0/0; tests 8/8; both builds
+complete; production verifier 11 routes 200, 6 routes 404, 17 approved-content
+assertions.
+
 ## Known issues and limitations
 
 - **No screen-reader testing** was performed. No conformance claim is made. The target
@@ -532,6 +575,11 @@ Batch 5:
 
 36. The event banner scrolling continuously, with venue and location and a pause control.
 37. This record.
+
+Batch 6:
+
+38. Banner control fixes: play resuming, icon-only control, accessible name restored.
+39. This record.
 
 Pushed to `wix-headless-migration`. Not merged to `main`, and never force-pushed: the
 history was arranged before the branch was published.
