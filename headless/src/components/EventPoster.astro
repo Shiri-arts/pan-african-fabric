@@ -20,7 +20,8 @@ const { event, level = 2, kicker, linkToDetail = true, now } = Astro.props;
 const Heading = `h${level}` as 'h1' | 'h2' | 'h3';
 const date = posterDate(event);
 const phase = eventPhase(event, now ?? new Date());
-const defaultKicker = phase === 'archive' ? 'Past event' : phase === 'today' ? 'Happening today' : 'Next event';
+const defaultKicker = phase === 'archive' ? 'Past event' : phase === 'live' ? 'Happening now' : 'Next event';
+const timeWithZone = event.timeLabel && event.timezoneLabel ? `${event.timeLabel} ${event.timezoneLabel}` : event.timeLabel;
 ---
 <div class="event-poster">
   <div class="event-poster__date">
@@ -29,14 +30,14 @@ const defaultKicker = phase === 'archive' ? 'Past event' : phase === 'today' ? '
     <p class="event-poster__when">
       <b>{date.month} {date.year}</b>
       <span>{date.weekday}</span>
-      {event.timeLabel && <span>{event.timeLabel}</span>}
+      {timeWithZone && <span>{timeWithZone}</span>}
     </p>
   </div>
   <div class="event-poster__body">
     <Heading class="event-poster__title">{event.title}</Heading>
     <dl class="event-poster__facts">
       <div><dt>Date</dt><dd>{event.dateLabel}</dd></div>
-      {event.timeLabel && <div><dt>Time</dt><dd>{event.timeLabel}</dd></div>}
+      {timeWithZone && <div><dt>Time</dt><dd>{timeWithZone}</dd></div>}
       <div><dt>Venue</dt><dd>{event.venue}</dd></div>
       <div><dt>Location</dt><dd>{event.location}</dd></div>
     </dl>

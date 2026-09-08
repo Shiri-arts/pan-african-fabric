@@ -26,6 +26,7 @@ if (!event) Astro.response.status = 404;
 const previewArchive = import.meta.env.DEV && Astro.url.searchParams.get('preview') === 'archive';
 const phase = event ? (previewArchive ? 'archive' : eventPhase(event)) : 'upcoming';
 const date = event ? posterDate(event) : undefined;
+const timeWithZone = event?.timeLabel && event.timezoneLabel ? `${event.timeLabel} ${event.timezoneLabel}` : event?.timeLabel;
 ---
 {!event || !date ? (
   <Layout title="Event not found" description="The requested event does not exist." path={Astro.url.pathname}>
@@ -34,7 +35,7 @@ const date = event ? posterDate(event) : undefined;
 ) : (
   <Layout
     title={event.title}
-    description={`${event.title}. ${event.dateLabel}${event.timeLabel ? `, ${event.timeLabel}` : ''}. ${event.venue}, ${event.location}.`}
+    description={`${event.title}. ${event.dateLabel}${event.timeLabel ? `, ${event.timeLabel}${event.timezoneLabel ? ` ${event.timezoneLabel}` : ''}` : ''}. ${event.venue}, ${event.location}.`}
     path={eventPath(event.slug)}
     header="overlay"
     structuredData={eventStructuredData(event)}
@@ -46,12 +47,12 @@ const date = event ? posterDate(event) : undefined;
         <Breadcrumbs trail={[{ href: '/events', label: 'Events' }]} current={event.title} />
         <div class="hero-enter">
           <p class="eyebrow">
-            <span>{phase === 'archive' ? 'Past event' : phase === 'today' ? 'Happening today' : 'Upcoming event'}</span>
+            <span>{phase === 'archive' ? 'Past event' : phase === 'live' ? 'Happening now' : 'Upcoming event'}</span>
           </p>
           <h1 class="event-hero__title">{event.title}</h1>
           <p class="event-hero__when">
             <span class="event-hero__date">{event.dateLabel}</span>
-            {event.timeLabel && <span class="event-hero__time">{event.timeLabel}</span>}
+            {timeWithZone && <span class="event-hero__time">{timeWithZone}</span>}
           </p>
           <p class="event-hero__where">{event.venue}<span aria-hidden="true"> · </span>{event.location}</p>
         </div>
@@ -63,12 +64,12 @@ const date = event ? posterDate(event) : undefined;
         <div class="event-detail__poster">
           <p class="event-poster__kicker">{date.month} {date.year}</p>
           <p class="event-poster__day">{date.day}</p>
-          <p class="event-poster__when"><b>{date.weekday}</b>{event.timeLabel && <span>{event.timeLabel}</span>}</p>
+          <p class="event-poster__when"><b>{date.weekday}</b>{timeWithZone && <span>{timeWithZone}</span>}</p>
         </div>
         <dl class="event-poster__facts event-detail__facts">
           <div><dt>Event</dt><dd>{event.title}</dd></div>
           <div><dt>Date</dt><dd>{event.dateLabel}</dd></div>
-          {event.timeLabel && <div><dt>Time</dt><dd>{event.timeLabel}</dd></div>}
+          {timeWithZone && <div><dt>Time</dt><dd>{timeWithZone}</dd></div>}
           <div><dt>Venue</dt><dd>{event.venue}</dd></div>
           <div><dt>Location</dt><dd>{event.location}</dd></div>
         </dl>

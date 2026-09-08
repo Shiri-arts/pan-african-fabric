@@ -20,7 +20,7 @@ const kindLabel = event.kind.charAt(0).toUpperCase() + event.kind.slice(1);
       </span>
       <span class="stack stack--sm">
         <span class="card__title">{event.title}</span>
-        <span class="card__summary">{event.dateLabel}{event.timeLabel ? ` · ${event.timeLabel}` : ''}</span>
+        <span class="card__summary">{event.dateLabel}{event.timeLabel ? ` · ${event.timeLabel}${event.timezoneLabel ? ` ${event.timezoneLabel}` : ''}` : ''}</span>
         <span class="card__summary">{event.venue}, {event.location}</span>
       </span>
     </span>

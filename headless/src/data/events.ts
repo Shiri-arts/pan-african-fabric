@@ -7,15 +7,19 @@
  * ticketing, price, registration, timezone, official URL, institutional logo or
  * endorsement may be added without separate approval.
  *
- * No timezone has been confirmed, so no live countdown is implemented and the
- * structured-data start/end times are written as local wall-clock values without
- * an offset rather than guessing one.
+ * The client confirmed on 8 September 2026 that the showcase runs on US Eastern
+ * time. 26 September 2026 falls inside US daylight time, so the offset is EDT,
+ * UTC-04:00. `startsAt` and `endsAt` therefore carry a real instant and every
+ * viewer counts down to the same moment.
+ *
+ * An event whose timezone is not confirmed leaves those fields null and falls back
+ * to calendar-date comparison. It gets no countdown.
  */
 import type { Media } from '../lib/media';
 import { mediaSlot } from '../lib/media';
 
 export type EventKind = 'showcase' | 'exhibition' | 'workshop' | 'competition' | 'reception' | 'talk' | 'travelling';
-export type EventPhase = 'upcoming' | 'today' | 'archive';
+export type EventPhase = 'upcoming' | 'live' | 'archive';
 
 export interface EventRecord {
   readonly slug: string;
@@ -27,9 +31,14 @@ export interface EventRecord {
   readonly isoDate: string;
   /** Exactly as supplied, e.g. "1:00 PM-5:00 PM". Null when no time is confirmed. */
   readonly timeLabel: string | null;
-  /** Local wall-clock ISO times with no offset. Null when not supplied. */
-  readonly startsAtLocal: string | null;
-  readonly endsAtLocal: string | null;
+  /** Short zone label shown beside the time. Null until the zone is confirmed. */
+  readonly timezoneLabel: string | null;
+  /**
+   * Exact instants, offset included. Null until the timezone is confirmed, which
+   * is what gates the countdown.
+   */
+  readonly startsAt: string | null;
+  readonly endsAt: string | null;
   readonly venue: string;
   readonly location: string;
   readonly hero: Media;
@@ -45,8 +54,9 @@ export const inauguralShowcase: EventRecord = {
   dateLabel: 'Saturday, September 26, 2026',
   isoDate: '2026-09-26',
   timeLabel: '1:00 PM–5:00 PM',
-  startsAtLocal: '2026-09-26T13:00',
-  endsAtLocal: '2026-09-26T17:00',
+  timezoneLabel: 'ET',
+  startsAt: '2026-09-26T13:00:00-04:00',
+  endsAt: '2026-09-26T17:00:00-04:00',
   venue: 'Smithsonian National Museum of African Art',
   location: 'Washington, D.C.',
   hero: mediaSlot(
@@ -71,16 +81,36 @@ export function findEvent(slug: string | undefined): EventRecord | undefined {
 }
 
 /**
- * Phase from the calendar date alone. With no confirmed timezone, an event is
- * treated as current for the whole of its local calendar day and archived from
- * the following day. This drives the archive layout without asserting any
- * attendance, outcome, press response or programme detail.
+ * Phase from the exact instants when the timezone is confirmed, and from the
+ * calendar date alone when it is not. An event is archived the moment it ends.
  */
 export function eventPhase(event: EventRecord, now: Date = new Date()): EventPhase {
+  if (event.startsAt && event.endsAt) {
+    const time = now.getTime();
+    if (time >= Date.parse(event.endsAt)) return 'archive';
+    if (time >= Date.parse(event.startsAt)) return 'live';
+    return 'upcoming';
+  }
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   if (event.isoDate > today) return 'upcoming';
-  if (event.isoDate === today) return 'today';
+  if (event.isoDate === today) return 'live';
   return 'archive';
+}
+
+/**
+ * The nearest event that has not finished. This is what the homepage countdown
+ * follows, so adding a sooner event moves the bar to it automatically and the bar
+ * disappears on its own once nothing is upcoming.
+ */
+export function nextEvent(now: Date = new Date()): EventRecord | undefined {
+  return events
+    .filter((event) => eventPhase(event, now) !== 'archive')
+    .sort((a, b) => a.isoDate.localeCompare(b.isoDate))[0];
+}
+
+/** Only an event with a confirmed timezone may drive a countdown. */
+export function canCountDown(event: EventRecord): boolean {
+  return Boolean(event.startsAt && event.endsAt);
 }
 
 export interface EventGroups {
@@ -113,13 +143,13 @@ export function posterDate(event: EventRecord): { readonly weekday: string; read
  * organizer, image, url and attendance mode are omitted rather than guessed.
  */
 export function eventStructuredData(event: EventRecord): Record<string, unknown> | undefined {
-  if (!event.isConfirmed || !event.startsAtLocal) return undefined;
+  if (!event.isConfirmed || !event.startsAt) return undefined;
   return {
     '@context': 'https://schema.org',
     '@type': 'Event',
     name: event.title,
-    startDate: event.startsAtLocal,
-    ...(event.endsAtLocal ? { endDate: event.endsAtLocal } : {}),
+    startDate: event.startsAt,
+    ...(event.endsAt ? { endDate: event.endsAt } : {}),
     location: { '@type': 'Place', name: event.venue, address: event.location },
   };
 }
