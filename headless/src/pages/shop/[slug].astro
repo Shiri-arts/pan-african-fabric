@@ -1,0 +1,129 @@
+---
+/**
+ * Product detail presentation template.
+ *
+ * Gallery states, product story, edition relationship and the price, availability,
+ * variant and fulfilment positions are all laid out. None of them renders a value,
+ * because none has been approved, and no functional purchase control exists.
+ */
+import Layout from '../../layouts/Layout.astro';
+import Section from '../../components/Section.astro';
+import Button from '../../components/Button.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import Media from '../../components/Media.astro';
+import NotFound from '../../components/NotFound.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import { COMMERCE_ENABLED, productPath, products } from '../../data/shop';
+import { reviewProducts } from '../../lib/review';
+
+export const prerender = false;
+
+const all = [...products, ...(await reviewProducts())];
+const product = all.find((entry) => entry.slug === Astro.params.slug);
+if (!product) Astro.response.status = 404;
+
+const cover = product?.gallery[0];
+const rest = product?.gallery.slice(1) ?? [];
+---
+{!product ? (
+  <Layout title="Product not found" description="The requested product does not exist." path={Astro.url.pathname}>
+    <NotFound path={Astro.url.pathname} />
+  </Layout>
+) : (
+  <Layout
+    title={product.title}
+    description={`${product.title}. Part of The Pan-African Fabric. Not available for purchase.`}
+    path={productPath(product.slug)}
+  >
+    <Section tone="ivory" size="tight">
+      <Breadcrumbs trail={[{ href: '/shop', label: 'Shop' }]} current={product.title} />
+      <div class="product">
+        <div class="product__gallery">
+          {cover && <Media media={cover} showCaption={false} />}
+          {rest.length > 0 && (
+            <ul class="product__thumbs">
+              {rest.map((image) => <li><Media media={image} showCaption={false} /></li>)}
+            </ul>
+          )}
+        </div>
+
+        <div class="product__panel">
+          <p class="product__kind">{product.kind}</p>
+          <h1 class="product__title">{product.title}</h1>
+          {product.isSpecimen && <p class="badge badge--review">Template specimen · not a product</p>}
+
+          <dl class="product__positions">
+            <div>
+              <dt>Price</dt>
+              <dd>{product.price ?? 'Not published'}</dd>
+            </div>
+            <div>
+              <dt>Availability</dt>
+              <dd>{product.availability ?? 'Not available for purchase'}</dd>
+            </div>
+            {product.variantLabel && (
+              <div>
+                <dt>Options</dt>
+                <dd>{product.variantLabel}</dd>
+              </div>
+            )}
+            {product.fulfilment && (
+              <div>
+                <dt>Delivery</dt>
+                <dd>{product.fulfilment}</dd>
+              </div>
+            )}
+          </dl>
+
+          {COMMERCE_ENABLED ? null : (
+            <div class="product__gate">
+              <p class="product__gate-text">
+                This site cannot take an order. There is no cart, no checkout and no payment on this frontend.
+              </p>
+              <Button href="/press-contact" variant="secondary">Ask about availability<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </Section>
+
+    <Section tone="paper" id="story">
+      <div class="product__story">
+        <div>
+          <p class="eyebrow"><span>The story</span></p>
+          {product.story ? <p class="lead">{product.story}</p> : <EmptyState title="The product story is not approved yet." />}
+        </div>
+        <div>
+          <p class="eyebrow"><span>Edition relationship</span></p>
+          {product.editionRelationship
+            ? <p class="lead">{product.editionRelationship}</p>
+            : <EmptyState title="The edition relationship is not approved yet." />}
+          <p class="actions">
+            <Button href="/edition-one" variant="text">Explore Edition One<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
+          </p>
+        </div>
+      </div>
+    </Section>
+
+    <Section tone="surface" size="tight">
+      <p class="actions">
+        <Button href="/shop" variant="secondary">Back to the shop<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
+      </p>
+    </Section>
+  </Layout>
+)}
+
+<style>
+  .product { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(24px, 4vw, 72px); align-items: start; margin-top: var(--space-md); }
+  .product__thumbs { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); gap: var(--space-sm); margin-top: var(--space-sm); }
+  .product__kind { font-size: 0.6875rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin: 0 0 var(--space-2xs); }
+  .product__title { font-size: clamp(1.75rem, 3.6vw, 2.75rem); line-height: 1.02; letter-spacing: -0.03em; margin: 0 0 var(--space-md); }
+  .product__positions { display: grid; gap: 0; margin: var(--space-md) 0; }
+  .product__positions > div { display: grid; grid-template-columns: minmax(0, 8rem) minmax(0, 1fr); gap: var(--space-sm); padding-block: var(--space-xs); border-top: 1px solid var(--border); }
+  .product__positions dt { font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+  .product__positions dd { margin: 0; font-size: 0.9375rem; line-height: 1.45; }
+  .product__gate { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-sm); padding: var(--space-md); border: 1px dashed var(--border); background: rgb(255 255 255 / 45%); }
+  .product__gate-text { font-size: 0.875rem; line-height: 1.55; color: var(--muted); margin: 0; }
+  .product__story { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: clamp(24px, 4vw, 64px); }
+  @media (max-width: 899px) { .product { grid-template-columns: minmax(0, 1fr); } }
+</style>

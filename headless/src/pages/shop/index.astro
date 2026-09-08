@@ -1,0 +1,112 @@
+---
+/**
+ * Storefront.
+ *
+ * No approved product and no commerce integration exist, so the page renders a
+ * truthful "Shop collection coming soon" state. No Add to Cart, checkout, price,
+ * stock, discount, preorder or payment control is rendered in any build.
+ */
+import Layout from '../../layouts/Layout.astro';
+import Section from '../../components/Section.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import Button from '../../components/Button.astro';
+import PageHero from '../../components/PageHero.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import { COMMERCE_ENABLED, products } from '../../data/shop';
+import { mediaSlot } from '../../lib/media';
+import { reviewProducts } from '../../lib/review';
+
+const all = [...products, ...(await reviewProducts())];
+const heroMedia = mediaSlot('shop-hero', '21/9', 'Approved product or styling photograph for the storefront header.');
+
+/** Positions the storefront reserves. None of these is a claim that a product exists. */
+const positions = [
+  { title: 'Edition One fan', text: 'The fan carrying the twelve-colour system.' },
+  { title: 'Approved products', text: 'Pieces connected directly to the edition.' },
+  { title: 'Digital and special editions', text: 'Future formats, once they are decided.' },
+];
+---
+<Layout
+  title="Shop"
+  description="Own a piece of the story. The Pan-African Fabric shop is being prepared; no products are available for purchase yet."
+  path="/shop"
+  header="overlay"
+>
+  <PageHero
+    eyebrow="Shop"
+    title="Own a piece<span>of the story.</span>"
+    size="tall"
+    media={heroMedia}
+  >
+    <p class="page-hero__intro lead">
+      The shop is being prepared. Nothing is on sale yet, and no product, price or delivery term is shown until it is
+      confirmed.
+    </p>
+  </PageHero>
+
+  <Section tone="paper" id="collection">
+    {all.length > 0 && COMMERCE_ENABLED ? (
+      <ul class="card-grid card-grid--wide">
+        {all.map((product) => <li><ProductCard product={product} /></li>)}
+      </ul>
+    ) : (
+      <div class="shop-empty">
+        <p class="eyebrow"><span>Collection</span></p>
+        <h2 class="shop-empty__title">Shop collection coming soon</h2>
+        <p class="lead">
+          Products, prices, availability and delivery information will be published here once they are approved. No order
+          can be placed on this site at present.
+        </p>
+        <p class="actions">
+          <Button href="/edition-one" variant="secondary">Explore Edition One<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
+          <Button href="/press-contact" variant="text">Ask about availability</Button>
+        </p>
+      </div>
+    )}
+  </Section>
+
+  {all.length > 0 && !COMMERCE_ENABLED && (
+    <Section tone="ivory" id="templates">
+      <SectionHead eyebrow="Template preview" title="Product presentation template.">
+        <p>
+          Shown in the local review build only, so the storefront and product templates can be checked at every width.
+          This is not a product and it is not for sale.
+        </p>
+      </SectionHead>
+      <ul class="card-grid card-grid--wide">
+        {all.map((product) => <li><ProductCard product={product} /></li>)}
+      </ul>
+    </Section>
+  )}
+
+  <Section tone="surface" id="positions">
+    <SectionHead eyebrow="What the shop will carry" title="Prepared, not promised.">
+      <p>These positions exist in the design. Each one publishes only when a real, approved product fills it.</p>
+    </SectionHead>
+    <ul class="position-grid">
+      {positions.map((position) => (
+        <li class="position">
+          <span class="position__title">{position.title}</span>
+          <span class="position__text">{position.text}</span>
+          <span class="badge badge--awaiting">Not available</span>
+        </li>
+      ))}
+    </ul>
+  </Section>
+
+  <Section tone="ink" size="tight">
+    <p class="caption" style="color:var(--on-ink-muted);max-width:74ch">
+      This site takes no payment and holds no cart. When commerce is approved, it will be introduced with confirmed
+      prices, availability, delivery terms and a reviewed checkout, not before.
+    </p>
+  </Section>
+</Layout>
+
+<style>
+  .shop-empty { max-width: 44ch; }
+  .shop-empty__title { font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1; letter-spacing: -0.035em; margin: 0 0 var(--space-md); }
+  .position-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: clamp(16px, 2vw, 32px); }
+  .position { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2xs); padding-top: var(--space-sm); border-top: 2px solid var(--text); }
+  .position__title { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.15; }
+  .position__text { font-size: 0.875rem; line-height: 1.5; color: var(--muted); }
+</style>
