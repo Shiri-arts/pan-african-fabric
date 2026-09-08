@@ -6,7 +6,7 @@ import Button from '../components/Button.astro';
 import Copy from '../components/Copy.astro';
 import PageHero from '../components/PageHero.astro';
 import ColourGrid from '../components/ColourGrid.astro';
-import CountryCard from '../components/CountryCard.astro';
+import CountryIndex from '../components/CountryIndex.astro';
 import EventCountdownBar from '../components/EventCountdownBar.astro';
 import EmptyState from '../components/EmptyState.astro';
 import StoryCard from '../components/StoryCard.astro';
@@ -90,29 +90,20 @@ const partnerMedia = mediaSlot('home-partner', '4/5', 'Approved photograph from 
       swatches. They are shown for on-screen review and are not print colour specifications. Cameroon, Ghana and South
       Africa each carry two colours.
     </p>
-  </Section>
 
-  <Section tone="surface" id="countries">
-    <SectionHead eyebrow="02 — The countries" title={`${COUNTRY_COUNT} countries across ${REGION_COUNT} African regions.`}>
-      <p>
-        Each country page holds the fabric, its colours and the creative work made from it. Profiles open as approved
-        material is supplied.
-      </p>
-      <Button href="/edition-one" variant="text">
-        See all countries<span class="button__arrow" aria-hidden="true">&#8594;</span>
-      </Button>
-    </SectionHead>
-    <ul class="card-grid">
-      {countries.map((country, index) => (
-        <li data-reveal="rise" style={`--reveal-delay:${Math.min(index, 6) * 50}ms`}>
-          <CountryCard country={country} index={index} />
-        </li>
-      ))}
-    </ul>
+    <div class="edition-countries">
+      <div class="edition-countries__head">
+        <h3 class="edition-countries__title">{COUNTRY_COUNT} countries across {REGION_COUNT} African regions.</h3>
+        <Button href="/edition-one" variant="text">
+          See all countries<span class="button__arrow" aria-hidden="true">&#8594;</span>
+        </Button>
+      </div>
+      <CountryIndex label="Edition One countries, with region and content status" />
+    </div>
   </Section>
 
   <Section tone="ink" id="designers">
-    <SectionHead eyebrow="03 — Designers and garments" title="One fabric, interpreted nine ways.">
+    <SectionHead eyebrow="02 — Designers and garments" title="One fabric, interpreted nine ways.">
       <p>
         Every country works with the same fabric and arrives somewhere different. Designer profiles, creative statements
         and finished garments publish only once the designer has approved them.
@@ -146,7 +137,7 @@ const partnerMedia = mediaSlot('home-partner', '4/5', 'Approved photograph from 
   </Section>
 
   <Section tone="ivory" id="stories">
-    <SectionHead eyebrow="04 — Stories" title="The living voice of the initiative.">
+    <SectionHead eyebrow="03 — Stories" title="The living voice of the initiative.">
       <p>Behind the scenes, country and designer stories, partnerships, founder reflections, interviews and milestones.</p>
       <Button href="/stories" variant="text">
         Go to Stories<span class="button__arrow" aria-hidden="true">&#8594;</span>
@@ -168,7 +159,7 @@ const partnerMedia = mediaSlot('home-partner', '4/5', 'Approved photograph from 
   <Section tone="paper" id="partner">
     <div class="partner-block">
       <div class="partner-block__copy" data-reveal="rise">
-        <p class="eyebrow"><span>05 — Partner with us</span></p>
+        <p class="eyebrow"><span>04 — Partner with us</span></p>
         <h2 class="partner-block__title">Bring the fabric<br />to your city.</h2>
         <p class="lead">
           Museums, embassies, universities, sponsors, cultural organisations, designers and future hosts shape where this
@@ -223,6 +214,17 @@ const partnerMedia = mediaSlot('home-partner', '4/5', 'Approved photograph from 
     text-decoration: none;
   }
   .designer-slot__link:hover { text-decoration: underline; text-underline-offset: 5px; }
+
+  .edition-countries { margin-top: clamp(40px, 5vw, 72px); }
+  .edition-countries__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+  .edition-countries__title { font-size: clamp(1.25rem, 2.4vw, 1.75rem); line-height: 1.15; margin: 0; max-width: 22ch; }
 
   .partner-block { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(24px, 5vw, 80px); align-items: center; }
   .partner-block__title { font-size: clamp(2.25rem, 5.4vw, 4.5rem); line-height: 0.98; letter-spacing: -0.04em; margin: 0 0 var(--space-md); }
