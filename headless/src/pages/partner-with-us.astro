@@ -1,0 +1,188 @@
+---
+/**
+ * The primary campaign page.
+ *
+ * Collaborator categories are named because the brief supplies them. Each category
+ * description and the "why partner" narrative are awaiting slots: they belong to
+ * the client, not to this build. The enquiry form is a design preview and does not
+ * submit.
+ */
+import Layout from '../layouts/Layout.astro';
+import Section from '../components/Section.astro';
+import SectionHead from '../components/SectionHead.astro';
+import Button from '../components/Button.astro';
+import PageHero from '../components/PageHero.astro';
+import EmptyState from '../components/EmptyState.astro';
+import Field from '../components/Field.astro';
+import { editionColours } from '../data/colours';
+import { COUNTRY_COUNT, REGION_COUNT } from '../data/countries';
+import { inauguralShowcase } from '../data/events';
+import { mediaSlot } from '../lib/media';
+
+const heroMedia = mediaSlot('partner-hero', '21/9', 'Approved photograph from an exhibition, workshop or reception.');
+
+/** Collaborator types named in the implementation brief. */
+const collaborators = [
+  'Museums',
+  'Embassies',
+  'Universities',
+  'Sponsors',
+  'Cultural organisations',
+  'Designers',
+  'Future hosts',
+];
+
+const enquiryTypes = [
+  'Hosting an exhibition',
+  'Workshop or education programme',
+  'Sponsorship',
+  'Cultural partnership',
+  'Designer collaboration',
+  'Something else',
+];
+---
+<Layout
+  title="Partner With Us"
+  description="Museums, embassies, universities, sponsors, cultural organisations, designers and future hosts can collaborate with The Pan-African Fabric."
+  path="/partner-with-us"
+  header="overlay"
+>
+  <PageHero
+    eyebrow="Partner with us"
+    title="Bring the fabric<span>to your city.</span>"
+    size="full"
+    media={heroMedia}
+    meta={[`${COUNTRY_COUNT} countries`, `${REGION_COUNT} regions`, 'Open to hosts']}
+  >
+    <p class="page-hero__intro lead">
+      Edition One travels through the institutions and people who choose to carry it. If that could be you, start here.
+    </p>
+    <p class="actions">
+      <Button href="#enquiry" size="large">
+        Start an enquiry<span class="button__arrow" aria-hidden="true">&#8595;</span>
+      </Button>
+      <Button href="/edition-one" variant="secondary" size="large">See what travels</Button>
+    </p>
+  </PageHero>
+
+  <Section tone="ivory" id="why" width="full" flush="both">
+    <div class="colour-band" aria-hidden="true">
+      {editionColours.map((colour) => <span style={`background:var(${colour.variable})`}></span>)}
+    </div>
+  </Section>
+
+  <Section tone="ivory" id="why-partner">
+    <SectionHead eyebrow="01 — Why partner" title="What a partnership makes possible.">
+      <EmptyState
+        title="The case for partnership is not approved yet."
+        text="This is where the initiative sets out what a partner gains and what the collaboration produces. The section is designed and ready for approved copy."
+        note={import.meta.env.DEV ? 'Approve the partnership rationale: audience, cultural value and what a host receives.' : undefined}
+      />
+    </SectionHead>
+  </Section>
+
+  <Section tone="ink" id="collaborators">
+    <SectionHead eyebrow="02 — Who we work with" title="Seven kinds of collaborator.">
+      <p>
+        These are the collaborator types the initiative works with. What each collaboration involves is set out by the
+        initiative, not assumed here.
+      </p>
+    </SectionHead>
+    <ul class="collab-grid">
+      {collaborators.map((collaborator, index) => (
+        <li class="collab" data-reveal="rise" style={`--reveal-delay:${Math.min(index, 6) * 40}ms`}>
+          <span class="collab__index">{String(index + 1).padStart(2, '0')}</span>
+          <span class="collab__name">{collaborator}</span>
+          <span class="badge badge--awaiting">Description awaiting approval</span>
+        </li>
+      ))}
+    </ul>
+  </Section>
+
+  <Section tone="paper" id="ways">
+    <SectionHead eyebrow="03 — Ways to collaborate" title="How this usually starts.">
+      <EmptyState
+        title="Collaboration routes are not approved yet."
+        text="The formats the initiative can offer a host, and what each one asks of them, are described here once approved."
+        note={import.meta.env.DEV ? 'Approve the list of collaboration formats and what each involves for a host.' : undefined}
+      />
+    </SectionHead>
+    <p class="caption" style="max-width:74ch">
+      The confirmed inaugural showcase is {inauguralShowcase.dateLabel} at {inauguralShowcase.venue},
+      {' '}{inauguralShowcase.location}.
+    </p>
+  </Section>
+
+  <Section tone="surface" id="enquiry">
+    <SectionHead eyebrow="04 — Enquiry" title="Tell us what you have in mind.">
+      <p>
+        This form is a design preview. It does not send, store or transmit anything, and every control is disabled until
+        a recipient, privacy notice, consent wording and spam protection are approved.
+      </p>
+    </SectionHead>
+
+    <div class="enquiry">
+      <div class="enquiry__notice" role="note">
+        <p class="badge badge--review">Design preview · not active</p>
+        <p class="enquiry__notice-text">
+          Nothing typed here is captured or sent. Labels, help text and error messages are already wired to their
+          controls so the form is correct the moment it is switched on.
+        </p>
+      </div>
+
+      <form class="form-preview" novalidate aria-describedby="enquiry-status">
+        <p class="visually-hidden" id="enquiry-status">
+          This form is a design preview. Submission is disabled and no information is transmitted.
+        </p>
+        <div class="form-preview__row">
+          <Field id="partner-name" label="Your name" required autocomplete="name" />
+          <Field id="partner-organisation" label="Organisation" required autocomplete="organization" />
+        </div>
+        <div class="form-preview__row">
+          <Field id="partner-email" label="Email" type="email" required autocomplete="email"
+            help="Used only to reply to this enquiry." />
+          <Field id="partner-country" label="Country or city" autocomplete="country-name" />
+        </div>
+        <Field id="partner-type" label="Type of enquiry" type="select" required options={enquiryTypes} />
+        <Field id="partner-message" label="Your enquiry" type="textarea" required
+          help="What you have in mind, and any dates or venues you are working towards." />
+        <Field id="partner-timeline" label="Timeline" error="Example error state. Errors are announced through the control they belong to." />
+        <div class="enquiry__actions">
+          <Button type="submit" disabled describedBy="enquiry-status" size="large">Send enquiry</Button>
+          <p class="enquiry__actions-note">Disabled until the backend and privacy wording are approved.</p>
+        </div>
+      </form>
+    </div>
+  </Section>
+
+  <Section tone="ivory" size="tight">
+    <div class="cluster cluster--between">
+      <h2 style="font-size:clamp(1.5rem,3vw,2.25rem);margin:0;max-width:24ch">
+        Prefer to write directly?
+      </h2>
+      <p class="actions">
+        <Button href="/press-contact" variant="secondary">Press and contact<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
+      </p>
+    </div>
+  </Section>
+</Layout>
+
+<style>
+  .colour-band { display: flex; height: clamp(10px, 1.6vw, 20px); }
+  .colour-band span { flex: 1; }
+
+  .collab-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 0 clamp(16px, 3vw, 48px); }
+  .collab { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2xs); padding-block: var(--space-md); border-top: 1px solid var(--on-ink-rule); }
+  .collab__index { font-size: 0.625rem; letter-spacing: 0.14em; color: var(--gold); }
+  .collab__name { font-family: var(--font-display); font-size: clamp(1.375rem, 2.2vw, 1.75rem); line-height: 1.1; }
+
+  .enquiry { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: clamp(24px, 4vw, 64px); align-items: start; }
+  .enquiry__notice { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-sm); padding: var(--space-md); border: 1px dashed var(--border); background: rgb(255 255 255 / 55%); position: sticky; top: 108px; }
+  .enquiry__notice-text { font-size: 0.8125rem; line-height: 1.55; color: var(--muted); margin: 0; }
+  .enquiry__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-md); padding-top: var(--space-sm); border-top: 1px solid var(--border); }
+  .enquiry__actions-note { font-size: 0.75rem; line-height: 1.5; color: var(--muted); margin: 0; max-width: 30ch; }
+  @media (max-width: 899px) {
+    .enquiry { grid-template-columns: minmax(0, 1fr); }
+    .enquiry__notice { position: static; }
+  }
+</style>
