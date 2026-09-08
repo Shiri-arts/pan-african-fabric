@@ -1,0 +1,25 @@
+---
+/**
+ * A product presentation card. No price, stock, discount, preorder or cart control
+ * is rendered: none has been approved and no commerce integration exists.
+ */
+import Media from './Media.astro';
+import { productPath, type ProductRecord } from '../data/shop';
+interface Props { product: ProductRecord; }
+const { product } = Astro.props;
+const cover = product.gallery[0];
+---
+<a class="card card--link" href={productPath(product.slug)}>
+  {cover && <Media media={cover} showCaption={false} />}
+  <span class="card__body">
+    <span class="card__meta">
+      <span>{product.kind}</span>
+      {product.isSpecimen && <span class="badge badge--review">Template specimen</span>}
+    </span>
+    <span class="card__title">{product.title}</span>
+    <span class="card__foot">
+      <span class="badge badge--awaiting">Not available for purchase</span>
+      <span class="card__cue">View<span aria-hidden="true">&#8594;</span></span>
+    </span>
+  </span>
+</a>

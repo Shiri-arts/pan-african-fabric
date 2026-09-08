@@ -1,0 +1,51 @@
+---
+/**
+ * The confirmed event, presented as a poster.
+ *
+ * Only supplied fields render: title, date, time, venue and location. There is no
+ * countdown, because no timezone has been confirmed; the date block is static.
+ * Nothing about programme, partners, tickets or endorsement is added.
+ */
+import Button from './Button.astro';
+import { eventPath, eventPhase, posterDate, type EventRecord } from '../data/events';
+interface Props {
+  event: EventRecord;
+  /** Heading level so the poster fits the host page's outline. */
+  level?: 1 | 2 | 3;
+  kicker?: string;
+  linkToDetail?: boolean;
+  now?: Date;
+}
+const { event, level = 2, kicker, linkToDetail = true, now } = Astro.props;
+const Heading = `h${level}` as 'h1' | 'h2' | 'h3';
+const date = posterDate(event);
+const phase = eventPhase(event, now ?? new Date());
+const defaultKicker = phase === 'archive' ? 'Past event' : phase === 'today' ? 'Happening today' : 'Next event';
+---
+<div class="event-poster">
+  <div class="event-poster__date">
+    <p class="event-poster__kicker">{kicker ?? defaultKicker}</p>
+    <p class="event-poster__day">{date.day}</p>
+    <p class="event-poster__when">
+      <b>{date.month} {date.year}</b>
+      <span>{date.weekday}</span>
+      {event.timeLabel && <span>{event.timeLabel}</span>}
+    </p>
+  </div>
+  <div class="event-poster__body">
+    <Heading class="event-poster__title">{event.title}</Heading>
+    <dl class="event-poster__facts">
+      <div><dt>Date</dt><dd>{event.dateLabel}</dd></div>
+      {event.timeLabel && <div><dt>Time</dt><dd>{event.timeLabel}</dd></div>}
+      <div><dt>Venue</dt><dd>{event.venue}</dd></div>
+      <div><dt>Location</dt><dd>{event.location}</dd></div>
+    </dl>
+    {linkToDetail && (
+      <p class="actions">
+        <Button href={eventPath(event.slug)} variant="secondary">
+          Event details<span class="button__arrow" aria-hidden="true">&#8594;</span>
+        </Button>
+      </p>
+    )}
+  </div>
+</div>

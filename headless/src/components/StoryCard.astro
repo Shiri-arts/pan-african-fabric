@@ -1,0 +1,20 @@
+---
+import { storyPath, type StoryRecord } from '../data/stories';
+interface Props { story: StoryRecord; }
+const { story } = Astro.props;
+---
+<a class="card card--link" href={storyPath(story.slug)}>
+  <span class="card__body">
+    <span class="card__meta">
+      <span>{story.category}</span>
+      <span>{story.dateLabel}</span>
+      {story.isSpecimen && <span class="badge badge--review">Template specimen</span>}
+    </span>
+    <span class="card__title">{story.title}</span>
+    {story.standfirst && <span class="card__summary">{story.standfirst}</span>}
+    <span class="card__foot">
+      {story.author && <span class="card__meta"><span>{story.author}</span></span>}
+      <span class="card__cue">Read<span aria-hidden="true">&#8594;</span></span>
+    </span>
+  </span>
+</a>

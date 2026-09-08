@@ -1,0 +1,31 @@
+---
+import { eventPath, eventPhase, posterDate, type EventRecord } from '../data/events';
+interface Props { event: EventRecord; now?: Date; }
+const { event, now } = Astro.props;
+const date = posterDate(event);
+const phase = eventPhase(event, now ?? new Date());
+const kindLabel = event.kind.charAt(0).toUpperCase() + event.kind.slice(1);
+---
+<a class="card card--link" href={eventPath(event.slug)}>
+  <span class="card__body">
+    <span class="card__meta">
+      <span>{kindLabel}</span>
+      <span>{phase === 'archive' ? 'Archive' : 'Upcoming'}</span>
+    </span>
+    <span class="cluster" style="gap:16px;align-items:flex-start">
+      <span class="date-block" aria-hidden="true">
+        <span class="date-block__day">{date.day}</span>
+        <span class="date-block__month">{date.month.slice(0, 3)}</span>
+        <span class="date-block__year">{date.year}</span>
+      </span>
+      <span class="stack stack--sm">
+        <span class="card__title">{event.title}</span>
+        <span class="card__summary">{event.dateLabel}{event.timeLabel ? ` · ${event.timeLabel}` : ''}</span>
+        <span class="card__summary">{event.venue}, {event.location}</span>
+      </span>
+    </span>
+    <span class="card__foot">
+      <span class="card__cue">Event details<span aria-hidden="true">&#8594;</span></span>
+    </span>
+  </span>
+</a>

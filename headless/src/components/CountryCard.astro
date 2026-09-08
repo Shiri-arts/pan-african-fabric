@@ -1,0 +1,32 @@
+---
+/**
+ * A country entry. The country name supplies the accessible link text, the region
+ * is a text label rather than a colour, and an incomplete profile says so instead
+ * of presenting invented details. No flag or decorative motif is used.
+ */
+import { coloursForCountry } from '../data/colours';
+import { countryPath, regionName, type Country } from '../data/countries';
+interface Props { country: Country; index?: number; }
+const { country, index } = Astro.props;
+const colours = coloursForCountry(country.slug);
+const status = country.hasApprovedProfile ? 'Profile available' : 'Profile in review';
+---
+<a class="card card--link country-card" href={countryPath(country.slug)}>
+  <span class="card__rail" aria-hidden="true">
+    {colours.map((colour) => <span style={`--rail:var(${colour.variable})`}></span>)}
+  </span>
+  <span class="card__body">
+    <span class="card__meta">
+      {index !== undefined && <span>{String(index + 1).padStart(2, '0')}</span>}
+      <span>{regionName(country.region)}</span>
+    </span>
+    <span class="card__title">{country.name}</span>
+    <span class="card__summary">
+      {colours.length === 1 ? '1 colour' : `${colours.length} colours`} in the twelve-colour system
+    </span>
+    <span class="card__foot">
+      <span class="badge badge--awaiting">{status}</span>
+      <span class="card__cue">Open<span aria-hidden="true">&#8594;</span></span>
+    </span>
+  </span>
+</a>
