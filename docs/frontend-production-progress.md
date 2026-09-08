@@ -154,6 +154,82 @@ Screenshots are under ignored `output/playwright/` (full page) and
 6. **Missing favicon** produced a console 404. Added `public/favicon.svg`, built from the
    twelve supplied colour values. No logo was invented.
 
+## Batch 2 — wordmark and event countdown (2026-09-08)
+
+### Client decisions recorded
+
+- **Event timezone confirmed: US Eastern.** 26 September 2026 falls inside US daylight
+  time, so the offset is EDT, UTC-04:00. The event now carries exact instants
+  (`2026-09-26T13:00:00-04:00` to `17:00:00-04:00`) instead of floating wall-clock
+  times. This is what unblocks the countdown the brief previously prohibited, and it
+  lets the structured data emit a real `startDate` and `endDate`.
+- The homepage countdown bar **replaces** the event poster there. Venue, location and
+  time now appear on `/events` and the event detail route, not on the homepage.
+- The bar is built from the twelve Edition One colour values.
+- When no event is upcoming the section **collapses silently**.
+- Days, hours and minutes; seconds only inside the final hour.
+- Not dismissible: it is a page section, not an overlay.
+
+### Wordmark
+
+`THE PAN-AFRICAN FABRIC` now sits on one line everywhere, in the header and the footer.
+Measured: at 320px only 135px was free beside the old 105px "MENU" button, which would
+have forced the wordmark down to 9.6px. The toggle is now icon-only below 520px — a
+48x48 target whose label stays in the accessibility tree — and the row gap tightens,
+giving 208px. The wordmark renders at 13.6px there against a 14.7px ceiling, 15.1px at
+360px and 16.4px at 390px, and reaches its full size from about 500px up. The footer
+wordmark scales the same way and was given a 44px minimum target, which single-lining it
+had removed.
+
+### Countdown bar
+
+`EventCountdownBar.astro` follows `nextEvent()`, so it tracks whichever event is soonest
+and needs no per-event wiring. It renders nothing when nothing is upcoming.
+
+- Server-renders a real day count and the full date, so it is correct with no JavaScript
+  and cannot hydrate-mismatch.
+- Counts down only for an event with a confirmed timezone; `canCountDown()` gates it.
+- Removes itself the moment the event ends, which also corrects a response cached
+  before the end.
+- The ticking digits are `aria-hidden`; a static sentence carries the same information
+  and is rewritten only when the day count changes, because the brief prohibits
+  continuously moving text.
+- Under `prefers-reduced-motion` it stops updating and stays at day precision. The
+  movement goes; the day count, the full date and the link all remain.
+- The colour entry animation is finite and runs once, so nothing moves continuously
+  beside the rest of the page.
+- Timers align to the next real second or minute boundary rather than drifting.
+
+`eventPhase` now returns `upcoming` / `live` / `archive` from the exact instants when
+they exist, falling back to calendar-date comparison when a timezone is unconfirmed.
+
+### Verification for this batch
+
+Behaviour was tested against a controlled clock rather than by waiting for the date.
+All checks pass:
+
+| Simulated time | Result |
+|---|---|
+| 6 days before | `6 DAYS 0 HOURS 59 MINUTES`, accessible sentence correct, digits `aria-hidden` |
+| 90 minutes before | `1 HOUR 29 MINUTES` — no `0 DAYS` |
+| 30 minutes before | `29 MINUTES 58 SECONDS` — seconds appear, days gone |
+| During the event | kicker flips to `HAPPENING NOW`, timer reads `Live`, bar stays |
+| 1 second after the end | bar absent |
+| Loaded 30s before the end, clock run forward | bar removes itself |
+| Reduced motion | static `18 DAYS`, no updates over 3 simulated minutes, link intact |
+| No JavaScript | full title, date, time with `ET`, and `18 DAYS` all present |
+
+Two defects were found by these tests and fixed: the kicker stayed on "Next event" while
+the timer already read "Live", and the timer displayed a redundant `0 DAYS` in the last
+day. A third was found by the responsive suite: single-lining the footer wordmark
+dropped its touch target to 31px.
+
+Full suites re-run after the changes: responsive 72/72 across 12 routes x 6 widths with
+no overflow, one h1 each, no control under 44px, zero page and console errors;
+interaction and behaviour suites unchanged and passing; `astro check` 65 files 0/0/0;
+tests 8/8; both builds complete; production verifier 11 routes 200, 6 routes 404, with
+10 approved-content assertions and four countdown-integrity assertions.
+
 ## Known issues and limitations
 
 - **No screen-reader testing** was performed. No conformance claim is made. The target
@@ -190,7 +266,10 @@ permitted URL; press releases; verified coverage links; public contact address
 (`Info@thepanafricanfabric.com` was supplied as a work address, public use still
 pending); Instagram and founder-site destinations (held back behind a `verified` flag in
 `src/data/site.ts`, flip it once confirmed); production origin for canonical URLs;
-approved social share image; event timezone (blocks any countdown).
+approved social share image.
+
+The event timezone is **no longer outstanding**: the client confirmed US Eastern on
+8 September 2026.
 
 ## Boundaries held
 
@@ -238,6 +317,13 @@ and reverted independently. Every commit was typechecked in isolation: all 23 re
 21. Partner With Us and the form preview.
 22. The rewritten production-boundary verifier.
 23. This record.
+
+Batch 2 continues the same sequence:
+
+24. Confirmed Eastern time on the event model.
+25. The single-line wordmark and the icon-only narrow-width menu button.
+26. The homepage event countdown bar.
+27. Countdown coverage in the production verifier, and this record.
 
 Pushed to `wix-headless-migration`. Not merged to `main`, and never force-pushed: the
 history was arranged before the branch was published.
