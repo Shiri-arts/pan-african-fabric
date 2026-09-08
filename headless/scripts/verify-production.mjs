@@ -56,6 +56,10 @@ const approvedContent = {
     'One Fabric. Many African Stories.',
     'The Inaugural Pan-African Fabric &amp; Fashion Showcase',
     'Saturday, September 26, 2026',
+    // Venue and location returned to the homepage on the event banner.
+    'Smithsonian National Museum of African Art',
+    'Washington, D.C.',
+    '1:00 PM–5:00 PM ET',
     'Central African Republic',
     'Nigeria',
   ],
@@ -151,6 +155,10 @@ const home = await (await worker.fetch(new Request(origin + '/'), environment)).
 assert(home.includes('data-countdown '), 'Home is missing the event countdown bar');
 assert(home.includes('2026-09-26T13:00:00-04:00'), 'Countdown is missing the confirmed start instant');
 assert(/data-countdown-text[^>]*>[^<]*\d+ days? until/.test(home), 'Countdown is missing its static accessible sentence');
+// Continuous motion needs a way to stop it. The control ships in the markup, and
+// the duplicate scrolling copy must never be announced twice.
+assert(home.includes('data-countdown-pause'), 'Banner is missing its pause control');
+assert(/countdown__group" aria-hidden="true"/.test(home), 'Duplicate banner copy must be hidden from assistive technology');
 assert(/countdown__digits|data-countdown-digits[^>]*aria-hidden="true"/.test(home), 'Countdown digits must be hidden from assistive technology');
 
 console.log(JSON.stringify({

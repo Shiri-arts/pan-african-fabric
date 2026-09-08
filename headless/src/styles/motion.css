@@ -77,10 +77,17 @@
     clip-path: none !important;
   }
   .hero-enter > * { animation: none !important; opacity: 1; transform: none; }
-  /* The countdown's entry pass and gloss sweep are decoration; the bar still
-     carries its title, date, day count and link. */
-  .countdown__enter { animation: none !important; opacity: 1; transform: none; }
+  /*
+    The event banner scrolls and shines continuously by request. Under reduced
+    motion none of that runs: the detail line wraps as ordinary text and keeps the
+    title, date, time, venue, location, day count and link fully present.
+  */
   .countdown__shine { display: none; }
   .countdown__segment { animation: none !important; opacity: 1; transform: none; }
+  .countdown__lane { animation: none !important; transform: none !important; flex-wrap: wrap !important; width: auto !important; }
+  .countdown__marquee { overflow: visible !important; }
+  .countdown__group { white-space: normal; }
+  /* The duplicate copy exists only to make the loop seamless. */
+  .countdown__group[aria-hidden='true'] { display: none; }
   .scroll-progress { display: none; }
 }
