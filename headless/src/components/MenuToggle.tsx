@@ -54,7 +54,7 @@ export default function MenuToggle() {
       hidden={!enhanced}
       onClick={() => setOpen((value) => !value)}
     >
-      <span>{open ? 'Close' : 'Menu'}</span>
+      <span className="menu-toggle__label">{open ? 'Close' : 'Menu'}</span>
       <span className="menu-toggle__icon" aria-hidden="true"><i /><i /></span>
     </button>
   );
