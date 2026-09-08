@@ -1,0 +1,128 @@
+---
+/**
+ * Reusable editorial article template.
+ *
+ * No approved story exists, so every slug returns a real HTTP 404 in production.
+ * The review build resolves one self-describing template specimen so the layout,
+ * reading measure, metadata and progress indicator can be checked at every width.
+ */
+import Layout from '../../layouts/Layout.astro';
+import Section from '../../components/Section.astro';
+import Button from '../../components/Button.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import Media from '../../components/Media.astro';
+import NotFound from '../../components/NotFound.astro';
+import EventCard from '../../components/EventCard.astro';
+import { countryPath, findCountry } from '../../data/countries';
+import { findEvent } from '../../data/events';
+import { stories, storyPath } from '../../data/stories';
+import { reviewStories } from '../../lib/review';
+
+export const prerender = false;
+
+const all = [...stories, ...(await reviewStories())];
+const story = all.find((entry) => entry.slug === Astro.params.slug);
+if (!story) Astro.response.status = 404;
+
+const relatedCountries = story ? story.relatedCountries.map(findCountry).filter((value) => value !== undefined) : [];
+const relatedEvents = story ? story.relatedEvents.map(findEvent).filter((value) => value !== undefined) : [];
+---
+{!story ? (
+  <Layout title="Story not found" description="The requested story does not exist." path={Astro.url.pathname}>
+    <NotFound path={Astro.url.pathname} />
+  </Layout>
+) : (
+  <Layout
+    title={story.title}
+    description={story.standfirst ?? `${story.title}. A story from The Pan-African Fabric.`}
+    path={storyPath(story.slug)}
+    ogType="article"
+    progress
+  >
+    <Section tone="ivory" width="editorial" size="tight">
+      <Breadcrumbs trail={[{ href: '/stories', label: 'Stories' }]} current={story.title} />
+      <article class="article">
+        <header class="article__head">
+          <p class="article__meta">
+            <span>{story.category}</span>
+            <span aria-hidden="true">·</span>
+            <time datetime={story.isoDate}>{story.dateLabel}</time>
+            {story.isSpecimen && <span class="badge badge--review">Template specimen</span>}
+          </p>
+          <h1 class="article__title">{story.title}</h1>
+          {story.standfirst && <p class="article__standfirst">{story.standfirst}</p>}
+          {story.author && <p class="article__author">{story.author}</p>}
+        </header>
+
+        <Media media={story.hero} class="article__hero" />
+
+        <div class="article__body">
+          {story.body.map((block) => (
+            block.type === 'subheading' ? <h2 class="article__subheading">{block.text}</h2>
+            : block.type === 'pullquote' ? <blockquote class="article__pullquote"><p>{block.text}</p></blockquote>
+            : <p>{block.text}</p>
+          ))}
+        </div>
+      </article>
+    </Section>
+
+    {(relatedCountries.length > 0 || relatedEvents.length > 0) && (
+      <Section tone="paper" id="related">
+        <h2 class="related__title">Related</h2>
+        {relatedCountries.length > 0 && (
+          <>
+            <h3 class="related__heading">Countries</h3>
+            <ul class="cluster">
+              {relatedCountries.map((country) => (
+                <li><a class="related__link" href={countryPath(country.slug)}>{country.name}<span aria-hidden="true">&#8594;</span></a></li>
+              ))}
+            </ul>
+          </>
+        )}
+        {relatedEvents.length > 0 && (
+          <>
+            <h3 class="related__heading" style="margin-top:32px">Events</h3>
+            <ul class="card-grid card-grid--wide">
+              {relatedEvents.map((event) => <li><EventCard event={event} /></li>)}
+            </ul>
+          </>
+        )}
+      </Section>
+    )}
+
+    <Section tone="surface" size="tight">
+      <p class="actions">
+        <Button href="/stories" variant="secondary">All stories<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
+      </p>
+    </Section>
+  </Layout>
+)}
+
+<style>
+  .article__head { margin-bottom: var(--space-lg); }
+  .article__meta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2xs); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 var(--space-md); }
+  .article__title { font-size: clamp(2rem, 5.2vw, 3.75rem); line-height: 1.02; letter-spacing: -0.035em; margin: 0 0 var(--space-md); }
+  .article__standfirst { font-family: var(--font-display); font-size: clamp(1.125rem, 2vw, 1.5rem); line-height: 1.4; color: var(--muted); margin: 0 0 var(--space-md); max-width: 40ch; }
+  .article__author { font-size: 0.8125rem; letter-spacing: 0.04em; color: var(--muted); margin: 0; padding-top: var(--space-sm); border-top: 1px solid var(--border); }
+  .article__hero { margin-bottom: var(--space-xl); }
+  .article__body { font-size: 1.0625rem; line-height: 1.7; }
+  .article__body p { max-width: 62ch; margin-bottom: var(--space-md); }
+  .article__subheading { font-size: clamp(1.375rem, 2.4vw, 1.75rem); line-height: 1.2; margin: var(--space-xl) 0 var(--space-sm); }
+  .article__pullquote { margin: var(--space-xl) 0; padding-left: var(--space-md); border-left: 3px solid var(--gold); }
+  .article__pullquote p { font-family: var(--font-display); font-style: italic; font-size: clamp(1.25rem, 2.4vw, 1.75rem); line-height: 1.35; margin: 0; }
+  .related__title { font-size: clamp(1.5rem, 3vw, 2.25rem); margin: 0 0 var(--space-md); }
+  .related__heading { font-family: var(--font-body); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin: 0 0 var(--space-sm); }
+  .related__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: var(--control-min);
+    padding: 8px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    color: var(--text);
+    font-size: 0.875rem;
+    text-decoration: none;
+  }
+  .related__link:hover { border-color: var(--text); text-decoration: underline; text-underline-offset: 4px; }
+</style>

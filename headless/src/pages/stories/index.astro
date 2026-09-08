@@ -1,0 +1,80 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Section from '../../components/Section.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import Button from '../../components/Button.astro';
+import PageHero from '../../components/PageHero.astro';
+import StoryCard from '../../components/StoryCard.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import { storyCategories, stories } from '../../data/stories';
+import { mediaSlot } from '../../lib/media';
+import { reviewStories } from '../../lib/review';
+
+const all = [...stories, ...(await reviewStories())];
+const heroMedia = mediaSlot('stories-hero', '21/9', 'Approved editorial photograph: a workshop, a fitting, a preparation or a portrait.');
+---
+<Layout
+  title="Stories"
+  description="The living voice of The Pan-African Fabric: behind the scenes, country and designer stories, announcements, partnerships, founder reflections, interviews and milestones."
+  path="/stories"
+  header="overlay"
+>
+  <PageHero
+    eyebrow="Stories"
+    title="The living<span>voice.</span>"
+    size="tall"
+    media={heroMedia}
+    meta={['Behind the scenes', 'Interviews', 'Milestones']}
+  >
+    <p class="page-hero__intro lead">
+      Where the initiative speaks in its own words, as the work is being made rather than after it is finished.
+    </p>
+  </PageHero>
+
+  <Section tone="ivory" id="index">
+    <SectionHead eyebrow="Index" title="Everything published so far.">
+      <p>Stories are grouped by category and dated. Each one carries its author credit and links back to the countries, designers and events it touches.</p>
+    </SectionHead>
+    {all.length > 0 ? (
+      <ul class="card-grid card-grid--wide">
+        {all.map((story) => <li><StoryCard story={story} /></li>)}
+      </ul>
+    ) : (
+      <EmptyState
+        title="No stories have been published yet."
+        text="The index and the article template are complete. The first approved story appears here as soon as it is supplied, with no layout change needed."
+        layout="centred"
+      />
+    )}
+  </Section>
+
+  <Section tone="surface" id="categories">
+    <SectionHead eyebrow="Categories" title="What stories cover.">
+      <p>Each category has a layout ready. A category appears in the index only when a story is published in it.</p>
+    </SectionHead>
+    <ul class="category-list">
+      {storyCategories.map((category) => (
+        <li class="category">
+          <span class="category__name">{category}</span>
+          <span class="category__count">0</span>
+        </li>
+      ))}
+    </ul>
+  </Section>
+
+  <Section tone="ink" size="tight">
+    <div class="cluster cluster--between">
+      <h2 style="font-size:clamp(1.5rem,3vw,2.25rem);margin:0;max-width:22ch">Have a story from inside the initiative?</h2>
+      <p class="actions">
+        <Button href="/press-contact">Press and contact<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
+      </p>
+    </div>
+  </Section>
+</Layout>
+
+<style>
+  .category-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 0 clamp(16px, 3vw, 48px); }
+  .category { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-sm); padding-block: var(--space-sm); border-top: 1px solid var(--border); }
+  .category__name { font-family: var(--font-display); font-size: 1.125rem; line-height: 1.2; }
+  .category__count { font-size: 0.75rem; letter-spacing: 0.08em; color: var(--muted); }
+</style>
