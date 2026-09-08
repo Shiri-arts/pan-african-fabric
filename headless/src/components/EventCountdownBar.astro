@@ -14,9 +14,10 @@
  *
  * Accessibility: the ticking digits are hidden from assistive technology and a
  * static sentence carries the same information, because the brief prohibits
- * continuously moving text. Under prefers-reduced-motion the bar stops updating
- * and stays at day precision, which removes the movement while keeping every
- * piece of information and the link.
+ * continuously moving text. The title and date animate in once and then rest, so
+ * nothing moves continuously and no pause control is required by WCAG 2.2.2.
+ * Under prefers-reduced-motion the bar stops updating and stays at day precision,
+ * which removes the movement while keeping every piece of information and the link.
  */
 import { editionColours } from '../data/colours';
 import { canCountDown, eventPath, eventPhase, type EventRecord } from '../data/events';
@@ -45,7 +46,9 @@ const summary = event
   : '';
 ---
 {show && event && (
-  <section class="countdown" aria-labelledby="countdown-title">
+  <section class="countdown-band" aria-labelledby="countdown-title">
+    <div class="container">
+      <div class="countdown">
     <a
       class="countdown__link"
       href={eventPath(event.slug)}
@@ -57,10 +60,11 @@ const summary = event
         {editionColours.map((colour, index) => (
           <span class="countdown__segment" style={`background:var(${colour.variable});--i:${index}`}></span>
         ))}
+        <span class="countdown__shine"></span>
       </span>
 
       <span class="countdown__body">
-        <span class="countdown__lead">
+        <span class="countdown__lead countdown__enter">
           <span class="countdown__kicker" data-countdown-kicker>{live ? 'Happening now' : 'Next event'}</span>
           <span class="countdown__title" id="countdown-title">{event.title}</span>
           <span class="countdown__date">
@@ -82,7 +86,9 @@ const summary = event
         <span class="visually-hidden" data-countdown-text>{summary}</span>
         <span class="countdown__cue">Event details<span aria-hidden="true">&#8594;</span></span>
       </span>
-    </a>
+      </a>
+      </div>
+    </div>
   </section>
 )}
 

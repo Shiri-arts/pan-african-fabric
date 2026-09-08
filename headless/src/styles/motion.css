@@ -77,5 +77,10 @@
     clip-path: none !important;
   }
   .hero-enter > * { animation: none !important; opacity: 1; transform: none; }
+  /* The countdown's entry pass and gloss sweep are decoration; the bar still
+     carries its title, date, day count and link. */
+  .countdown__enter { animation: none !important; opacity: 1; transform: none; }
+  .countdown__shine { display: none; }
+  .countdown__segment { animation: none !important; opacity: 1; transform: none; }
   .scroll-progress { display: none; }
 }
