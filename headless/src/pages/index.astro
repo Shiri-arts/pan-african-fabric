@@ -5,8 +5,7 @@ import SectionHead from '../components/SectionHead.astro';
 import Button from '../components/Button.astro';
 import Copy from '../components/Copy.astro';
 import PageHero from '../components/PageHero.astro';
-import ColourGrid from '../components/ColourGrid.astro';
-import CountryIndex from '../components/CountryIndex.astro';
+import CountryGrid from '../components/CountryGrid.astro';
 import EventCountdownBar from '../components/EventCountdownBar.astro';
 import EmptyState from '../components/EmptyState.astro';
 import StoryCard from '../components/StoryCard.astro';
@@ -72,29 +71,19 @@ const partnerMedia = mediaSlot('home-partner', '4/5', 'Approved photograph from 
   <EventCountdownBar event={upcoming} />
 
   <Section tone="ivory" id="edition-one">
-    <SectionHead eyebrow="01 — Edition One" title="Twelve colours. One fabric.">
+    <SectionHead eyebrow="01 — Edition One" title="One fabric. Nine countries." top>
       <Copy copy={editionHeading} class="lead" fallbackTitle="Edition One heading" />
       <Copy copy={editionIntro} fallbackTitle="Edition One introduction" />
       <Button href="/edition-one" variant="text">
         Explore the edition<span class="button__arrow" aria-hidden="true">&#8594;</span>
       </Button>
     </SectionHead>
-    <ColourGrid tall label="The twelve colours of Edition One" />
-    <p class="caption" style="margin-top:24px;max-width:76ch">
-      Colour values are representative samples from the source artwork, which carries gentle gradients rather than flat
-      swatches. They are shown for on-screen review and are not print colour specifications. Cameroon, Ghana and South
-      Africa each carry two colours.
+    <CountryGrid label="The nine countries of Edition One" />
+    <p class="caption" style="margin-top:24px;max-width:78ch">
+      Each country carries its own colour from the Edition One fabric; Cameroon, Ghana and South Africa carry two.
+      Colour values are representative samples from the source artwork, which has gentle gradients rather than flat
+      swatches, and are shown for on-screen review rather than as print specifications.
     </p>
-
-    <div class="edition-countries">
-      <div class="edition-countries__head">
-        <h3 class="edition-countries__title">{COUNTRY_COUNT} countries across {REGION_COUNT} African regions.</h3>
-        <Button href="/edition-one" variant="text">
-          See all countries<span class="button__arrow" aria-hidden="true">&#8594;</span>
-        </Button>
-      </div>
-      <CountryIndex label="Edition One countries, with region and content status" />
-    </div>
   </Section>
 
   <Section tone="ink" id="designers">
@@ -169,17 +158,6 @@ const partnerMedia = mediaSlot('home-partner', '4/5', 'Approved photograph from 
 </Layout>
 
 <style>
-  .edition-countries { margin-top: clamp(40px, 5vw, 72px); }
-  .edition-countries__head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: var(--space-md);
-    margin-bottom: var(--space-md);
-  }
-  .edition-countries__title { font-size: clamp(1.25rem, 2.4vw, 1.75rem); line-height: 1.15; margin: 0; max-width: 22ch; }
-
   .designer-teaser { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); gap: clamp(24px, 5vw, 80px); align-items: center; }
   .designer-teaser__title { font-size: clamp(1.75rem, 4vw, 3rem); line-height: 1; letter-spacing: -0.035em; margin: 0; }
   .designer-teaser__body .lead { max-width: 42ch; }

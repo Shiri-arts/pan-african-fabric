@@ -8,12 +8,14 @@ interface Props {
   id?: string;
   wide?: boolean;
   stack?: boolean;
+  /** Top-align when the supporting column is much taller than the title. */
+  top?: boolean;
   class?: string;
 }
-const { eyebrow, title, level = 2, id, wide = false, stack = false, class: className } = Astro.props;
+const { eyebrow, title, level = 2, id, wide = false, stack = false, top = false, class: className } = Astro.props;
 const Heading = `h${level}` as 'h2' | 'h3';
 ---
-<div class:list={['section-head', wide && 'section-head--wide', stack && 'section-head--stack', className]}>
+<div class:list={['section-head', wide && 'section-head--wide', stack && 'section-head--stack', top && 'section-head--top', className]}>
   <div>
     {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
     <Heading id={id} class="section-head__title">{title}</Heading>

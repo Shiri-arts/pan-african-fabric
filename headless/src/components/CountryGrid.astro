@@ -1,0 +1,21 @@
+---
+/**
+ * The nine-country grid.
+ *
+ * This is the country index: every country appears exactly once, so no separate
+ * list is needed beneath it. Colour is the ground rather than the subject, and
+ * country, region and status are all text.
+ */
+import CountryTile from './CountryTile.astro';
+import { countries } from '../data/countries';
+
+interface Props { label?: string; class?: string; }
+const { label = 'Edition One countries', class: className } = Astro.props;
+---
+<ul class:list={['tile-grid', className]} aria-label={label}>
+  {countries.map((country, index) => (
+    <li data-reveal="rise" style={`--reveal-delay:${Math.min(index, 8) * 45}ms`}>
+      <CountryTile country={country} index={index} />
+    </li>
+  ))}
+</ul>

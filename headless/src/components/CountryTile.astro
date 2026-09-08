@@ -1,0 +1,39 @@
+---
+/**
+ * A fully-coloured country tile.
+ *
+ * The card ground is the country's first Edition One colour and carries every
+ * label. A country with two colours shows the second as a band along the edge, so
+ * both colours are present without text ever crossing a contrast boundary.
+ *
+ * Text colour comes from the measured value on each colour, not from a guess. All
+ * twelve clear 4.5:1 for normal-size text, so the country, region and status can
+ * all sit on the colour itself.
+ */
+import { coloursForCountry } from '../data/colours';
+import { countryPath, regionName, type Country } from '../data/countries';
+
+interface Props { country: Country; index: number; }
+const { country, index } = Astro.props;
+
+const colours = coloursForCountry(country.slug);
+const ground = colours[0]!;
+const second = colours[1];
+const style = [
+  `--tile:${ground.hex}`,
+  `--tile-on:${ground.textOn}`,
+  second ? `--tile-second:${second.hex}` : '',
+].filter(Boolean).join(';');
+---
+<a class:list={['tile', second && 'tile--dual']} href={countryPath(country.slug)} style={style}>
+  {second && <span class="tile__band" aria-hidden="true"></span>}
+  <span class="tile__top">
+    <span class="tile__index">{String(index + 1).padStart(2, '0')}</span>
+    <span class="tile__region">{regionName(country.region)}</span>
+  </span>
+  <span class="tile__name">{country.name}</span>
+  <span class="tile__foot">
+    <span class="tile__status">{country.hasApprovedProfile ? 'Profile available' : 'Profile in review'}</span>
+    <span class="tile__go">View country<span aria-hidden="true">&#8594;</span></span>
+  </span>
+</a>
