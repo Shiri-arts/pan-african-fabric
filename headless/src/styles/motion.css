@@ -1,0 +1,81 @@
+/*
+  Motion.
+
+  Everything below is transform/opacity only and driven by one small
+  IntersectionObserver. Content is fully present before any reveal runs: elements
+  start visible for users without JavaScript, and the observer opts them into the
+  animation only after it has confirmed it can also finish it.
+*/
+
+/* Only elements the script has claimed are hidden, so no-JS keeps everything visible. */
+[data-reveal].is-armed {
+  opacity: 0;
+  transform: translate3d(0, 24px, 0);
+}
+[data-reveal].is-armed.is-revealed {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--duration-slow) var(--ease-editorial),
+    transform var(--duration-slow) var(--ease-editorial);
+}
+[data-reveal='mask'].is-armed { opacity: 1; transform: none; clip-path: inset(0 0 100% 0); }
+[data-reveal='mask'].is-armed.is-revealed { clip-path: inset(0 0 0 0); transition: clip-path var(--duration-slow) var(--ease-editorial); }
+[data-reveal='rise'].is-armed { transform: translate3d(0, 48px, 0); }
+[data-reveal='fade'].is-armed { transform: none; }
+
+/* Staggered entrances share one custom property rather than per-element rules. */
+[style*='--reveal-delay'].is-armed.is-revealed { transition-delay: var(--reveal-delay); }
+
+/* Hero entrance runs once on load; it does not wait for the observer. */
+.hero-enter > * { animation: hero-rise 620ms var(--ease-editorial) both; }
+.hero-enter > *:nth-child(1) { animation-delay: 0ms; }
+.hero-enter > *:nth-child(2) { animation-delay: 70ms; }
+.hero-enter > *:nth-child(3) { animation-delay: 140ms; }
+.hero-enter > *:nth-child(4) { animation-delay: 210ms; }
+.hero-enter > *:nth-child(5) { animation-delay: 280ms; }
+
+@keyframes hero-rise {
+  from { opacity: 0; transform: translate3d(0, 28px, 0); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Scroll progress on long editorial routes. */
+.scroll-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: 3px;
+  z-index: 60;
+  background: transparent;
+  pointer-events: none;
+}
+.scroll-progress__bar {
+  height: 100%;
+  width: 100%;
+  transform-origin: 0 50%;
+  transform: scaleX(var(--progress, 0));
+  background: var(--accent);
+}
+
+/*
+  Reduced motion removes all nonessential movement while preserving every piece of
+  information and every interaction. Reveal elements resolve to their final state.
+*/
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+  [data-reveal].is-armed,
+  [data-reveal].is-armed.is-revealed {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+  .hero-enter > * { animation: none !important; opacity: 1; transform: none; }
+  .scroll-progress { display: none; }
+}

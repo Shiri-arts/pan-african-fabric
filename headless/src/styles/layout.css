@@ -1,0 +1,92 @@
+/* Containers, sections and the asymmetric editorial grid. */
+
+.container {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  max-width: calc(var(--container-standard) + var(--gutter) * 2);
+}
+.container--editorial { max-width: calc(var(--container-editorial) + var(--gutter) * 2); }
+.container--gallery { max-width: calc(var(--container-gallery) + var(--gutter) * 2); }
+.container--full { max-width: none; padding-inline: 0; }
+
+.section {
+  position: relative;
+  padding-block: var(--section-block);
+}
+.section--tight { padding-block: clamp(40px, 5vw, 72px); }
+.section--flush-top { padding-top: 0; }
+.section--flush-bottom { padding-bottom: 0; }
+.section--ivory { background: var(--canvas); }
+.section--paper { background: var(--paper); }
+.section--surface { background: var(--surface); }
+.section--ink { background: var(--ink-deep); }
+.section--ruled + .section--ruled { border-top: 1px solid var(--border); }
+
+/* Section heading pair: title left, supporting column right, deliberately uneven. */
+.section-head {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(24px, 5vw, 96px);
+  align-items: end;
+  margin-bottom: clamp(32px, 4vw, 64px);
+}
+.section-head__title { margin: 0; max-width: 16ch; }
+.section-head--wide .section-head__title { max-width: 22ch; }
+.section-head__aside { display: flex; flex-direction: column; gap: var(--space-md); align-items: flex-start; }
+.section-head__aside p { color: var(--muted); max-width: 42ch; }
+.section-head--stack { grid-template-columns: minmax(0, 1fr); align-items: start; }
+
+/* Editorial grid: 12 columns at desktop, 8 at tablet, 4 at mobile. */
+.grid {
+  display: grid;
+  gap: clamp(20px, 2.4vw, 40px);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+.grid--gapless { gap: 0; }
+.span-3 { grid-column: span 3; }
+.span-4 { grid-column: span 4; }
+.span-5 { grid-column: span 5; }
+.span-6 { grid-column: span 6; }
+.span-7 { grid-column: span 7; }
+.span-8 { grid-column: span 8; }
+.span-12 { grid-column: span 12; }
+.start-2 { grid-column-start: 2; }
+.start-7 { grid-column-start: 7; }
+
+/* Auto-fitting card rails used by country, story, product and event lists. */
+.card-grid {
+  display: grid;
+  gap: clamp(16px, 2vw, 32px);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+}
+.card-grid--wide { grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); }
+.card-grid--narrow { grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); }
+
+.stack { display: flex; flex-direction: column; }
+.stack--sm { gap: var(--space-sm); }
+.stack--md { gap: var(--space-md); }
+.stack--lg { gap: var(--space-lg); }
+.stack--xl { gap: var(--space-xl); }
+
+.cluster { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-md); }
+.cluster--between { justify-content: space-between; }
+.cluster--sm { gap: var(--space-2xs); }
+
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-md); }
+
+@media (min-width: 768px) { :root { --gutter: 32px; } }
+@media (min-width: 1100px) { :root { --gutter: 48px; } }
+
+@media (max-width: 1023px) {
+  .section-head { grid-template-columns: minmax(0, 1fr); align-items: start; gap: var(--space-md); }
+  .section-head__title { max-width: 20ch; }
+  .span-3, .span-4, .span-5 { grid-column: span 6; }
+  .span-7, .span-8 { grid-column: span 12; }
+  .start-2, .start-7 { grid-column-start: auto; }
+}
+
+@media (max-width: 767px) {
+  .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .span-3, .span-4, .span-5, .span-6, .span-7, .span-8, .span-12 { grid-column: span 4; }
+}

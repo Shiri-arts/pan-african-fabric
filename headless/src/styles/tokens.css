@@ -1,0 +1,121 @@
+/*
+  The Pan-African Fabric — design tokens.
+
+  Neutral brand tokens continue docs/phase-1/design-tokens.json unchanged.
+  The twelve contextual Edition One colours are added alongside them; they never
+  replace the neutral editorial base. Every text pairing recorded here was
+  measured, not assumed — see docs/frontend-production-progress.md.
+*/
+
+:root {
+  /* --- Neutral brand base (unchanged from Phase 1) --- */
+  --canvas: #f7f3e8;          /* warm ivory, the calm editorial base */
+  --surface: #ffffff;
+  --paper: #efe8d8;           /* alternating warm section, ink 13.12:1 */
+  --text: #24211e;            /* charcoal, 14.44:1 on ivory */
+  --muted: #665f57;           /* 5.67:1 on ivory, 5.15:1 on paper */
+  --accent: #8b2f24;          /* rust, 7.49:1 on ivory */
+  --accent-hover: #651d18;    /* 10.87:1 on ivory */
+  --gold: #d9a521;            /* decorative only on light; 8.18:1 on deep ink */
+  --border: #d8d0c2;
+  --input-border: #857a6c;
+  --focus: #116dff;
+  --focus-contrast: #ffffff;
+  --error: #a02020;
+
+  /* --- Dark editorial sections --- */
+  --ink-deep: #161412;
+  --on-ink: #f7f3e8;          /* 16.57:1 */
+  --on-ink-muted: #b8afa2;    /* 8.48:1 */
+  --on-ink-accent: #d9695b;   /* rust lifted for dark ground, 5.36:1 */
+  --on-ink-rule: #3d3833;     /* decorative hairline, carries no information */
+
+  /* --- Type --- */
+  --font-display: 'Libre Caslon Text', Georgia, 'Times New Roman', serif;
+  --font-body: Archivo, 'Helvetica Neue', Arial, sans-serif;
+  --step-display: clamp(3.25rem, 11vw, 9.25rem);
+  --step-title: clamp(2.5rem, 6.2vw, 5rem);
+  --step-h1: clamp(2.25rem, 5vw, 3.5rem);
+  --step-h2: clamp(1.75rem, 3.2vw, 2.5rem);
+  --step-h3: clamp(1.375rem, 2vw, 1.75rem);
+  --step-lead: clamp(1.0625rem, 1.15vw, 1.25rem);
+  --step-body: 1rem;
+  --step-caption: 0.8125rem;
+  --step-label: 0.75rem;
+  --tracking-label: 0.09em;
+
+  /* --- Space (4/8/12/16/24/32/48/64/96/128) --- */
+  --space-3xs: 4px;  --space-2xs: 8px;  --space-xs: 12px; --space-sm: 16px;
+  --space-md: 24px;  --space-lg: 32px;  --space-xl: 48px; --space-2xl: 64px;
+  --space-3xl: 96px; --space-4xl: 128px;
+  --section-block: clamp(56px, 8vw, 128px);
+  --gutter: 24px;
+
+  /* --- Shape: square media, restrained controls --- */
+  --radius-control: 4px;
+  --radius-media: 0;
+  --radius-pill: 999px;
+  --control-min: 48px;
+  --touch-min: 44px;
+  /* .header-row min-height plus its 1px bottom border. */
+  --header-h: 77px;
+
+  /* --- Containers --- */
+  --container-editorial: 816px;
+  --container-standard: 1296px;
+  --container-gallery: 1536px;
+
+  /* --- Motion --- */
+  --duration-fast: 140ms;
+  --duration-base: 260ms;
+  --duration-slow: 620ms;
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-editorial: cubic-bezier(0.16, 0.84, 0.44, 1);
+
+  /* --- Contextual accent: defaults to rust, overridden per country/colour --- */
+  --context: var(--accent);
+  --context-on: var(--surface);
+}
+
+/*
+  Edition One twelve-colour system.
+
+  Representative samples from four unobstructed areas of each panel of the source
+  artwork (1086x1448, SHA-256 454E0F88...C08AD). The artwork carries gentle
+  gradients; these are review values, not print colour specifications.
+
+  --edition-*-on is the measured accessible text colour for normal-size text on
+  that field. Hot pink reaches only 4.19:1 (white) / 3.82:1 (charcoal), so it is
+  restricted to large display text and its authoritative label is always set on a
+  neutral band instead. Colour is never the sole carrier of country information.
+*/
+:root {
+  --edition-dark-green: #34514a;  --edition-dark-green-on: #ffffff;  /*  8.67:1 */
+  --edition-red: #ea021a;         --edition-red-on: #ffffff;         /*  4.64:1 */
+  --edition-yellow: #d6ba06;      --edition-yellow-on: #24211e;      /*  8.30:1 */
+  --edition-pink: #e5a09b;        --edition-pink-on: #24211e;        /*  7.50:1 */
+  --edition-black: #020605;       --edition-black-on: #ffffff;       /* 20.37:1 */
+  --edition-white: #fcf7f8;       --edition-white-on: #24211e;       /* 15.10:1 */
+  --edition-blue: #199edc;        --edition-blue-on: #24211e;        /*  5.31:1 */
+  --edition-mint-green: #92d9ca;  --edition-mint-green-on: #24211e;  /*  9.91:1 */
+  --edition-orange: #d76921;      --edition-orange-on: #24211e;      /*  4.52:1 */
+  --edition-hot-pink: #e3327c;    --edition-hot-pink-on: #ffffff;    /*  4.19:1 large text only */
+  --edition-purple: #540c84;      --edition-purple-on: #ffffff;      /* 11.91:1 */
+  --edition-green: #028201;       --edition-green-on: #ffffff;       /*  5.00:1 */
+}
+
+/* Dark editorial ground remaps the neutral roles rather than redefining colours. */
+.on-ink {
+  --text: var(--on-ink);
+  --muted: var(--on-ink-muted);
+  --border: var(--on-ink-rule);
+  --surface: var(--ink-deep);
+  --canvas: var(--ink-deep);
+  --accent: var(--on-ink-accent);
+  --accent-hover: #f0928a;
+  --focus-contrast: var(--ink-deep);
+  --context: var(--on-ink-accent);
+  --context-on: var(--ink-deep);
+  color: var(--on-ink);
+  background-color: var(--ink-deep);
+}
