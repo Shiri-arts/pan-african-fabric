@@ -1,0 +1,26 @@
+---
+/**
+ * The twelve-colour system.
+ *
+ * Semantic HTML and CSS, not the source raster. Every panel exposes its colour
+ * name, country and region as text, is a real link so it works with keyboard and
+ * without JavaScript, and is understandable with animation switched off. Colour is
+ * never the only carrier of country information: the neutral label band beneath
+ * each field repeats it at 14.44:1.
+ */
+import ColourPanel from './ColourPanel.astro';
+import { editionColours } from '../data/colours';
+interface Props { tall?: boolean; label?: string; class?: string; }
+const { tall = false, label = 'Edition One colours', class: className } = Astro.props;
+---
+<ul
+  class:list={['colour-grid', tall && 'colour-grid--tall', className]}
+  aria-label={label}
+  data-reveal-group
+>
+  {editionColours.map((colour, index) => (
+    <li data-reveal="rise" style={`--reveal-delay:${Math.min(index, 8) * 45}ms`}>
+      <ColourPanel colour={colour} />
+    </li>
+  ))}
+</ul>

@@ -1,0 +1,15 @@
+---
+import { colourStyle, coloursForCountry } from '../data/colours';
+import type { CountrySlug } from '../data/countries';
+interface Props { country: CountrySlug; label?: string; }
+const { country, label = 'Edition One colours for this country' } = Astro.props;
+const colours = coloursForCountry(country);
+---
+<ul class="colour-chips" aria-label={label}>
+  {colours.map((colour) => (
+    <li class="colour-chip" style={colourStyle(colour)}>
+      <span class="colour-chip__dot" aria-hidden="true"></span>
+      <span>{colour.name}</span>
+    </li>
+  ))}
+</ul>
