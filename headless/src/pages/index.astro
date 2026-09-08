@@ -12,7 +12,7 @@ import EmptyState from '../components/EmptyState.astro';
 import StoryCard from '../components/StoryCard.astro';
 import Media from '../components/Media.astro';
 import { COLOUR_COUNT } from '../data/colours';
-import { COUNTRY_COUNT, REGION_COUNT, countries, countryPath, regionName } from '../data/countries';
+import { COUNTRY_COUNT, REGION_COUNT } from '../data/countries';
 import { eventPath, eventStructuredData, nextEvent } from '../data/events';
 import { TAGLINE, fastFacts } from '../data/site';
 import { stories } from '../data/stories';
@@ -37,11 +37,6 @@ const editionHeading = review
 const editionIntro = review
   ? draft(review.home.editionIntro, 'Founder / content lead')
   : awaiting('Edition One introduction');
-
-const designerSlots = countries.map((country) => ({
-  country,
-  designer: review?.designerRoster.find((entry) => entry.country === country.slug),
-}));
 
 const heroMedia = mediaSlot('home-hero', '16/9', 'Approved hero photograph with separate desktop and mobile crops, focal point, alt text, credit and reuse permission.');
 const partnerMedia = mediaSlot('home-partner', '4/5', 'Approved photograph from a public programme, workshop or exhibition.');
@@ -103,37 +98,23 @@ const partnerMedia = mediaSlot('home-partner', '4/5', 'Approved photograph from 
   </Section>
 
   <Section tone="ink" id="designers">
-    <SectionHead eyebrow="02 — Designers and garments" title="One fabric, interpreted nine ways.">
-      <p>
-        Every country works with the same fabric and arrives somewhere different. Designer profiles, creative statements
-        and finished garments publish only once the designer has approved them.
-      </p>
-    </SectionHead>
-    <ul class="card-grid card-grid--narrow">
-      {designerSlots.map(({ country, designer }) => (
-        <li>
-          <div class="designer-slot">
-            <p class="designer-slot__region">{regionName(country.region)}</p>
-            <p class="designer-slot__country">{country.name}</p>
-            {designer ? (
-              <p class="designer-slot__name">
-                {designer.designer}
-                <span class="draft-copy__mark"><span class="visually-hidden">Status: </span>Working roster · not approved</span>
-              </p>
-            ) : (
-              <p class="designer-slot__name designer-slot__name--empty">Designer to be announced</p>
-            )}
-            <a class="designer-slot__link" href={countryPath(country.slug)}>
-              Country page<span aria-hidden="true">&#8594;</span>
-            </a>
-          </div>
-        </li>
-      ))}
-    </ul>
-    <p class="caption" style="margin-top:32px;color:var(--on-ink-muted);max-width:70ch">
-      No biography, creative statement, garment image or credit is published here. Those are content dependencies, not
-      design gaps.
-    </p>
+    <div class="designer-teaser">
+      <div>
+        <p class="eyebrow"><span>02 — Designers and garments</span></p>
+        <h2 class="designer-teaser__title">One fabric,<br />interpreted nine ways.</h2>
+      </div>
+      <div class="designer-teaser__body">
+        <p class="lead">
+          Every country works with the same fabric and arrives somewhere different. Designer profiles, creative
+          statements and finished garments publish only once the designer has approved them.
+        </p>
+        <p class="actions">
+          <Button href="/edition-one#designers" variant="secondary">
+            Meet the designers<span class="button__arrow" aria-hidden="true">&#8594;</span>
+          </Button>
+        </p>
+      </div>
+    </div>
   </Section>
 
   <Section tone="ivory" id="stories">
@@ -188,33 +169,6 @@ const partnerMedia = mediaSlot('home-partner', '4/5', 'Approved photograph from 
 </Layout>
 
 <style>
-  .designer-slot {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    height: 100%;
-    padding: var(--space-md);
-    border: 1px solid var(--on-ink-rule);
-  }
-  .designer-slot__region { font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin: 0; }
-  .designer-slot__country { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.1; margin: 0; }
-  .designer-slot__name { font-size: 0.875rem; line-height: 1.45; color: var(--on-ink-muted); margin: 0; }
-  .designer-slot__name--empty { font-style: italic; }
-  .designer-slot__link {
-    margin-top: auto;
-    padding-top: var(--space-sm);
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    min-height: var(--touch-min);
-    font-size: 0.6875rem;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-    color: var(--on-ink);
-    text-decoration: none;
-  }
-  .designer-slot__link:hover { text-decoration: underline; text-underline-offset: 5px; }
-
   .edition-countries { margin-top: clamp(40px, 5vw, 72px); }
   .edition-countries__head {
     display: flex;
@@ -225,6 +179,11 @@ const partnerMedia = mediaSlot('home-partner', '4/5', 'Approved photograph from 
     margin-bottom: var(--space-md);
   }
   .edition-countries__title { font-size: clamp(1.25rem, 2.4vw, 1.75rem); line-height: 1.15; margin: 0; max-width: 22ch; }
+
+  .designer-teaser { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); gap: clamp(24px, 5vw, 80px); align-items: center; }
+  .designer-teaser__title { font-size: clamp(1.75rem, 4vw, 3rem); line-height: 1; letter-spacing: -0.035em; margin: 0; }
+  .designer-teaser__body .lead { max-width: 42ch; }
+  @media (max-width: 899px) { .designer-teaser { grid-template-columns: minmax(0, 1fr); } }
 
   .partner-block { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(24px, 5vw, 80px); align-items: center; }
   .partner-block__title { font-size: clamp(2.25rem, 5.4vw, 4.5rem); line-height: 0.98; letter-spacing: -0.04em; margin: 0 0 var(--space-md); }

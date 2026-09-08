@@ -10,13 +10,20 @@ import CountryCard from '../../components/CountryCard.astro';
 import EmptyState from '../../components/EmptyState.astro';
 import Media from '../../components/Media.astro';
 import { COLOUR_COUNT } from '../../data/colours';
-import { COUNTRY_COUNT, REGION_COUNT, countries, countriesByRegion } from '../../data/countries';
+import { COUNTRY_COUNT, REGION_COUNT, countries, countriesByRegion, countryPath, regionName } from '../../data/countries';
 import { awaiting, draft } from '../../lib/content';
 import { mediaSlot } from '../../lib/media';
 import { loadReviewCopy } from '../../lib/review';
 
 const review = await loadReviewCopy();
 const grouped = countriesByRegion();
+
+// The designer framework moved here from the homepage: this is its canonical page.
+// Roster names are a working source and appear only in the review build.
+const designerSlots = countries.map((country) => ({
+  country,
+  designer: review?.designerRoster.find((entry) => entry.country === country.slug),
+}));
 
 const lead = review
   ? draft(review.editionOne.lead, 'Founder / content lead')
@@ -118,8 +125,42 @@ const process = [
     </ul>
   </Section>
 
+  <Section tone="ink" id="designers">
+    <SectionHead eyebrow="05 — The designers" title="One fabric, interpreted nine ways.">
+      <p>
+        Every country works with the same fabric and arrives somewhere different. A profile opens only once the
+        designer has approved their name, biography, statement and images.
+      </p>
+    </SectionHead>
+    <ul class="card-grid card-grid--narrow">
+      {designerSlots.map(({ country, designer }) => (
+        <li>
+          <div class="designer-slot">
+            <p class="designer-slot__region">{regionName(country.region)}</p>
+            <p class="designer-slot__country">{country.name}</p>
+            {designer ? (
+              <p class="designer-slot__name">
+                {designer.designer}
+                <span class="draft-copy__mark"><span class="visually-hidden">Status: </span>Working roster · not approved</span>
+              </p>
+            ) : (
+              <p class="designer-slot__name designer-slot__name--empty">Designer to be announced</p>
+            )}
+            <a class="designer-slot__link" href={countryPath(country.slug)}>
+              Country page<span aria-hidden="true">&#8594;</span>
+            </a>
+          </div>
+        </li>
+      ))}
+    </ul>
+    <p class="caption" style="margin-top:32px;color:var(--on-ink-muted);max-width:70ch">
+      No biography, creative statement, garment image or credit is published here. Those are content dependencies, not
+      design gaps.
+    </p>
+  </Section>
+
   <Section tone="ink" id="process">
-    <SectionHead eyebrow="05 — The creative process" title="From cloth to finished garment.">
+    <SectionHead eyebrow="06 — The creative process" title="From cloth to finished garment.">
       <p>Four stages carry the edition. Each one opens when its approved account is supplied.</p>
     </SectionHead>
     <ol class="process">
@@ -135,7 +176,7 @@ const process = [
   </Section>
 
   <Section tone="surface" id="garments">
-    <SectionHead eyebrow="06 — Garments and accessories" title="The finished work.">
+    <SectionHead eyebrow="07 — Garments and accessories" title="The finished work.">
       <p>Garment and accessory galleries publish only with approved photography, captions and full credits.</p>
       <Button href="/shop" variant="text">Visit the shop<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
     </SectionHead>
@@ -169,6 +210,33 @@ const process = [
     border-bottom: 1px solid var(--border);
   }
   .region__link:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 5px; }
+
+  .designer-slot {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    height: 100%;
+    padding: var(--space-md);
+    border: 1px solid var(--on-ink-rule);
+  }
+  .designer-slot__region { font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin: 0; }
+  .designer-slot__country { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.1; margin: 0; }
+  .designer-slot__name { font-size: 0.875rem; line-height: 1.45; color: var(--on-ink-muted); margin: 0; }
+  .designer-slot__name--empty { font-style: italic; }
+  .designer-slot__link {
+    margin-top: auto;
+    padding-top: var(--space-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: var(--touch-min);
+    font-size: 0.6875rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--on-ink);
+    text-decoration: none;
+  }
+  .designer-slot__link:hover { text-decoration: underline; text-underline-offset: 5px; }
 
   .process { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 0; }
   .process__item {
