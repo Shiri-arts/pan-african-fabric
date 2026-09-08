@@ -1,0 +1,71 @@
+---
+/**
+ * Global header.
+ *
+ * Over a dark hero it starts quiet and transparent, then becomes a solid,
+ * accessible bar as soon as the page scrolls past the hero. The scroll state is
+ * driven by an IntersectionObserver on a sentinel rather than a scroll listener,
+ * and its absence degrades to the solid header.
+ */
+import Container from './Container.astro';
+import MenuToggle from './MenuToggle';
+import { isCurrent, navigation, primaryAction } from '../data/navigation';
+interface Props { mode?: 'solid' | 'overlay'; }
+const { mode = 'solid' } = Astro.props;
+const path = Astro.url.pathname;
+---
+<span id="header-sentinel" aria-hidden="true" style={`--sentinel-height:${mode === 'overlay' ? 'min(58vh, 560px)' : '16px'}`}></span>
+<header class="site-header" data-mode={mode} data-stuck="false">
+  <Container class="header-row">
+    <a class="brand" href="/" aria-label="The Pan-African Fabric, home">
+      <span class="brand__name"><span>The Pan-African</span><span>Fabric</span></span>
+    </a>
+    <MenuToggle client:load />
+    <nav id="primary-navigation" class="header-nav" aria-label="Main">
+      <ul class="header-nav__list">
+        {navigation.map((item) => (
+          <li>
+            <a
+              class="header-nav__link"
+              href={item.href}
+              aria-current={isCurrent(item.href, path) ? 'page' : undefined}
+            >
+              {item.label}
+              <span class="header-purpose" aria-hidden="true">{item.purpose}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <a
+        class="header-action"
+        href={primaryAction.href}
+        aria-current={isCurrent(primaryAction.href, path) ? 'page' : undefined}
+      >{primaryAction.label}</a>
+    </nav>
+  </Container>
+</header>
+<style>
+  /*
+    Depth marker for the header's scroll state. Absolutely positioned so it never
+    affects layout; its height is how far the page must scroll before a quiet
+    overlay header becomes solid.
+  */
+  #header-sentinel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: var(--sentinel-height, 16px);
+    pointer-events: none;
+  }
+</style>
+<script>
+  const header = document.querySelector<HTMLElement>('.site-header');
+  const sentinel = document.getElementById('header-sentinel');
+  if (header && sentinel && 'IntersectionObserver' in window) {
+    new IntersectionObserver(
+      ([entry]) => header.setAttribute('data-stuck', entry && entry.isIntersecting ? 'false' : 'true'),
+      { rootMargin: '0px' },
+    ).observe(sentinel);
+  }
+</script>

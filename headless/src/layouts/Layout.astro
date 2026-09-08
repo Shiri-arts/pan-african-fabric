@@ -3,27 +3,51 @@ import '@fontsource/libre-caslon-text/400.css';
 import '@fontsource/libre-caslon-text/400-italic.css';
 import '@fontsource/archivo/400.css';
 import '@fontsource/archivo/500.css';
-import '../styles/global.css';
-import Navigation from '../components/Navigation.astro';
+import '@fontsource/archivo/600.css';
+import '../styles/tokens.css';
+import '../styles/base.css';
+import '../styles/layout.css';
+import '../styles/components.css';
+import '../styles/motion.css';
+
+import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
-interface Props { title?: string; }
-const { title = 'The Pan-African Fabric' } = Astro.props;
-const draft = import.meta.env.DEV ? (await import('../data/review.server')).review : undefined;
+import Meta from '../components/Meta.astro';
+import Reveal from '../components/Reveal.astro';
+import ScrollProgress from '../components/ScrollProgress.astro';
+import { loadReviewCopy } from '../lib/review';
+import type { PageMeta } from '../lib/seo';
+
+interface Props extends PageMeta {
+  /** Quiet transparent header over a dark hero; solid everywhere else. */
+  header?: 'solid' | 'overlay';
+  progress?: boolean;
+}
+const { header = 'solid', progress = false, ...meta } = Astro.props;
+const review = await loadReviewCopy();
 ---
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="robots" content="noindex, nofollow" />
-    <meta name="theme-color" content="#F7F3E8" />
-    <title>{title === 'The Pan-African Fabric' ? title : `${title} | The Pan-African Fabric`}</title>
+    <meta name="theme-color" content="#161412" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="color-scheme" content="light" />
+    <Meta {...meta} />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
-    {draft && <aside class="review-notice" aria-label="Local review notice"><span>Phase 1 · Local review</span><span>Draft copy. No approved media. Not published.</span></aside>}
-    <Navigation tagline={draft?.tagline} />
-    <main id="main" tabindex="-1"><slot /></main>
-    <Footer description={draft?.footer} creator={draft?.creator} />
+    {review && (
+      <aside class="review-banner" aria-label="Local review notice">
+        <span><b>Local review build</b> · not published, not indexed</span>
+        <span>Draft copy is marked. No approved photography. CMS wiring and deployment pending.</span>
+      </aside>
+    )}
+    {progress && <ScrollProgress />}
+    <Header mode={header} />
+    <main id="main" tabindex="-1" class:list={[header === 'overlay' && 'has-overlay-hero']}><slot /></main>
+    <Footer review={review} />
+    <Reveal />
   </body>
 </html>
