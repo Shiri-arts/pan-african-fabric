@@ -1,0 +1,74 @@
+---
+/**
+ * The single media component.
+ *
+ * Supports desktop and mobile sources, aspect-ratio reservation, responsive
+ * srcset/sizes, an art-directed focal point, meaningful alt text or an explicit
+ * decorative state, an optional caption and a credit line, and a loading and a
+ * missing-media presentation.
+ *
+ * Internal rights notes are never rendered. A visible image is not made
+ * downloadable: no download control is produced here under any permission.
+ */
+import type { Media } from '../lib/media';
+import { hasApprovedSource } from '../lib/media';
+interface Props {
+  media: Media;
+  /** The hero image is the likely LCP element and must not be lazy-loaded. */
+  priority?: boolean;
+  /** Dark placeholder for use on ink sections and over-image compositions. */
+  placeholderTone?: 'paper' | 'ink';
+  showCaption?: boolean;
+  class?: string;
+  sizes?: string;
+}
+const { media, priority = false, placeholderTone = 'paper', showCaption = true, class: className, sizes } = Astro.props;
+const ratio = media.ratio.replace('/', ' / ');
+const style = `--media-ratio:${ratio};--media-focal:${media.focal ?? '50% 50%'};`;
+const ready = hasApprovedSource(media);
+const desktop = media.desktop;
+const mobile = media.mobile;
+const primary = desktop ?? mobile;
+const caption = showCaption ? media.caption : undefined;
+const creditLine = media.credit?.creditLine;
+---
+<figure class:list={['media', className]} style={style}>
+  <div class="media__frame">
+    {ready && primary ? (
+      <picture>
+        {mobile && desktop && (
+          <source
+            media={`(max-width: ${media.desktopFrom ?? '767px'})`}
+            srcset={mobile.srcset ?? mobile.src}
+            width={mobile.width}
+            height={mobile.height}
+          />
+        )}
+        <img
+          src={primary.src}
+          srcset={primary.srcset}
+          sizes={sizes ?? media.sizes}
+          width={primary.width}
+          height={primary.height}
+          alt={media.decorative ? '' : (media.alt ?? '')}
+          role={media.decorative ? 'presentation' : undefined}
+          loading={priority ? 'eager' : 'lazy'}
+          decoding={priority ? 'sync' : 'async'}
+          fetchpriority={priority ? 'high' : undefined}
+          draggable="false"
+        />
+      </picture>
+    ) : (
+      <div class:list={['media__placeholder', placeholderTone === 'ink' && 'media__placeholder--ink']}>
+        <span class="media__placeholder-label">Image position · no approved asset</span>
+        {media.reviewNote && <p class="media__placeholder-note">{media.reviewNote}</p>}
+      </div>
+    )}
+  </div>
+  {(caption || creditLine) && (
+    <figcaption class="media__caption">
+      {caption}
+      {creditLine && <span class="media__credit">{creditLine}</span>}
+    </figcaption>
+  )}
+</figure>

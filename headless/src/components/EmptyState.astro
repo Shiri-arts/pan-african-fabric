@@ -1,0 +1,31 @@
+---
+/**
+ * The designed state for a slot with no approved content. It says what is missing
+ * in plain language and never substitutes plausible copy for the real thing.
+ * `note` is review guidance and is only ever passed in the review build.
+ */
+interface Props {
+  title: string;
+  text?: string;
+  note?: string;
+  tone?: 'default' | 'ink';
+  layout?: 'block' | 'inline' | 'centred';
+  class?: string;
+}
+const { title, text, note, tone = 'default', layout = 'block', class: className } = Astro.props;
+---
+<div
+  class:list={[
+    'state',
+    layout === 'inline' && 'state--inline',
+    layout === 'centred' && 'state--centred',
+    tone === 'ink' && 'state--ink',
+    className,
+  ]}
+>
+  <p class="badge badge--awaiting">Awaiting content</p>
+  <p class="state__title">{title}</p>
+  {text && <p class="state__text">{text}</p>}
+  {note && <p class="state__note"><strong>Review note:</strong> {note}</p>}
+  <slot />
+</div>

@@ -1,0 +1,40 @@
+---
+/**
+ * Renders one editorial slot according to its provenance.
+ *
+ * Approved copy prints plainly. Draft copy prints only in the review build and is
+ * always visibly marked, with the marker text available to assistive technology
+ * as well. In a production build the draft branch is removed and the awaiting
+ * state renders instead, so unapproved copy cannot reach a production response.
+ */
+import EmptyState from './EmptyState.astro';
+import { resolveCopy, type Copy } from '../lib/content';
+interface Props {
+  copy: Copy;
+  as?: 'p' | 'div' | 'span';
+  class?: string;
+  /** Title used by the awaiting state when the slot has no approved source. */
+  fallbackTitle?: string;
+  emptyTone?: 'default' | 'ink';
+  emptyLayout?: 'block' | 'inline' | 'centred';
+}
+const { copy, as: Tag = 'p', class: className, fallbackTitle, emptyTone = 'default', emptyLayout = 'inline' }: Props = Astro.props;
+const resolved = resolveCopy(copy);
+---
+{resolved.render === 'text' ? (
+  <Tag class={className}>
+    {resolved.text}
+    {resolved.marked && (
+      <span class="draft-copy__mark">
+        <span class="visually-hidden">Status: </span>Draft copy · not approved
+      </span>
+    )}
+  </Tag>
+) : (
+  <EmptyState
+    title={fallbackTitle ?? resolved.label}
+    note={resolved.needs}
+    tone={emptyTone}
+    layout={emptyLayout}
+  />
+)}
