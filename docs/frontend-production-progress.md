@@ -363,6 +363,62 @@ New: a navigation suite (hover, keyboard focus, hoverable, Escape and focus retu
 top-level navigation still working, no-JavaScript, mobile accordion, 25 anchors) and
 a tile-contrast suite.
 
+## Batch 5 — the event banner moves continuously (2026-09-08)
+
+### Decision reversed, and why that is recorded
+
+Batch 4 chose a one-time text entry over a ticker, specifically to avoid continuous
+motion. The client reversed that: the inaugural showcase is the most important thing
+on the site and should command attention. The banner now scrolls its detail line and
+sweeps its shine continuously, and venue and location were added to it.
+
+This is a deliberate departure from the brief's "do not use continuously moving text".
+It was raised before implementing, and reaffirmed. WCAG 2.2.2 requires a way to stop
+motion that runs longer than five seconds, so the banner ships that control rather
+than the requirement being dropped.
+
+### How the motion is made stoppable
+
+- A visible **pause control** in the banner, `aria-pressed`, label switching between
+  Pause and Play. The choice is remembered per viewer in `localStorage`, wrapped so a
+  browser blocking site data cannot break the banner.
+- **Hover and keyboard focus** both pause the scroll and the shine.
+- **prefers-reduced-motion** removes all of it: the detail line wraps as ordinary
+  text, the shine is hidden, the duplicate copy is hidden, and every fact stays.
+- **No JavaScript**: the line renders static and complete, and the pause control stays
+  hidden rather than appearing as a dead button.
+
+The timer never moves position; it sits outside the scrolling lane. The scrolling copy
+is duplicated for a seamless loop, with the duplicate `aria-hidden` so it is never
+announced twice, and the number of copies is measured at runtime so the loop never
+shows a gap.
+
+The banner is no longer a single large link, which would have made the pause button
+invalid markup nested inside it. The link is now the Event details cue, stretched
+across the banner so the whole surface stays clickable while the button sits above it.
+
+### Defects found by verification
+
+- The script rewrote the accessible sentence on every tick and **dropped venue and
+  location from it**, so a screen reader lost the two facts just added. The details are
+  now carried through every rewrite.
+- The sentence read `Washington, D.C..` A close helper stops a second full stop being
+  added to a string that already ends in one.
+
+### Verification
+
+New marquee suite, all passing: motion runs and the shine loops infinitely; the timer
+does not move; venue, location and zoned time are present in the line and in the
+accessible sentence; exactly one of two copies is exposed; the pause control toggles,
+stops motion, persists across reload and resumes; hover and focus pause; reduced motion
+is fully static with every detail present; no-JavaScript renders complete with no
+orphan control.
+
+`astro check` 67 files 0/0/0; tests 8/8; both builds complete; production verifier
+11 routes 200, 6 routes 404, now with 17 approved-content assertions plus checks that
+the pause control ships and the duplicate copy is hidden. Responsive 72/72. Interaction,
+behaviour, countdown, navigation and tile-contrast suites all passing.
+
 ## Known issues and limitations
 
 - **No screen-reader testing** was performed. No conformance claim is made. The target
@@ -471,6 +527,11 @@ Batch 4:
 33. The event bar separated, with a shine pass and a one-time text entry.
 34. Menu items previewing their page sections on hover and focus.
 35. This record.
+
+Batch 5:
+
+36. The event banner scrolling continuously, with venue and location and a pause control.
+37. This record.
 
 Pushed to `wix-headless-migration`. Not merged to `main`, and never force-pushed: the
 history was arranged before the branch was published.
