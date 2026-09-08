@@ -1,0 +1,151 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Section from '../components/Section.astro';
+import SectionHead from '../components/SectionHead.astro';
+import Copy from '../components/Copy.astro';
+import PageHero from '../components/PageHero.astro';
+import EmptyState from '../components/EmptyState.astro';
+import Button from '../components/Button.astro';
+import { inauguralShowcase } from '../data/events';
+import { contactChannels, fastFacts } from '../data/site';
+import { awaiting, draft } from '../lib/content';
+import { mediaSlot } from '../lib/media';
+import { loadReviewCopy } from '../lib/review';
+
+const review = await loadReviewCopy();
+
+const intro = review
+  ? draft(review.press.intro, 'Media lead')
+  : awaiting('Press introduction', 'Approve the introduction for press and media users.');
+
+const heroMedia = mediaSlot('press-hero', '21/9', 'Approved photograph suitable for the press and contact header.');
+
+/**
+ * Facts that are stated in the implementation brief. Structural counts and the
+ * confirmed event only: no coverage, endorsement or institutional relationship.
+ */
+const verifiedFacts = [
+  ...fastFacts.map((fact) => ({ label: fact.label, value: fact.value })),
+  { label: 'Inaugural showcase', value: inauguralShowcase.dateLabel },
+  { label: 'Venue', value: inauguralShowcase.venue },
+  { label: 'Location', value: inauguralShowcase.location },
+];
+---
+<Layout
+  title="Press and Contact"
+  description="Press and media resources for The Pan-African Fabric, plus routes for general, interview and partnership enquiries."
+  path="/press-contact"
+  header="overlay"
+>
+  <PageHero
+    eyebrow="Press and contact"
+    title="Professional<span>access.</span>"
+    size="tall"
+    media={heroMedia}
+    meta={['Press', 'Media assets', 'Enquiries']}
+  >
+    <Copy copy={intro} class="page-hero__intro lead" fallbackTitle="Press introduction" emptyTone="ink" />
+  </PageHero>
+
+  <Section tone="paper" id="fast-facts">
+    <SectionHead eyebrow="Fast facts" title="What can be stated today.">
+      <p>
+        Only confirmed facts appear here. Anything not on this list has not been confirmed and should not be attributed
+        to the initiative.
+      </p>
+    </SectionHead>
+    <dl class="facts">
+      {verifiedFacts.map((fact) => (
+        <div class="facts__row">
+          <dt>{fact.label}</dt>
+          <dd>{fact.value}</dd>
+        </div>
+      ))}
+    </dl>
+    <p class="caption" style="margin-top:24px;max-width:74ch">
+      No partner status, sponsorship, endorsement, attendance figure, programme detail or institutional relationship is
+      claimed. The venue is stated as the location of the event and nothing more.
+    </p>
+  </Section>
+
+  <Section tone="ivory" id="releases">
+    <SectionHead eyebrow="Press releases" title="Releases and statements.">
+      <p>Dated releases are listed here as they are issued.</p>
+    </SectionHead>
+    <EmptyState
+      title="No press release has been issued yet."
+      text="Releases appear here with their date and full text once they are approved."
+      layout="centred"
+    />
+  </Section>
+
+  <Section tone="surface" id="assets">
+    <SectionHead eyebrow="Media assets" title="Approved images and files.">
+      <p>
+        Download controls appear only for files that carry an approved version, file size, usage terms and a permitted
+        URL. Nothing on this site is made downloadable simply because it is visible.
+      </p>
+    </SectionHead>
+    <EmptyState
+      title="No downloadable asset has been approved."
+      text="There is no press kit link here, because no approved press kit file has been supplied. A planning document is not a press kit."
+      note={import.meta.env.DEV ? 'Supply the current approved press kit PDF with its version, date, file size and permitted download URL.' : undefined}
+      layout="centred"
+    />
+  </Section>
+
+  <Section tone="ivory" id="coverage">
+    <SectionHead eyebrow="Coverage" title="Selected coverage.">
+      <p>Coverage is listed only with a verified publication, date and link.</p>
+    </SectionHead>
+    <EmptyState
+      title="No coverage has been verified for listing."
+      text="No publication logo, quotation or headline is shown until the source is confirmed."
+      layout="centred"
+    />
+  </Section>
+
+  <Section tone="ink" id="contact">
+    <SectionHead eyebrow="Enquiries" title="How to reach the initiative.">
+      <p>
+        Each enquiry route below has a destination reserved. No address is published until it is confirmed for public
+        use, and no contact form on this site transmits anything.
+      </p>
+    </SectionHead>
+    <ul class="channels">
+      {contactChannels.map((channel) => (
+        <li class="channel">
+          <span class="channel__label">{channel.label}</span>
+          <span class="channel__description">{channel.description}</span>
+          {channel.address ? (
+            <a class="channel__address" href={`mailto:${channel.address}`}>{channel.address}</a>
+          ) : (
+            <span class="badge badge--awaiting">Address not confirmed</span>
+          )}
+          {import.meta.env.DEV && channel.pending && <span class="channel__pending">{channel.pending}</span>}
+        </li>
+      ))}
+    </ul>
+    <p class="caption" style="margin-top:32px;color:var(--on-ink-muted);max-width:74ch">
+      Interview and partnership requests route through the same channels. A working contact form is introduced once a
+      recipient, privacy notice, consent wording and spam protection are approved.
+    </p>
+    <p class="actions">
+      <Button href="/partner-with-us" variant="secondary">Partner With Us<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
+    </p>
+  </Section>
+</Layout>
+
+<style>
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 0 clamp(16px, 3vw, 56px); }
+  .facts__row { display: grid; grid-template-columns: minmax(0, 10rem) minmax(0, 1fr); gap: var(--space-sm); padding-block: var(--space-sm); border-top: 1px solid var(--border); }
+  .facts dt { font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+  .facts dd { margin: 0; font-size: 0.9375rem; line-height: 1.4; }
+
+  .channels { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: clamp(16px, 2vw, 32px); }
+  .channel { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2xs); padding-top: var(--space-sm); border-top: 2px solid var(--on-ink-rule); }
+  .channel__label { font-family: var(--font-display); font-size: 1.25rem; line-height: 1.2; }
+  .channel__description { font-size: 0.875rem; line-height: 1.5; color: var(--on-ink-muted); }
+  .channel__address { color: var(--on-ink); min-height: var(--touch-min); display: inline-flex; align-items: center; }
+  .channel__pending { font-size: 0.75rem; line-height: 1.5; color: var(--on-ink-muted); padding-left: var(--space-sm); border-left: 2px solid var(--gold); }
+</style>
