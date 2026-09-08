@@ -230,10 +230,28 @@ const summary = event
       if (label) label.textContent = stopped ? 'Play event banner' : 'Pause event banner';
     };
 
+    /*
+      Hold while the pointer or keyboard focus is inside the banner, so the line can
+      be read. The control is excluded from both: pressing play leaves the pointer
+      over the button and focus on it, and counting those would hold the banner
+      paused for ever, which is exactly what a plain :hover rule did.
+    */
+    const syncHold = () => {
+      const overBanner = bar.matches(':hover');
+      const overControl = pause.matches(':hover');
+      const focusInBanner = bar.contains(document.activeElement);
+      const focusOnControl = pause.contains(document.activeElement);
+      bar.classList.toggle('is-holding', (overBanner && !overControl) || (focusInBanner && !focusOnControl));
+    };
+    for (const type of ['pointerover', 'pointerout', 'focusin', 'focusout'] as const) {
+      bar.addEventListener(type, () => requestAnimationFrame(syncHold));
+    }
+
     pause.addEventListener('click', () => {
       stopped = !stopped;
       try { localStorage.setItem(STORAGE_KEY, stopped ? 'paused' : 'playing'); } catch { /* private mode */ }
       apply();
+      syncHold();
     });
 
     measure();
@@ -241,6 +259,7 @@ const summary = event
     pause.hidden = false;
     apply();
 
+    syncHold();
     addEventListener('resize', () => measure(), { passive: true });
     document.fonts?.ready.then(measure);
   }
