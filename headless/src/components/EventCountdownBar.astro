@@ -1,0 +1,167 @@
+---
+/**
+ * Homepage countdown bar for the nearest upcoming event.
+ *
+ * Renders nothing at all when no event is upcoming, so the homepage collapses
+ * cleanly rather than carrying an empty slot. It only counts down for an event
+ * whose timezone is confirmed; without exact instants a countdown would show
+ * different remaining times to different viewers.
+ *
+ * The server renders a real day count and the full date, so the bar is correct
+ * with no JavaScript and cannot hydrate-mismatch. The script then refines it and
+ * removes the bar the moment the event ends, which also covers a stale cached
+ * response.
+ *
+ * Accessibility: the ticking digits are hidden from assistive technology and a
+ * static sentence carries the same information, because the brief prohibits
+ * continuously moving text. Under prefers-reduced-motion the bar stops updating
+ * and stays at day precision, which removes the movement while keeping every
+ * piece of information and the link.
+ */
+import { editionColours } from '../data/colours';
+import { canCountDown, eventPath, eventPhase, type EventRecord } from '../data/events';
+
+interface Props {
+  event: EventRecord | undefined;
+  now?: Date;
+}
+const { event, now = new Date() } = Astro.props;
+
+const phase = event ? eventPhase(event, now) : 'archive';
+const show = Boolean(event) && phase !== 'archive';
+
+// Whole days remaining, floored, computed on the server for the no-JavaScript case.
+const msRemaining = event?.startsAt ? Date.parse(event.startsAt) - now.getTime() : 0;
+const days = Math.max(0, Math.floor(msRemaining / 86_400_000));
+const live = phase === 'live';
+const counts = event ? canCountDown(event) : false;
+
+const summary = event
+  ? live
+    ? `${event.title} is taking place now.`
+    : counts
+      ? `${days} ${days === 1 ? 'day' : 'days'} until ${event.title}, ${event.dateLabel}.`
+      : `${event.title}, ${event.dateLabel}.`
+  : '';
+---
+{show && event && (
+  <section class="countdown" aria-labelledby="countdown-title">
+    <a
+      class="countdown__link"
+      href={eventPath(event.slug)}
+      data-countdown
+      data-starts={event.startsAt ?? undefined}
+      data-ends={event.endsAt ?? undefined}
+    >
+      <span class="countdown__track" aria-hidden="true">
+        {editionColours.map((colour, index) => (
+          <span class="countdown__segment" style={`background:var(${colour.variable});--i:${index}`}></span>
+        ))}
+      </span>
+
+      <span class="countdown__body">
+        <span class="countdown__lead">
+          <span class="countdown__kicker" data-countdown-kicker>{live ? 'Happening now' : 'Next event'}</span>
+          <span class="countdown__title" id="countdown-title">{event.title}</span>
+          <span class="countdown__date">
+            {event.dateLabel}
+            {event.timeLabel && <> · {event.timeLabel}{event.timezoneLabel ? ` ${event.timezoneLabel}` : ''}</>}
+          </span>
+        </span>
+
+        {counts && (
+          <span class="countdown__timer" data-countdown-digits aria-hidden="true">
+            {live ? (
+              <span class="countdown__now">Live</span>
+            ) : (
+              <span class="countdown__unit"><b data-unit="days">{days}</b><i>{days === 1 ? 'day' : 'days'}</i></span>
+            )}
+          </span>
+        )}
+
+        <span class="visually-hidden" data-countdown-text>{summary}</span>
+        <span class="countdown__cue">Event details<span aria-hidden="true">&#8594;</span></span>
+      </span>
+    </a>
+  </section>
+)}
+
+<script>
+  const bars = document.querySelectorAll<HTMLElement>('[data-countdown]');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+
+  for (const bar of bars) {
+    const startsAt = Date.parse(bar.dataset.starts ?? '');
+    const endsAt = Date.parse(bar.dataset.ends ?? '');
+    if (!Number.isFinite(startsAt) || !Number.isFinite(endsAt)) continue;
+
+    const digits = bar.querySelector<HTMLElement>('[data-countdown-digits]');
+    const text = bar.querySelector<HTMLElement>('[data-countdown-text]');
+    const kicker = bar.querySelector<HTMLElement>('[data-countdown-kicker]');
+    const section = bar.closest('section');
+    const title = bar.querySelector<HTMLElement>('.countdown__title')?.textContent?.trim() ?? '';
+    const dateLabel = bar.querySelector<HTMLElement>('.countdown__date')?.textContent?.trim() ?? '';
+    let lastDays = -1;
+    let timer = 0;
+
+    const unit = (value: number, singular: string) =>
+      `<span class="countdown__unit"><b>${value}</b><i>${value === 1 ? singular : singular + 's'}</i></span>`;
+
+    const tick = () => {
+      const now = Date.now();
+
+      // The event has finished: take the bar off the page. This also corrects a
+      // response that was cached before the event ended.
+      if (now >= endsAt) {
+        section?.remove();
+        return;
+      }
+
+      // The event has started. Say so, rather than leaving a stale "Next event"
+      // label above a live timer.
+      if (now >= startsAt) {
+        if (kicker) kicker.textContent = 'Happening now';
+        if (digits) digits.innerHTML = '<span class="countdown__now">Live</span>';
+        if (text) text.textContent = `${title} is taking place now.`;
+        timer = window.setTimeout(tick, 30_000);
+        return;
+      }
+
+      const ms = startsAt - now;
+      const days = Math.floor(ms / 86_400_000);
+      const hours = Math.floor(ms / 3_600_000) % 24;
+      const minutes = Math.floor(ms / 60_000) % 60;
+      const seconds = Math.floor(ms / 1000) % 60;
+      const finalHour = ms < 3_600_000;
+
+      if (digits) {
+        // Seconds appear only inside the final hour; before that they would be
+        // noise and would keep the page repainting for no benefit. A leading unit
+        // is dropped once it reaches zero, so the bar never reads "0 days".
+        digits.innerHTML = finalHour
+          ? unit(minutes, 'minute') + unit(seconds, 'second')
+          : (days > 0 ? unit(days, 'day') : '') + unit(hours, 'hour') + unit(minutes, 'minute');
+      }
+
+      // The accessible sentence changes only when the day count does, so a screen
+      // reader re-reading the page is never given a number that has drifted.
+      if (text && days !== lastDays) {
+        lastDays = days;
+        text.textContent = `${days} ${days === 1 ? 'day' : 'days'} until ${title}, ${dateLabel}.`;
+      }
+
+      // Align to the next real boundary rather than drifting with setInterval.
+      const period = finalHour ? 1000 : 60_000;
+      timer = window.setTimeout(tick, period - ((now % period) || 0) + 20);
+    };
+
+    if (reduce.matches) {
+      // No auto-updating for readers who asked for reduced motion. The static day
+      // count, the full date and the link are all still present.
+      if (Date.now() >= endsAt) section?.remove();
+    } else {
+      tick();
+      addEventListener('pagehide', () => clearTimeout(timer));
+    }
+  }
+</script>

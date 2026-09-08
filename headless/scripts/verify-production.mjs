@@ -46,16 +46,27 @@ const drafts = [
   'Fatima Barnes',
 ];
 
-/** Client-provided content that must survive into a production response. */
-const approvedOnHome = [
-  'One Fabric. Many African Stories.',
-  'The Inaugural Pan-African Fabric &amp; Fashion Showcase',
-  'Saturday, September 26, 2026',
-  'Smithsonian National Museum of African Art',
-  'Washington, D.C.',
-  'Central African Republic',
-  'Hot pink',
-];
+/**
+ * Client-provided content that must survive into a production response.
+ * The homepage carries the countdown bar rather than the full poster, so venue and
+ * location are asserted on the event detail route instead.
+ */
+const approvedContent = {
+  '/': [
+    'One Fabric. Many African Stories.',
+    'The Inaugural Pan-African Fabric &amp; Fashion Showcase',
+    'Saturday, September 26, 2026',
+    'Central African Republic',
+    'Hot pink',
+  ],
+  '/events/inaugural-pan-african-fabric-fashion-showcase': [
+    'The Inaugural Pan-African Fabric &amp; Fashion Showcase',
+    'Saturday, September 26, 2026',
+    '1:00 PM–5:00 PM ET',
+    'Smithsonian National Museum of African Art',
+    'Washington, D.C.',
+  ],
+};
 
 async function walk(url) {
   for (const entry of await readdir(url, { withFileTypes: true })) {
@@ -117,13 +128,26 @@ for (const { path, status } of routes) {
   results.push({ path, status: response.status });
 }
 
-const home = await (await worker.fetch(new Request(origin + '/'), environment)).text();
-for (const approvedText of approvedOnHome) {
-  assert(home.includes(approvedText), `Home is missing approved content: ${approvedText}`);
+let approvedChecked = 0;
+for (const [path, expected] of Object.entries(approvedContent)) {
+  const html = await (await worker.fetch(new Request(origin + path), environment)).text();
+  for (const approvedText of expected) {
+    assert(html.includes(approvedText), `${path} is missing approved content: ${approvedText}`);
+    approvedChecked++;
+  }
 }
+
+// The homepage countdown must ship its no-JavaScript day count and its exact
+// instant, and must never expose a countdown for an event with no confirmed zone.
+const home = await (await worker.fetch(new Request(origin + '/'), environment)).text();
+assert(home.includes('data-countdown '), 'Home is missing the event countdown bar');
+assert(home.includes('2026-09-26T13:00:00-04:00'), 'Countdown is missing the confirmed start instant');
+assert(/data-countdown-text[^>]*>[^<]*\d+ days? until/.test(home), 'Countdown is missing its static accessible sentence');
+assert(/countdown__digits|data-countdown-digits[^>]*aria-hidden="true"/.test(home), 'Countdown digits must be hidden from assistive technology');
 
 console.log(JSON.stringify({
   productionBundle: 'no draft copy, admin code or managed secret',
-  approvedContentRendered: approvedOnHome.length,
+  approvedContentRendered: approvedChecked,
+  countdown: 'server-rendered, exact instant, accessible sentence present',
   responses: results,
 }, null, 2));

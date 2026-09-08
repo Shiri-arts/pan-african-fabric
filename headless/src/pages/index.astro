@@ -7,13 +7,13 @@ import Copy from '../components/Copy.astro';
 import PageHero from '../components/PageHero.astro';
 import ColourGrid from '../components/ColourGrid.astro';
 import CountryCard from '../components/CountryCard.astro';
-import EventPoster from '../components/EventPoster.astro';
+import EventCountdownBar from '../components/EventCountdownBar.astro';
 import EmptyState from '../components/EmptyState.astro';
 import StoryCard from '../components/StoryCard.astro';
 import Media from '../components/Media.astro';
 import { COLOUR_COUNT } from '../data/colours';
 import { COUNTRY_COUNT, REGION_COUNT, countries, countryPath, regionName } from '../data/countries';
-import { eventPath, eventStructuredData, inauguralShowcase } from '../data/events';
+import { eventPath, eventStructuredData, nextEvent } from '../data/events';
 import { TAGLINE, fastFacts } from '../data/site';
 import { stories } from '../data/stories';
 import { awaiting, draft } from '../lib/content';
@@ -21,6 +21,9 @@ import { mediaSlot } from '../lib/media';
 import { loadReviewCopy, reviewStories } from '../lib/review';
 
 const review = await loadReviewCopy();
+// The bar follows whichever event is soonest, and disappears on its own once none
+// is upcoming, so the homepage needs no per-event wiring.
+const upcoming = nextEvent();
 const homeStories = [...stories, ...(await reviewStories())].slice(0, 3);
 
 const introduction = review
@@ -47,7 +50,7 @@ const partnerMedia = mediaSlot('home-partner', '4/5', 'Approved photograph from 
   description="An international cultural initiative. Edition One carries a twelve-colour fabric across nine African countries, leading to the inaugural showcase in Washington, D.C."
   path="/"
   header="overlay"
-  structuredData={eventStructuredData(inauguralShowcase)}
+  structuredData={upcoming ? eventStructuredData(upcoming) : undefined}
 >
   <PageHero
     eyebrow="An international cultural initiative"
@@ -63,17 +66,15 @@ const partnerMedia = mediaSlot('home-partner', '4/5', 'Approved photograph from 
       <Button href="/edition-one" size="large">
         Explore Edition One<span class="button__arrow" aria-hidden="true">&#8594;</span>
       </Button>
-      <Button href={eventPath(inauguralShowcase.slug)} variant="secondary" size="large">
-        The inaugural showcase<span class="button__arrow" aria-hidden="true">&#8594;</span>
-      </Button>
+      {upcoming && (
+        <Button href={eventPath(upcoming.slug)} variant="secondary" size="large">
+          {upcoming.slug === 'inaugural-pan-african-fabric-fashion-showcase' ? 'The inaugural showcase' : 'The next event'}<span class="button__arrow" aria-hidden="true">&#8594;</span>
+        </Button>
+      )}
     </p>
   </PageHero>
 
-  <Section tone="paper" id="showcase">
-    <div data-reveal="rise">
-      <EventPoster event={inauguralShowcase} level={2} kicker="The inaugural showcase" />
-    </div>
-  </Section>
+  <EventCountdownBar event={upcoming} />
 
   <Section tone="ivory" id="edition-one">
     <SectionHead eyebrow="01 — Edition One" title="Twelve colours. One fabric.">
