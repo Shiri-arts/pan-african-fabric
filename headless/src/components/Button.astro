@@ -1,11 +1,50 @@
 ---
+/**
+ * Anchors navigate, buttons change state. A control that is deliberately inert in
+ * this phase uses `aria-disabled` with an explanation rather than a dead click.
+ */
 interface Props {
   href?: string;
-  variant?: 'primary' | 'secondary' | 'text';
+  variant?: 'primary' | 'secondary' | 'quiet' | 'text' | 'context';
+  size?: 'default' | 'large';
   type?: 'button' | 'submit' | 'reset';
   disabled?: boolean;
+  ariaDisabled?: boolean;
+  busy?: boolean;
+  external?: boolean;
+  describedBy?: string;
+  class?: string;
+  id?: string;
 }
-const { href, variant = 'primary', type = 'button', disabled = false } = Astro.props;
+const {
+  href, variant = 'primary', size = 'default', type = 'button',
+  disabled = false, ariaDisabled = false, busy = false, external = false,
+  describedBy, class: className, id,
+} = Astro.props;
+const classes = ['button', `button--${variant}`, size === 'large' && 'button--large', busy && 'button--busy', className];
 ---
-{href ? <a class:list={['button', `button--${variant}`]} href={href}><slot /></a>
-  : <button class:list={['button', `button--${variant}`]} type={type} disabled={disabled}><slot /></button>}
+{href ? (
+  <a
+    id={id}
+    class:list={classes}
+    href={href}
+    aria-disabled={ariaDisabled ? 'true' : undefined}
+    aria-describedby={describedBy}
+    {...external ? { target: '_blank', rel: 'noopener noreferrer' } : {}}
+  >
+    <slot />
+    {external && <span class="visually-hidden">(opens in a new tab)</span>}
+  </a>
+) : (
+  <button
+    id={id}
+    class:list={classes}
+    type={type}
+    disabled={disabled}
+    aria-disabled={ariaDisabled ? 'true' : undefined}
+    aria-describedby={describedBy}
+    aria-busy={busy ? 'true' : undefined}
+  >
+    <slot />
+  </button>
+)}

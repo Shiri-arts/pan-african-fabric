@@ -1,0 +1,30 @@
+---
+interface Props {
+  /** Background tone. `ink` remaps the neutral tokens for a dark editorial ground. */
+  tone?: 'ivory' | 'paper' | 'surface' | 'ink';
+  width?: 'standard' | 'editorial' | 'gallery' | 'full';
+  size?: 'default' | 'tight';
+  flush?: 'none' | 'top' | 'bottom' | 'both';
+  id?: string;
+  label?: string;
+  class?: string;
+}
+const { tone = 'ivory', width = 'standard', size = 'default', flush = 'none', id, label, class: className } = Astro.props;
+const flushClass = flush === 'both'
+  ? ['section--flush-top', 'section--flush-bottom']
+  : flush === 'none' ? [] : [`section--flush-${flush}`];
+---
+<section
+  id={id}
+  aria-label={label}
+  class:list={[
+    'section',
+    `section--${tone}`,
+    tone === 'ink' && 'on-ink',
+    size === 'tight' && 'section--tight',
+    ...flushClass,
+    className,
+  ]}
+>
+  {width === 'full' ? <slot /> : <div class:list={['container', `container--${width}`]}><slot /></div>}
+</section>
