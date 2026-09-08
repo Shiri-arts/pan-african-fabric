@@ -6,6 +6,12 @@
  * accessible bar as soon as the page scrolls past the hero. The scroll state is
  * driven by an IntersectionObserver on a sentinel rather than a scroll listener,
  * and its absence degrades to the solid header.
+ *
+ * Each menu item previews its page's real sections. The panel opens on hover and
+ * on keyboard focus, both in CSS, so it works without JavaScript and is never
+ * pointer-only. Escape closes it, which satisfies the dismissible requirement for
+ * content shown on hover or focus. Below 1100px the panel is part of the existing
+ * accordion instead, because touch has no hover.
  */
 import Container from './Container.astro';
 import MenuToggle from './MenuToggle';
@@ -24,7 +30,7 @@ const path = Astro.url.pathname;
     <nav id="primary-navigation" class="header-nav" aria-label="Main">
       <ul class="header-nav__list">
         {navigation.map((item) => (
-          <li>
+          <li class="header-nav__item">
             <a
               class="header-nav__link"
               href={item.href}
@@ -33,6 +39,16 @@ const path = Astro.url.pathname;
               {item.label}
               <span class="header-purpose" aria-hidden="true">{item.purpose}</span>
             </a>
+            {item.sections && (
+              <div class="submenu">
+                <p class="submenu__purpose">{item.purpose}</p>
+                <ul>
+                  {item.sections.map((section) => (
+                    <li><a class="submenu__link" href={section.href}>{section.label}</a></li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </li>
         ))}
       </ul>
@@ -60,6 +76,18 @@ const path = Astro.url.pathname;
   }
 </style>
 <script>
+  // Escape must dismiss an open section panel without moving the page.
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    const open = document.activeElement?.closest<HTMLElement>('.header-nav__item');
+    if (!open) return;
+    open.classList.add('is-dismissed');
+    (open.querySelector<HTMLElement>('.header-nav__link'))?.focus();
+    const clear = () => open.classList.remove('is-dismissed');
+    open.addEventListener('pointerleave', clear, { once: true });
+    open.addEventListener('focusout', clear, { once: true });
+  });
+
   const header = document.querySelector<HTMLElement>('.site-header');
   const sentinel = document.getElementById('header-sentinel');
   if (header && sentinel && 'IntersectionObserver' in window) {

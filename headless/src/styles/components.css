@@ -141,6 +141,58 @@
 .header-nav__link:focus-visible::after { transform: scaleX(1); }
 .header-nav__link[aria-current='page'] { font-weight: 500; }
 .header-nav__link[aria-current='page']::after { transform: scaleX(1); }
+/*
+  Section preview panel. Opens on hover and on focus-within, both in CSS, so it
+  needs no JavaScript and is never pointer-only. It is adjacent to its trigger so
+  the pointer can travel into it, and Escape sets .is-dismissed to close it.
+*/
+.header-nav__item { position: relative; }
+.submenu {
+  position: absolute;
+  top: 100%;
+  left: -14px;
+  z-index: 5;
+  min-width: 232px;
+  padding: var(--space-sm) 0 var(--space-xs);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 18px 44px rgb(36 33 30 / 14%);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: opacity var(--duration-fast) var(--ease-out),
+              transform var(--duration-fast) var(--ease-out),
+              visibility var(--duration-fast) linear;
+}
+.header-nav__item:hover > .submenu,
+.header-nav__item:focus-within > .submenu {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+.header-nav__item.is-dismissed > .submenu { opacity: 0; visibility: hidden; transform: translateY(-6px); }
+.submenu__purpose {
+  margin: 0 var(--space-md) var(--space-2xs);
+  font-size: 0.5625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.submenu__link {
+  display: flex;
+  align-items: center;
+  min-height: var(--touch-min);
+  padding: 4px var(--space-md);
+  color: var(--text);
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  text-decoration: none;
+}
+.submenu__link:hover, .submenu__link:focus-visible { background: var(--paper); text-decoration: underline; text-underline-offset: 4px; }
+
+/* The panel is always a light card, even under the quiet overlay header. */
+.site-header[data-mode='overlay']:not([data-stuck='true']) .submenu { --text: var(--ink-deep); --muted: #6b6459; color: var(--ink-deep); }
+
 .header-action {
   display: inline-flex;
   align-items: center;
@@ -219,6 +271,21 @@
     border-bottom: 1px solid var(--border);
   }
   .header-nav__link::after { inset: auto auto 10px 2px; width: 28px; }
+  .submenu {
+    position: static;
+    min-width: 0;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    padding: var(--space-2xs) 0 var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-nav__item.is-dismissed > .submenu { opacity: 1; visibility: visible; transform: none; }
+  .submenu__purpose { margin-inline: 0; }
+  .submenu__link { padding-inline: 0; font-size: 0.9375rem; color: var(--muted); }
   .header-purpose { display: inline; font-size: 0.6875rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
   .header-action { margin-top: var(--space-md); justify-content: center; }
   .site-header[data-mode='overlay']:not([data-stuck='true']) { background: var(--ink-deep); }
