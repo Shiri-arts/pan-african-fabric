@@ -1,0 +1,185 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Section from '../../components/Section.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import Button from '../../components/Button.astro';
+import Copy from '../../components/Copy.astro';
+import PageHero from '../../components/PageHero.astro';
+import ColourGrid from '../../components/ColourGrid.astro';
+import CountryCard from '../../components/CountryCard.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import Media from '../../components/Media.astro';
+import { COLOUR_COUNT } from '../../data/colours';
+import { COUNTRY_COUNT, REGION_COUNT, countries, countriesByRegion } from '../../data/countries';
+import { awaiting, draft } from '../../lib/content';
+import { mediaSlot } from '../../lib/media';
+import { loadReviewCopy } from '../../lib/review';
+
+const review = await loadReviewCopy();
+const grouped = countriesByRegion();
+
+const lead = review
+  ? draft(review.editionOne.lead, 'Founder / content lead')
+  : awaiting('Edition One lead line');
+
+const intro = review
+  ? draft(review.editionOne.intro, 'Founder / content lead')
+  : awaiting('Edition One introduction', 'Approve the introduction to the edition, its countries and its designers.');
+
+const heroMedia = mediaSlot('edition-hero', '21/9', 'Approved photograph of the finished fabric, full width.');
+const fabricMedia = mediaSlot('edition-fabric', '3/2', 'Approved close-up of the fabric showing weave, colour transitions and scale.');
+
+const process = [
+  { step: 'One', title: 'The fabric', need: 'Approve how the fabric itself was designed and produced.' },
+  { step: 'Two', title: 'The colours', need: 'Approve the account of how the twelve colours were chosen and developed.' },
+  { step: 'Three', title: 'The designers', need: 'Approve how designers were selected and briefed.' },
+  { step: 'Four', title: 'The garments', need: 'Approve how the finished garments and accessories were made.' },
+];
+---
+<Layout
+  title="Edition One"
+  description="Edition One: one fabric, twelve colours and nine countries across five African regions, interpreted by designers into finished garments and accessories."
+  path="/edition-one"
+  header="overlay"
+  progress
+>
+  <PageHero
+    eyebrow="Edition One"
+    title="One fabric.<span>Twelve colours.</span>"
+    size="tall"
+    media={heroMedia}
+    meta={[`${COLOUR_COUNT} colours`, `${COUNTRY_COUNT} countries`, `${REGION_COUNT} regions`]}
+  >
+    <Copy copy={lead} class="page-hero__tagline" fallbackTitle="Edition One lead line" emptyTone="ink" />
+    <Copy copy={intro} class="page-hero__intro lead" fallbackTitle="Edition One introduction" emptyTone="ink" />
+  </PageHero>
+
+  <Section tone="ivory" id="the-fabric">
+    <div class="fabric">
+      <div class="fabric__media" data-reveal="mask"><Media media={fabricMedia} /></div>
+      <div class="fabric__copy">
+        <p class="eyebrow"><span>01 — The fabric</span></p>
+        <h2 class="fabric__title">A single cloth, carrying twelve colours.</h2>
+        <EmptyState
+          title="The fabric description is not approved yet."
+          text="This is where the fabric is described: what it is made of, how it was produced and how the twelve colours sit within it."
+          note={import.meta.env.DEV ? 'Approve a 100-150 word description of the fabric and its production.' : undefined}
+        />
+      </div>
+    </div>
+  </Section>
+
+  <Section tone="surface" id="colours">
+    <SectionHead eyebrow="02 — The twelve colours" title="Twelve colours mapped to nine countries." wide>
+      <p>
+        Cameroon, Ghana and South Africa each carry two colours, so twelve colours meet nine countries. Select any colour
+        to open its country.
+      </p>
+    </SectionHead>
+    <ColourGrid tall label="The twelve colours of Edition One" />
+    <p class="caption" style="margin-top:24px;max-width:78ch">
+      Values shown are representative samples taken from unobstructed areas of the source artwork, which carries gentle
+      gradients rather than flat swatches. They are for on-screen review and are not print colour specifications. Each
+      colour will connect to an approved symbol, designer and image once those records exist.
+    </p>
+  </Section>
+
+  <Section tone="paper" id="regions">
+    <SectionHead eyebrow="03 — Five regions" title={`${COUNTRY_COUNT} countries, grouped across ${REGION_COUNT} regions.`}>
+      <p>
+        Regional grouping follows the working grouping in the supplied brief. Where a grouping is still being confirmed,
+        it says so on the country page rather than being quietly corrected.
+      </p>
+    </SectionHead>
+    <div class="regions">
+      {grouped.map(({ region, members }) => (
+        <section class="region" aria-labelledby={`region-${region.slug}`}>
+          <h3 class="region__name" id={`region-${region.slug}`}>{region.name}</h3>
+          <ul class="region__list">
+            {members.map((country) => (
+              <li><a class="region__link" href={`/edition-one/${country.slug}`}>{country.name}</a></li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  </Section>
+
+  <Section tone="ivory" id="countries">
+    <SectionHead eyebrow="04 — The countries" title="Nine countries. Nine interpretations.">
+      <p>Every country page carries the same structure, so a completed profile and a profile still in review read consistently.</p>
+    </SectionHead>
+    <ul class="card-grid">
+      {countries.map((country, index) => (
+        <li data-reveal="rise" style={`--reveal-delay:${Math.min(index, 6) * 45}ms`}>
+          <CountryCard country={country} index={index} />
+        </li>
+      ))}
+    </ul>
+  </Section>
+
+  <Section tone="ink" id="process">
+    <SectionHead eyebrow="05 — The creative process" title="From cloth to finished garment.">
+      <p>Four stages carry the edition. Each one opens when its approved account is supplied.</p>
+    </SectionHead>
+    <ol class="process">
+      {process.map((stage) => (
+        <li class="process__item">
+          <span class="process__step">{stage.step}</span>
+          <span class="process__title">{stage.title}</span>
+          <span class="badge badge--awaiting">Awaiting content</span>
+          {import.meta.env.DEV && <span class="process__need">{stage.need}</span>}
+        </li>
+      ))}
+    </ol>
+  </Section>
+
+  <Section tone="surface" id="garments">
+    <SectionHead eyebrow="06 — Garments and accessories" title="The finished work.">
+      <p>Garment and accessory galleries publish only with approved photography, captions and full credits.</p>
+      <Button href="/shop" variant="text">Visit the shop<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
+    </SectionHead>
+    <EmptyState
+      title="No approved garment or accessory imagery has been supplied."
+      text="The gallery layout, controlled crops, caption positions and credit lines are built and waiting for approved files."
+      layout="centred"
+    />
+  </Section>
+</Layout>
+
+<style>
+  .fabric { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); gap: clamp(24px, 5vw, 80px); align-items: center; }
+  .fabric__title { font-size: clamp(1.75rem, 3.6vw, 2.75rem); line-height: 1.05; letter-spacing: -0.03em; margin: 0 0 var(--space-md); max-width: 16ch; }
+  @media (max-width: 899px) { .fabric { grid-template-columns: minmax(0, 1fr); } }
+
+  .regions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: clamp(16px, 2vw, 32px); }
+  .region { border-top: 2px solid var(--text); padding-top: var(--space-sm); }
+  .region__name { font-size: 0.75rem; font-family: var(--font-body); font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; margin: 0 0 var(--space-2xs); }
+  .region__list { display: flex; flex-direction: column; }
+  .region__link {
+    display: flex;
+    align-items: center;
+    min-height: var(--touch-min);
+    padding-block: 4px;
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    line-height: 1.25;
+    color: var(--text);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .region__link:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 5px; }
+
+  .process { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 0; }
+  .process__item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2xs);
+    padding: var(--space-md) var(--space-md) var(--space-lg) 0;
+    border-top: 1px solid var(--on-ink-rule);
+  }
+  .process__step { font-size: 0.625rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
+  .process__title { font-family: var(--font-display); font-size: 1.5rem; line-height: 1.1; }
+  .process__need { font-size: 0.75rem; line-height: 1.5; color: var(--on-ink-muted); padding-left: var(--space-sm); border-left: 2px solid var(--gold); }
+</style>
