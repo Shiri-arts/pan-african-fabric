@@ -1,0 +1,23 @@
+---
+/**
+ * Understated reading-progress indicator for long editorial routes.
+ * Purely decorative: it carries no information that is not otherwise available,
+ * and it is hidden entirely under reduced-motion preferences.
+ */
+---
+<div class="scroll-progress" aria-hidden="true"><div class="scroll-progress__bar"></div></div>
+<script>
+  const bar = document.querySelector<HTMLElement>('.scroll-progress__bar');
+  if (bar && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    let ticking = false;
+    const update = () => {
+      const max = document.documentElement.scrollHeight - innerHeight;
+      bar.style.setProperty('--progress', String(max > 0 ? Math.min(1, scrollY / max) : 0));
+      ticking = false;
+    };
+    addEventListener('scroll', () => {
+      if (!ticking) { ticking = true; requestAnimationFrame(update); }
+    }, { passive: true });
+    update();
+  }
+</script>
