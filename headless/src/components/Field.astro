@@ -1,0 +1,58 @@
+---
+/**
+ * Form field for the design preview.
+ *
+ * Labels, help text and errors are programmatically associated even though
+ * submission is disabled, so the markup is already correct when a backend,
+ * privacy notice, consent wording, recipient and spam protection are approved.
+ */
+interface Props {
+  id: string;
+  label: string;
+  type?: 'text' | 'email' | 'tel' | 'url' | 'textarea' | 'select';
+  required?: boolean;
+  help?: string;
+  error?: string;
+  autocomplete?: string;
+  placeholder?: string;
+  options?: readonly string[];
+  disabled?: boolean;
+  class?: string;
+}
+const {
+  id, label, type = 'text', required = false, help, error,
+  autocomplete, placeholder, options = [], disabled = true, class: className,
+} = Astro.props;
+const helpId = help ? `${id}-help` : undefined;
+const errorId = error ? `${id}-error` : undefined;
+const describedBy = [helpId, errorId].filter(Boolean).join(' ') || undefined;
+---
+<div class:list={['field', error && 'field--error', className]}>
+  <label class="field__label" for={id}>
+    {label}{required && <span class="field__required" aria-hidden="true"> *</span>}
+    {required && <span class="visually-hidden"> (required)</span>}
+  </label>
+  {type === 'textarea' ? (
+    <textarea
+      class="field__control" id={id} name={id} required={required} disabled={disabled}
+      aria-describedby={describedBy} aria-invalid={error ? 'true' : undefined}
+      autocomplete={autocomplete} placeholder={placeholder}
+    ></textarea>
+  ) : type === 'select' ? (
+    <select
+      class="field__control" id={id} name={id} required={required} disabled={disabled}
+      aria-describedby={describedBy} aria-invalid={error ? 'true' : undefined}
+    >
+      <option value="">Select an option</option>
+      {options.map((option) => <option value={option}>{option}</option>)}
+    </select>
+  ) : (
+    <input
+      class="field__control" id={id} name={id} type={type} required={required} disabled={disabled}
+      aria-describedby={describedBy} aria-invalid={error ? 'true' : undefined}
+      autocomplete={autocomplete} placeholder={placeholder}
+    />
+  )}
+  {help && <p class="field__help" id={helpId}>{help}</p>}
+  {error && <p class="field__error" id={errorId}>{error}</p>}
+</div>

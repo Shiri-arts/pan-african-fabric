@@ -1,0 +1,22 @@
+---
+interface Props { trail: readonly { readonly href: string; readonly label: string }[]; current: string; }
+const { trail, current } = Astro.props;
+---
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <ol class="cluster cluster--sm">
+    {trail.map((item) => (
+      <li>
+        <a href={item.href}>{item.label}</a>
+        <span aria-hidden="true"> / </span>
+      </li>
+    ))}
+    <li aria-current="page">{current}</li>
+  </ol>
+</nav>
+<style>
+  .breadcrumbs { font-size: 0.75rem; letter-spacing: 0.05em; text-transform: uppercase; }
+  .breadcrumbs ol { gap: 6px; }
+  .breadcrumbs li { color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+  .breadcrumbs a { color: var(--muted); text-decoration: none; min-height: var(--touch-min); display: inline-flex; align-items: center; }
+  .breadcrumbs a:hover { color: var(--text); text-decoration: underline; text-underline-offset: 4px; }
+</style>

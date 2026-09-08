@@ -1,0 +1,90 @@
+---
+/**
+ * Route hero.
+ *
+ * Renders approved media through the media contract when it exists and an
+ * art-directed gradient composition when it does not. The aspect ratio and
+ * minimum height are reserved either way, so nothing shifts as the page settles.
+ */
+import Container from './Container.astro';
+import Eyebrow from './Eyebrow.astro';
+import type { Media as MediaRecord } from '../lib/media';
+import { hasApprovedSource } from '../lib/media';
+import Media from './Media.astro';
+interface Props {
+  eyebrow?: string;
+  title: string;
+  /** Rendered under the h1 in display italic. */
+  tagline?: string;
+  size?: 'full' | 'tall' | 'compact';
+  media?: MediaRecord;
+  meta?: readonly string[];
+  credit?: string;
+  class?: string;
+}
+const { eyebrow, title, tagline, size = 'tall', media, meta = [], credit, class: className } = Astro.props;
+const ready = media ? hasApprovedSource(media) : false;
+---
+<section class:list={['page-hero', `page-hero--${size}`, 'on-ink', className]}>
+  <div class="page-hero__media">
+    {media && ready ? (
+      <Media media={media} priority showCaption={false} sizes="100vw" />
+    ) : (
+      <div class="hero-placeholder" aria-hidden="true">
+        <span class="hero-placeholder__label">Hero image position · no approved asset</span>
+      </div>
+    )}
+  </div>
+  <div class="page-hero__scrim" aria-hidden="true"></div>
+  <Container class="page-hero__inner">
+    <div class="page-hero__copy hero-enter">
+      {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
+      <h1 class="page-hero__title" set:html={title} />
+      {tagline && <p class="page-hero__tagline">{tagline}</p>}
+      <slot />
+    </div>
+    {(meta.length > 0 || credit) && (
+      <div class="page-hero__foot">
+        {meta.length > 0 && (
+          <p class="page-hero__meta">{meta.map((item) => <span>{item}</span>)}</p>
+        )}
+        {credit && <p class="page-hero__credit">{credit}</p>}
+      </div>
+    )}
+  </Container>
+</section>
+<style>
+  /*
+    Art-directed stand-in for approved photography. It is deliberately a
+    composition, not an image: no stock photograph is downloaded or implied.
+  */
+  .hero-placeholder {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background:
+      radial-gradient(120% 90% at 78% 12%, rgb(227 50 124 / 42%) 0%, transparent 58%),
+      radial-gradient(100% 80% at 12% 6%, rgb(25 158 220 / 34%) 0%, transparent 60%),
+      radial-gradient(140% 120% at 50% 118%, rgb(215 105 33 / 40%) 0%, transparent 62%),
+      linear-gradient(168deg, #2b2723 0%, #1c1917 46%, #121010 100%);
+  }
+  .hero-placeholder::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(122deg, rgb(247 243 232 / 5%) 0 1px, transparent 1px 14px);
+  }
+  .hero-placeholder__label {
+    position: absolute;
+    top: clamp(84px, 12vh, 140px);
+    right: var(--gutter);
+    font-size: 0.625rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(247 243 232 / 72%);
+    border: 1px solid rgb(247 243 232 / 32%);
+    padding: 6px 10px;
+  }
+  @media (max-width: 767px) { .hero-placeholder__label { display: none; } }
+</style>

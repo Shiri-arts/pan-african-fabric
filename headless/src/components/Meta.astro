@@ -1,0 +1,28 @@
+---
+/**
+ * Route metadata.
+ *
+ * Review builds are `noindex, nofollow`. No canonical URL and no social image are
+ * emitted, because no production frontend URL and no approved social artwork
+ * exist. The contracts are in place for both: `resolveMeta` produces a canonical
+ * as soon as an origin is approved.
+ */
+import { resolveMeta, type PageMeta } from '../lib/seo';
+type Props = PageMeta;
+const meta = resolveMeta(Astro.props);
+---
+<title>{meta.documentTitle}</title>
+<meta name="description" content={meta.description} />
+<meta name="robots" content={meta.robots} />
+{meta.canonical && <link rel="canonical" href={meta.canonical} />}
+<meta property="og:site_name" content={meta.siteName} />
+<meta property="og:type" content={meta.ogType} />
+<meta property="og:title" content={meta.documentTitle} />
+<meta property="og:description" content={meta.description} />
+{meta.canonical && <meta property="og:url" content={meta.canonical} />}
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content={meta.documentTitle} />
+<meta name="twitter:description" content={meta.description} />
+{meta.structuredData && (
+  <script type="application/ld+json" is:inline set:html={JSON.stringify(meta.structuredData)} />
+)}
