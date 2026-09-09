@@ -43,4 +43,3 @@ Wix's collection publish plugin supplies the draft/live lifecycle. Visitor acces
 Libre Caslon Text provides the Caslon-style headings; Archivo provides body and interface type. Both use SIL OFL 1.1 and are bundled through Fontsource with notices under `public/licenses/`. Adobe Caslon Pro is not bundled. See `FONT-LICENSES.md`. Wix starter configuration is derived from the official blank Astro template; its MIT notice is retained in `LICENSE.wix-template`.
 
 The supplied strategy PDF is source material, not permission to invent or publish content. Country profiles, galleries, CMS population, forms, redirects and public CMS wiring remain pending.
-

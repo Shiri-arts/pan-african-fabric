@@ -9,4 +9,3 @@ export function getPublicContent(collectionId) {
   if (!collections.has(collectionId)) throw new Error('Unknown editorial collection.');
   return Object.freeze({ items: Object.freeze([]), state: PUBLICATION_STATE });
 }
-

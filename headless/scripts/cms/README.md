@@ -28,4 +28,3 @@ Official schemas checked 2026-09-07:
 - [Get Data Collection](https://dev.wix.com/docs/api-reference/business-solutions/cms/collection-management/data-collections/get-data-collection): `GET /wix-data/v2/collections/{dataCollectionId}?consistentRead=true`. Visitor responses omit permissions, so permission readback must use the administrative identity.
 - [Add Data Collection Plugin](https://dev.wix.com/docs/api-reference/business-solutions/cms/collection-management/data-collections/add-data-collection-plugin): `POST /wix-data/v2/collections/add-plugin` with `PUBLISH` and `defaultStatus: DRAFT`.
 - Reference schemas use `typeMetadata.reference.referencedCollectionId` and `typeMetadata.multiReference.referencedCollectionId`. Collections are not a strict validation boundary; validate future content before publication.
-

@@ -94,7 +94,7 @@ Treat the following as client-provided frontend content:
 
 - Event: `The Inaugural Pan-African Fabric & Fashion Showcase`
 - Date: `Saturday, September 26, 2026`
-- Time: `1:00 PMâ€“5:00 PM`
+- Time: `1:00 PM–5:00 PM`
 - Venue: `Smithsonian National Museum of African Art`
 - Location: `Washington, D.C.`
 
@@ -115,7 +115,7 @@ After the event date, the interface must support an archive state without claimi
 The source artwork is:
 
 - Local source: `C:\Users\USER PRO\Downloads\COLOURS AND COUNTRY.png`
-- Dimensions: `1086 Ã— 1448` pixels.
+- Dimensions: `1086 × 1448` pixels.
 - SHA-256: `454E0F88A2EF0A6F34243D90DB1C38066B2625A880F3349751C75A9C470C08AD`
 
 The source contains gentle gradients rather than twelve perfectly flat swatches. The following CSS values are representative samples from four unobstructed areas in each panel; retain the gradient character instead of presenting them as official print colour specifications:
@@ -415,4 +415,3 @@ The frontend phase is complete only when:
 - The implementation and progress record are committed and pushed only to `wix-headless-migration`.
 
 At completion, provide the user with a local preview URL, a concise list of completed pages and interactions, actual validation evidence, remaining content/media dependencies, and an explicit statement that CMS wiring and deployment remain pending.
-

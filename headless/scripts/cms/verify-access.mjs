@@ -53,4 +53,3 @@ for (const expected of collections) {
 const report = { checkedAt: new Date().toISOString(), siteId, anonymousAuthentication: 'verified', results, mutations: 0 };
 console.log(JSON.stringify(report, null, 2));
 await writeFile(new URL('../../cms-access-verification.json', import.meta.url), JSON.stringify(report, null, 2) + '\n');
-

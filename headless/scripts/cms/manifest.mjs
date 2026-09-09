@@ -152,4 +152,3 @@ export function creationPlan() {
     ...collections.map(item => ({ method: 'POST', path: '/wix-data/v2/collections/add-plugin', body: { dataCollectionId: item.id, plugin: structuredClone(publishPlugin) } })),
   ];
 }
-

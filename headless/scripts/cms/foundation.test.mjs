@@ -124,4 +124,3 @@ test('foundation refuses permission drift before any mutations', async () => {
   await assert.rejects(applyFoundation(client), /permissions/);
   assert.equal(writes, 0);
 });
-
