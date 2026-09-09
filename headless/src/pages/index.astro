@@ -17,6 +17,7 @@ import { TAGLINE, fastFacts } from '../data/site';
 import { stories } from '../data/stories';
 import { awaiting, draft } from '../lib/content';
 import { mediaSlot } from '../lib/media';
+import { getPageHeroMedia } from '../lib/wix-cms';
 import { loadReviewCopy, reviewStories } from '../lib/review';
 
 const review = await loadReviewCopy();
@@ -37,7 +38,8 @@ const editionIntro = review
   ? draft(review.home.editionIntro, 'Founder / content lead')
   : awaiting('Edition One introduction');
 
-const heroMedia = mediaSlot('home-hero', '16/9', 'Approved hero photograph with separate desktop and mobile crops, focal point, alt text, credit and reuse permission.');
+const heroMedia = (await getPageHeroMedia('home'))
+  ?? mediaSlot('home-hero', '16/9', 'Approved hero photograph with separate desktop and mobile crops, focal point, alt text, credit and reuse permission.');
 const partnerMedia = mediaSlot('home-partner', '4/5', 'Approved photograph from a public programme, workshop or exhibition.');
 ---
 <Layout
@@ -53,7 +55,7 @@ const partnerMedia = mediaSlot('home-partner', '4/5', 'Approved photograph from 
     size="full"
     media={heroMedia}
     meta={[`${COLOUR_COUNT} colours`, `${COUNTRY_COUNT} countries`, `${REGION_COUNT} regions`]}
-    credit="Image position reserved. Caption and credit appear here once approved photography, alt text and reuse permission are supplied."
+    credit={heroMedia.credit?.creditLine}
   >
     <Copy copy={introduction} class="page-hero__intro lead" fallbackTitle="Initiative introduction" emptyTone="ink" />
     <p class="actions">

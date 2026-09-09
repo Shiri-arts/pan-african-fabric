@@ -10,17 +10,15 @@ record. This prevents duplicated biographies, event facts and image rights data.
 
 ## Security and publication model
 
-All collections are currently owner-only: `insert`, `update`, `remove` and `read`
-are `ADMIN`. Every collection uses Wix's `PUBLISH` plugin with new items defaulting
-to `DRAFT`. The plugin creates a `CollectionId__drafts` shadow collection and only
-copies an item to the base collection through the publish lifecycle.
+All collections allow visitor reads from their published base collection. `insert`,
+`update` and `remove` remain `ADMIN`. Every collection uses Wix's `PUBLISH` plugin
+with new items defaulting to `DRAFT`; drafts do not become public until explicitly
+published through the Wix lifecycle.
 
-The frontend must eventually query only the base collection with a visitor identity.
-It must never query `__drafts`, use an administrative token in browser code, or expose
-an elevated generic CMS proxy. Read permissions stay `ADMIN` until the public-content
-integration is implemented and direct visitor tests prove that drafts remain
-inaccessible. At that later gate, only the base collections required by the public
-frontend may change to `read: ANYONE`; all writes remain administrative.
+The frontend queries only allowlisted base collections with Wix's visitor identity.
+It never queries `__drafts`, uses an administrative token in browser code, or exposes
+an elevated generic CMS proxy. Direct anonymous tests verify that published reads
+succeed and draft reads remain inaccessible.
 
 `approvedAt` and `sourceVersion` record provenance. They are validation fields, not
 access controls. A missing approval blocks publication even when a record is otherwise
@@ -135,6 +133,7 @@ updated without deleting fields. The content-access layer will prefer `Regions`,
 `Participations` and exact event instants. Deprecated fields can be removed only after
 the new access layer is working and the collections are still verified empty.
 
-This operation does not populate content, enable visitor reads, activate forms or
-commerce, publish the website, change a domain, or touch the Editor site
+The initial wiring publishes only the two approved page records, the founder section,
+and the two client-supplied images. It does not activate forms or commerce, release
+the website, change a domain, or touch the Editor site
 `cf6dc8aa-2320-4c66-b52e-44252adf69f3`.

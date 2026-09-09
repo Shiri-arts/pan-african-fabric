@@ -1,5 +1,5 @@
 import { pathToFileURL } from 'node:url';
-import { assertNewSite, assertPrivateCollection, collections, creationPlan } from './manifest.mjs';
+import { assertNewSite, assertEditorialCollection, collections, creationPlan } from './manifest.mjs';
 import { createPrivateCmsClient } from './content.server.mjs';
 
 /** Resume safely after an interrupted create; never overwrites existing fields or permissions. */
@@ -10,7 +10,7 @@ export async function applyFoundation(client) {
     try {
       const result = await read(expected.id);
       // For an existing shell, validate every known field before adding missing references.
-      assertPrivateCollection(
+      assertEditorialCollection(
         result.collection,
         { ...expected, fields: expected.fields.filter(wanted => result.collection?.fields?.some(actual => actual.key === wanted.key)) },
         { requirePublish: false },
@@ -29,7 +29,7 @@ export async function applyFoundation(client) {
   const verified = [];
   for (const expected of collections) {
     const result = await read(expected.id);
-    assertPrivateCollection(result.collection, expected);
+    assertEditorialCollection(result.collection, expected);
     const items = await client.queryPrivate(expected.id);
     if (items.length) throw new Error(`Unexpected existing items in ${expected.id}; Phase 1 does not populate or publish content.`);
     verified.push({ id: expected.id, fields: expected.fields.length, permissions: result.collection.permissions, itemCount: 0 });

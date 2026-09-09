@@ -2,7 +2,7 @@
 import { isMainThread } from 'node:worker_threads';
 import { assertNewSite, collections } from './manifest.mjs';
 
-export { PUBLICATION_STATE, getPublicContent } from '../../src/lib/public-content.mjs';
+export { PUBLICATION_STATE, publicCollection } from '../../src/lib/public-content.mjs';
 const knownIds = new Set(collections.map(value => value.id));
 const assertCollection = id => { if (!knownIds.has(id)) throw new Error('Unknown editorial collection.'); };
 

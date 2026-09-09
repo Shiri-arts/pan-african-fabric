@@ -1,15 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { EXISTING_EDITOR_SITE_ID, HEADLESS_SITE_ID, assertPrivateCollection, collections, creationPlan } from './manifest.mjs';
-import { createPrivateCmsClient, getPublicContent } from './content.server.mjs';
+import { EXISTING_EDITOR_SITE_ID, HEADLESS_SITE_ID, assertEditorialCollection, collections, creationPlan } from './manifest.mjs';
+import { createPrivateCmsClient, publicCollection } from './content.server.mjs';
 import { applyFoundation } from './apply-foundation.mjs';
 
 const siteId = HEADLESS_SITE_ID;
 const token = 'TEST_ONLY_NOT_A_CREDENTIAL';
 
-test('public content cannot leak even apparently approved private data', () => {
-  for (const { id } of collections) assert.deepEqual(getPublicContent(id), { items: [], state: 'disabled-phase-1' });
-  assert.throws(() => getPublicContent('WixForms'), /Unknown/);
+test('public collection registry accepts base collections and rejects unknown or draft collections', () => {
+  for (const { id } of collections) assert.deepEqual(publicCollection(id), { collectionId: id, state: 'published-only' });
+  assert.throws(() => publicCollection('WixForms'), /Unknown/);
+  assert.throws(() => publicCollection('Pages__drafts'), /Unknown|Draft/);
 });
 
 test('old Editor site, invalid IDs and missing credentials are rejected before network access', () => {
@@ -20,14 +21,14 @@ test('old Editor site, invalid IDs and missing credentials are rejected before n
   assert.equal(called, false);
 });
 
-test('the redesigned schemas are private, draft-first and all relationship targets exist', () => {
+test('the redesigned schemas are public-read, admin-write, draft-first and all relationship targets exist', () => {
   assert.deepEqual(collections.map(value => value.id), [
     'SiteSettings', 'Pages', 'PageSections', 'Editions', 'Regions', 'Countries', 'EditionColours', 'Symbols',
     'Designers', 'Participations', 'Garments', 'Events', 'MediaAssets', 'Stories', 'PressItems',
     'PartnershipOptions', 'ContactChannels', 'ShopItems',
   ]);
   for (const collection of collections) {
-    assert.deepEqual(Object.values(collection.permissions), ['ADMIN', 'ADMIN', 'ADMIN', 'ADMIN']);
+    assert.deepEqual(Object.values(collection.permissions), ['ADMIN', 'ADMIN', 'ADMIN', 'ANYONE']);
     assert.equal(collection.plugins[0].type, 'PUBLISH');
     assert.equal(collection.plugins[0].publishOptions.defaultStatus, 'DRAFT');
     assert.equal(new Set(collection.fields.map(value => value.key)).size, collection.fields.length);
@@ -40,10 +41,10 @@ test('the redesigned schemas are private, draft-first and all relationship targe
   assert.equal(creationPlan().filter(value => value.body.plugin?.type === 'PUBLISH').length, collections.length);
 });
 
-test('permission verification fails closed when permissions are missing or visitor-readable', () => {
+test('permission verification fails closed when permissions are missing or writes are public', () => {
   const expected = collections[0];
-  assert.throws(() => assertPrivateCollection({ ...expected, permissions: undefined }, expected), /permissions/);
-  assert.throws(() => assertPrivateCollection({ ...expected, permissions: { ...expected.permissions, read: 'ANYONE' } }, expected), /permissions/);
+  assert.throws(() => assertEditorialCollection({ ...expected, permissions: undefined }, expected), /permissions/);
+  assert.throws(() => assertEditorialCollection({ ...expected, permissions: { ...expected.permissions, insert: 'ANYONE' } }, expected), /permissions/);
 });
 
 test('private transport uses fixed host, site token, no redirects, and no caching', async () => {
@@ -119,7 +120,7 @@ test('foundation refuses permission drift before any mutations', async () => {
   let writes = 0;
   const client = { request: async (_path, operation) => {
     if (operation) writes++;
-    return { collection: { ...collections[0], permissions: { ...collections[0].permissions, read: 'ANYONE' } } };
+    return { collection: { ...collections[0], permissions: { ...collections[0].permissions, read: 'ADMIN' } } };
   } };
   await assert.rejects(applyFoundation(client), /permissions/);
   assert.equal(writes, 0);

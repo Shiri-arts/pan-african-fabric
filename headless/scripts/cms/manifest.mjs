@@ -1,7 +1,7 @@
 /** Private CMS schema for the redesigned public frontend. */
 export const EXISTING_EDITOR_SITE_ID = 'cf6dc8aa-2320-4c66-b52e-44252adf69f3';
 export const HEADLESS_SITE_ID = '6dabfd00-04c6-4f6f-8282-fb56b240c160';
-export const privatePermissions = Object.freeze({ insert: 'ADMIN', update: 'ADMIN', remove: 'ADMIN', read: 'ADMIN' });
+export const editorialPermissions = Object.freeze({ insert: 'ADMIN', update: 'ADMIN', remove: 'ADMIN', read: 'ANYONE' });
 export const publishPlugin = Object.freeze({ type: 'PUBLISH', publishOptions: { defaultStatus: 'DRAFT' } });
 
 const label = key => key.replace(/([A-Z])/g, ' $1').replace(/^./, value => value.toUpperCase());
@@ -22,7 +22,7 @@ const collectionNames = {
 };
 const collection = (id, ownFields) => ({
   id, displayName: collectionNames[id] ?? id, displayField: 'title', fields: [...shared, ...ownFields],
-  permissions: { ...privatePermissions }, plugins: [structuredClone(publishPlugin)],
+  permissions: { ...editorialPermissions }, plugins: [structuredClone(publishPlugin)],
 });
 
 export const collections = [
@@ -125,9 +125,9 @@ export function assertNewSite(siteId) {
 const referenceTarget = value => value?.typeMetadata?.reference?.referencedCollectionId
   ?? value?.typeMetadata?.multiReference?.referencedCollectionId;
 
-export function assertPrivateCollection(actual, expected, { requirePublish = true } = {}) {
-  if (actual?.id !== expected.id || Object.keys(privatePermissions).some(key => actual.permissions?.[key] !== 'ADMIN')) {
-    throw new Error(`Private permissions could not be verified for ${expected.id}.`);
+export function assertEditorialCollection(actual, expected, { requirePublish = true } = {}) {
+  if (actual?.id !== expected.id || Object.keys(editorialPermissions).some(key => actual.permissions?.[key] !== editorialPermissions[key])) {
+    throw new Error(`Editorial permissions could not be verified for ${expected.id}.`);
   }
   for (const wanted of expected.fields) {
     const found = actual.fields?.find(value => value.key === wanted.key);

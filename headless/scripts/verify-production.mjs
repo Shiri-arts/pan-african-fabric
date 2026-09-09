@@ -127,6 +127,10 @@ for (const { path, status } of routes) {
     response.headers.get('content-security-policy')?.includes("connect-src 'self'"),
     `${path} is missing the same-origin request policy`,
   );
+  assert(
+    response.headers.get('content-security-policy')?.includes("img-src 'self' data: https://static.wixstatic.com"),
+    `${path} does not allow approved Wix Media Manager images`,
+  );
   for (const draft of drafts) assert(!html.includes(draft), `${path} leaks draft copy: ${draft}`);
   assert(html.includes('noindex, nofollow'), `${path} is missing the review robots directive`);
   // A rendered control label, not prose. The pages state truthfully that there is

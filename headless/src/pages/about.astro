@@ -11,6 +11,7 @@ import { COLOUR_COUNT } from '../data/colours';
 import { COUNTRY_COUNT, REGION_COUNT } from '../data/countries';
 import { awaiting, draft } from '../lib/content';
 import { mediaSlot } from '../lib/media';
+import { getPageSectionMedia } from '../lib/wix-cms';
 import { loadReviewCopy } from '../lib/review';
 
 const review = await loadReviewCopy();
@@ -19,7 +20,8 @@ const opening = review
   ? draft(review.about.opening, 'Founder / content lead')
   : awaiting('Origin story', 'Approve the 120-180 word introduction explaining why the initiative was created.');
 
-const founderPortrait = mediaSlot('about-founder', '4/5', 'Approved founder portrait with alt text, focal point, photographer credit and reuse permission.');
+const founderPortrait = (await getPageSectionMedia('about', 'founder'))
+  ?? mediaSlot('about-founder', '4/5', 'Approved founder portrait with alt text, focal point, photographer credit and reuse permission.');
 const heroMedia = mediaSlot('about-hero', '21/9', 'Approved photograph of the fabric, a workshop or a public programme.');
 
 /** Section spine from the copy deck. Headings only: no narrative is invented. */

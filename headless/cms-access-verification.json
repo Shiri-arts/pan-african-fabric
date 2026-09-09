@@ -1,11 +1,11 @@
 {
-  "checkedAt": "2026-09-09T11:19:52.129Z",
+  "checkedAt": "2026-09-09T16:25:37.757Z",
   "siteId": "6dabfd00-04c6-4f6f-8282-fb56b240c160",
   "anonymousAuthentication": "verified",
   "results": [
     {
       "collection": "SiteSettings",
-      "visitorPublishedQueryStatus": 403,
+      "visitorPublishedQueryStatus": 200,
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
@@ -13,23 +13,23 @@
     },
     {
       "collection": "Pages",
-      "visitorPublishedQueryStatus": 403,
+      "visitorPublishedQueryStatus": 200,
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
-      "publishedItemCount": 0,
+      "publishedItemCount": 2,
       "draftItemCount": 0
     },
     {
       "collection": "PageSections",
-      "visitorPublishedQueryStatus": 403,
+      "visitorPublishedQueryStatus": 200,
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
-      "publishedItemCount": 0,
+      "publishedItemCount": 1,
       "draftItemCount": 0
     },
     {
       "collection": "Editions",
-      "visitorPublishedQueryStatus": 403,
+      "visitorPublishedQueryStatus": 200,
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
@@ -37,7 +37,7 @@
     },
     {
       "collection": "Regions",
-      "visitorPublishedQueryStatus": 403,
+      "visitorPublishedQueryStatus": 200,
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
@@ -45,7 +45,7 @@
     },
     {
       "collection": "Countries",
-      "visitorPublishedQueryStatus": 403,
+      "visitorPublishedQueryStatus": 200,
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
@@ -53,7 +53,7 @@
     },
     {
       "collection": "EditionColours",
-      "visitorPublishedQueryStatus": 403,
+      "visitorPublishedQueryStatus": 200,
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
@@ -61,7 +61,7 @@
     },
     {
       "collection": "Symbols",
-      "visitorPublishedQueryStatus": 403,
+      "visitorPublishedQueryStatus": 200,
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
@@ -69,7 +69,7 @@
     },
     {
       "collection": "Designers",
-      "visitorPublishedQueryStatus": 403,
+      "visitorPublishedQueryStatus": 200,
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
@@ -77,7 +77,7 @@
     },
     {
       "collection": "Participations",
-      "visitorPublishedQueryStatus": 403,
+      "visitorPublishedQueryStatus": 200,
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
@@ -85,7 +85,7 @@
     },
     {
       "collection": "Garments",
-      "visitorPublishedQueryStatus": 403,
+      "visitorPublishedQueryStatus": 200,
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
@@ -93,7 +93,7 @@
     },
     {
       "collection": "Events",
-      "visitorPublishedQueryStatus": 403,
+      "visitorPublishedQueryStatus": 200,
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
@@ -101,15 +101,15 @@
     },
     {
       "collection": "MediaAssets",
-      "visitorPublishedQueryStatus": 403,
+      "visitorPublishedQueryStatus": 200,
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
-      "publishedItemCount": 0,
+      "publishedItemCount": 2,
       "draftItemCount": 0
     },
     {
       "collection": "Stories",
-      "visitorPublishedQueryStatus": 403,
+      "visitorPublishedQueryStatus": 200,
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
@@ -117,7 +117,7 @@
     },
     {
       "collection": "PressItems",
-      "visitorPublishedQueryStatus": 403,
+      "visitorPublishedQueryStatus": 200,
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
@@ -125,7 +125,7 @@
     },
     {
       "collection": "PartnershipOptions",
-      "visitorPublishedQueryStatus": 403,
+      "visitorPublishedQueryStatus": 200,
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
@@ -133,7 +133,7 @@
     },
     {
       "collection": "ContactChannels",
-      "visitorPublishedQueryStatus": 403,
+      "visitorPublishedQueryStatus": 200,
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
@@ -141,7 +141,7 @@
     },
     {
       "collection": "ShopItems",
-      "visitorPublishedQueryStatus": 403,
+      "visitorPublishedQueryStatus": 200,
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,

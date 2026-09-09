@@ -8,6 +8,8 @@
     "build": "astro build",
     "check": "astro check",
     "test": "node --test scripts/cms/foundation.test.mjs",
+    "cms:publish-approved-media": "node scripts/cms/publish-approved-media.mjs",
+    "cms:verify-published-media": "node scripts/cms/verify-published-media.mjs",
     "build:wix": "wix build"
   },
   "dependencies": {
@@ -18,6 +20,7 @@
     "@wix/astro-pages": "^2.0.4",
     "@wix/astro-wix-hosting-adapter": "^2.0.0",
     "@wix/dashboard": "^1.3.36",
+    "@wix/data": "^1.0.519",
     "@wix/essentials": "^1.0.6",
     "@wix/sdk": "^1.21.5",
     "astro": "^5.8.0",
