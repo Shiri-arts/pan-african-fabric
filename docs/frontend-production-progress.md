@@ -531,6 +531,42 @@ empty `__drafts` shadow collections yet, so those return 404 and contain no reco
 The schema, route query contract, relationship diagram, content-entry order and
 publication rules are recorded in `docs/phase-1/cms-specification.md`.
 
+## Batch 8 — the twelve-colour grid as a reference board (2026-09-09)
+
+The client supplied the source colour board and asked the grid on `/edition-one` to
+follow it.
+
+### What changed
+
+- **Three columns by four rows**, replacing four by three. The data order already
+  matched the board exactly, 1-12, so only the column count moved.
+- **Fully coloured swatches.** The half-card treatment is gone: colour name and
+  country now sit centred on the colour itself, with no neutral label band, no index
+  number, no region line and no cue. This is the same half-card the client had already
+  asked to drop on the homepage; it had not been carried through to this grid.
+- **Flush, with no internal rules.** Only the outer edge is drawn, because the White
+  swatch would otherwise dissolve into the ivory page around it.
+- **Not links.** The client chose a pure reference board. The twelve routes into the
+  country pages that this grid used to provide are gone, but the country pages remain
+  reachable from the same page through the regions section and the countries section.
+  The section copy that read "Select any colour to open its country" was corrected,
+  since it had become false.
+
+### Where the board and the build deliberately differ
+
+The supplied board uses white text on Blue, Orange and Hot pink. Measured, white gives
+3.01, 3.54 and 4.19 against those three, all below 4.5:1 for normal-size text. The
+build keeps the measured accessible colours instead: charcoal on Blue, black on Orange
+and Hot pink. Nine of the twelve match the board as supplied. A rendered-contrast test
+confirms all twelve carry both lines at AA, lowest 4.64:1.
+
+### Verification
+
+Two new suites. One asserts the grid renders three columns by four rows, twelve
+swatches, zero links, and all twelve colour-and-country pairings in the board's exact
+order. The other measures both text lines on every swatch against its own colour.
+Nine browser suites pass in total.
+
 ## Boundaries held
 
 - Wix CMS schema changes were limited to the explicitly requested redesign on Headless
@@ -615,6 +651,11 @@ Batch 7:
 40. CMS specification and additive private schema aligned to the redesigned frontend.
 41. Draft-first lifecycle, live schema inspection and expanded anonymous-access report.
 42. This record.
+
+Batch 8:
+
+43. The twelve-colour grid rebuilt as a three-by-four reference board.
+44. This record.
 
 Pushed to `wix-headless-migration`. Not merged to `main`, and never force-pushed: the
 history was arranged before the branch was published.
