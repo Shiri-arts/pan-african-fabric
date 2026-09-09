@@ -1,18 +1,24 @@
 ---
+/**
+ * One swatch in the twelve-colour grid.
+ *
+ * Fully coloured, carrying the colour name and its country on the colour itself.
+ * It is deliberately not a link: this grid is a reference board for the colour
+ * system, and the country pages are reached from the regions and countries
+ * sections on the same page.
+ *
+ * The text colour is the measured accessible value for each colour, not the one
+ * used in the source artwork. Blue, Orange and Hot pink carry dark text here
+ * because white falls below 4.5:1 on all three.
+ */
 import { colourStyle, type EditionColour } from '../data/colours';
-import { countryPath, findCountry, regionName } from '../data/countries';
+import { findCountry } from '../data/countries';
+
 interface Props { colour: EditionColour; }
 const { colour } = Astro.props;
 const country = findCountry(colour.country)!;
 ---
-<a class="colour-panel" href={countryPath(country.slug)} style={colourStyle(colour)}>
-  <span class="colour-panel__field">
-    <span class="colour-panel__index">{String(colour.index).padStart(2, '0')}</span>
-    <span class="colour-panel__display">{colour.name}</span>
-  </span>
-  <span class="colour-panel__meta">
-    <span class="colour-panel__country">{country.name}</span>
-    <span class="colour-panel__region">{regionName(country.region)}</span>
-    <span class="colour-panel__go">View country<span aria-hidden="true">&#8594;</span></span>
-  </span>
-</a>
+<div class="colour-panel" style={colourStyle(colour)}>
+  <p class="colour-panel__name">{colour.name}</p>
+  <p class="colour-panel__country">{country.name}</p>
+</div>

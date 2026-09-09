@@ -2,11 +2,13 @@
 /**
  * The twelve-colour system.
  *
- * Semantic HTML and CSS, not the source raster. Every panel exposes its colour
- * name, country and region as text, is a real link so it works with keyboard and
- * without JavaScript, and is understandable with animation switched off. Colour is
- * never the only carrier of country information: the neutral label band beneath
- * each field repeats it at 14.44:1.
+ * Semantic HTML and CSS, not the source raster. Three across and four down, in the
+ * order the colours appear in the artwork. Every swatch carries its colour name and
+ * country as text on the colour, so colour is never the only carrier of that
+ * information, and each pairing is readable with animation switched off.
+ *
+ * The swatches are a reference board rather than navigation; the country pages are
+ * reached from the regions and countries sections on the same page.
  */
 import ColourPanel from './ColourPanel.astro';
 import { editionColours } from '../data/colours';
