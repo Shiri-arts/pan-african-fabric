@@ -4,7 +4,7 @@ Continuity record for the production frontend described in
 `docs/production-frontend-implementation-prompt.md`. Update after every meaningful batch.
 
 A successor must read, in order: that prompt, this file,
-`docs/phase-1/headless-implementation.md`, `headless/README.md` — then inspect the real
+`docs/phase-1/headless-implementation.md`, `headless/README.md` â€” then inspect the real
 Git and runtime state before editing anything.
 
 ## Position
@@ -14,7 +14,7 @@ Git and runtime state before editing anything.
 - All frontend commands run from `headless/`.
 - Local review URL: `http://127.0.0.1:4321` (`npm.cmd run dev`, loopback only).
 
-## Batch 1 — complete frontend implementation (2026-09-08)
+## Batch 1 â€” complete frontend implementation (2026-09-08)
 
 ### Routes implemented
 
@@ -54,11 +54,11 @@ Typed view models under `src/data/`: `colours`, `countries`, `events`, `navigati
 
 Every editorial string carries a status (`src/lib/content.ts`):
 
-- **approved** — client-supplied. Renders in every build.
-- **draft** — verbatim from `docs/phase-1/copy-deck.md`. Renders **only** in the review
+- **approved** â€” client-supplied. Renders in every build.
+- **draft** â€” verbatim from `docs/phase-1/copy-deck.md`. Renders **only** in the review
   build, always visibly marked. Lives in `src/data/review-copy.server.ts`, reached only
   through an `import.meta.env.DEV` guard, so it is removed from production bundles.
-- **awaiting** — no source material supplied. Renders a designed empty state.
+- **awaiting** â€” no source material supplied. Renders a designed empty state.
 
 Nothing was invented. No cultural fact, symbol meaning, biography, quotation,
 endorsement, event outcome, contact, price or credit was written for this build.
@@ -92,7 +92,7 @@ From `headless/`:
 | Command | Result |
 |---|---|
 | `npm.cmd run check` | **64 files, 0 errors, 0 warnings, 0 hints** |
-| `npm.cmd test` | **8/8 pass** (CMS boundary tests, unchanged) |
+| `npm.cmd test` | **9/9 pass** (CMS boundary and additive-migration tests) |
 | `npm.cmd run build` | **Complete.** Upstream Wix/Vite Node-builtin externalization notices only |
 | `npm.cmd run build:wix` | **Complete.** No release or publish command run |
 | `node scripts/verify-production.mjs` | **Pass:** 11 routes HTTP 200, 6 HTTP 404 |
@@ -154,7 +154,7 @@ Screenshots are under ignored `output/playwright/` (full page) and
 6. **Missing favicon** produced a console 404. Added `public/favicon.svg`, built from the
    twelve supplied colour values. No logo was invented.
 
-## Batch 2 — wordmark and event countdown (2026-09-08)
+## Batch 2 â€” wordmark and event countdown (2026-09-08)
 
 ### Client decisions recorded
 
@@ -174,8 +174,8 @@ Screenshots are under ignored `output/playwright/` (full page) and
 
 `THE PAN-AFRICAN FABRIC` now sits on one line everywhere, in the header and the footer.
 Measured: at 320px only 135px was free beside the old 105px "MENU" button, which would
-have forced the wordmark down to 9.6px. The toggle is now icon-only below 520px — a
-48x48 target whose label stays in the accessibility tree — and the row gap tightens,
+have forced the wordmark down to 9.6px. The toggle is now icon-only below 520px â€” a
+48x48 target whose label stays in the accessibility tree â€” and the row gap tightens,
 giving 208px. The wordmark renders at 13.6px there against a 14.7px ceiling, 15.1px at
 360px and 16.4px at 390px, and reaches its full size from about 500px up. The footer
 wordmark scales the same way and was given a 44px minimum target, which single-lining it
@@ -211,8 +211,8 @@ All checks pass:
 | Simulated time | Result |
 |---|---|
 | 6 days before | `6 DAYS 0 HOURS 59 MINUTES`, accessible sentence correct, digits `aria-hidden` |
-| 90 minutes before | `1 HOUR 29 MINUTES` — no `0 DAYS` |
-| 30 minutes before | `29 MINUTES 58 SECONDS` — seconds appear, days gone |
+| 90 minutes before | `1 HOUR 29 MINUTES` â€” no `0 DAYS` |
+| 30 minutes before | `29 MINUTES 58 SECONDS` â€” seconds appear, days gone |
 | During the event | kicker flips to `HAPPENING NOW`, timer reads `Live`, bar stays |
 | 1 second after the end | bar absent |
 | Loaded 30s before the end, clock run forward | bar removes itself |
@@ -230,13 +230,13 @@ interaction and behaviour suites unchanged and passing; `astro check` 65 files 0
 tests 8/8; both builds complete; production verifier 11 routes 200, 6 routes 404, with
 10 approved-content assertions and four countdown-integrity assertions.
 
-## Batch 3 — homepage structure (2026-09-08)
+## Batch 3 â€” homepage structure (2026-09-08)
 
 ### The problem, measured
 
 The homepage carried three consecutive Edition One sections. Measured before the
 change: they were **52% of the homepage on desktop and 62% on mobile**, and sections
-02 and 03 alone were 4,586px on a phone — about five and a half screens.
+02 and 03 alone were 4,586px on a phone â€” about five and a half screens.
 
 | Section | 1440px | 390px |
 |---|---|---|
@@ -291,7 +291,7 @@ production verifier 11 routes 200, 6 routes 404; responsive 72/72 across 12 rout
 6 widths with no overflow, one h1 each, no control under 44px, zero page and console
 errors; interaction, behaviour and countdown suites all passing.
 
-## Batch 4 — colour correction, country tiles, nav previews (2026-09-08)
+## Batch 4 â€” colour correction, country tiles, nav previews (2026-09-08)
 
 ### A measurement that corrects an earlier decision
 
@@ -363,7 +363,7 @@ New: a navigation suite (hover, keyboard focus, hoverable, Escape and focus retu
 top-level navigation still working, no-JavaScript, mobile accordion, 25 anchors) and
 a tile-contrast suite.
 
-## Batch 5 — the event banner moves continuously (2026-09-08)
+## Batch 5 â€” the event banner moves continuously (2026-09-08)
 
 ### Decision reversed, and why that is recorded
 
@@ -419,7 +419,7 @@ orphan control.
 the pause control ships and the duplicate copy is hidden. Responsive 72/72. Interaction,
 behaviour, countdown, navigation and tile-contrast suites all passing.
 
-## Batch 6 — banner control fixes (2026-09-08)
+## Batch 6 â€” banner control fixes (2026-09-08)
 
 Two faults reported against the banner shipped in batch 5, plus one found alongside.
 
@@ -503,15 +503,44 @@ approved social share image.
 The event timezone is **no longer outstanding**: the client confirmed US Eastern on
 8 September 2026.
 
+## Batch 7 â€” CMS model aligned to the redesigned frontend (2026-09-09)
+
+The original eight-collection foundation did not represent the new static-page copy,
+the twelve colour assignments, designer participation roles, press resources,
+partnership choices, verified contact channels or the editorial side of Shop.
+
+The model now has 18 private collections. Ten supporting collections were added:
+`SiteSettings`, `Pages`, `PageSections`, `Regions`, `EditionColours`,
+`Participations`, `PressItems`, `PartnershipOptions`, `ContactChannels` and
+`ShopItems`. The eight existing collection IDs were preserved and extended
+additively. No field or collection was deleted.
+
+`Participations` is the authoritative countryâ€“designer join, so a principal designer,
+competition entrant and collaborator can have different roles without copying a
+biography. `EditionColours` stores all twelve ordered colour-to-country mappings, so
+Cameroon, Ghana and South Africa can each carry two colours. `ShopItems` is an
+editorial bridge only; Wix Stores will remain authoritative for prices, inventory,
+variants, cart and checkout.
+
+All 18 collections have the Wix `PUBLISH` plugin with new content defaulting to
+`DRAFT`. All four collection permissions remain `ADMIN`, public CMS access remains
+disabled, and every base collection is empty. The live read-only access report records
+HTTP 403 for anonymous queries to every base collection. Wix has not materialized the
+empty `__drafts` shadow collections yet, so those return 404 and contain no records.
+
+The schema, route query contract, relationship diagram, content-entry order and
+publication rules are recorded in `docs/phase-1/cms-specification.md`.
+
 ## Boundaries held
 
-- Wix CMS collections, schemas, permissions and data: **untouched**.
-  `headless/scripts/cms/` not modified. The eight collections remain private and empty.
+- Wix CMS schema changes were limited to the explicitly requested redesign on Headless
+  site `6dabfd00-04c6-4f6f-8282-fb56b240c160`. The 18 collections remain private,
+  draft-first and empty; no editorial content was created or published.
 - Existing Editor/Velo site `cf6dc8aa-2320-4c66-b52e-44252adf69f3`: **untouched**. Root
   `src/`, `package.json`, `wix.config.json` and `wix.lock` not modified.
-- **No** deploy, release, publish, domain change, ownership transfer, payment activation
-  or form submission. No redirect activated: proposals are recorded in
-  `src/data/redirect-map.ts` as documentation only.
+- A Wix-hosted frontend preview was created for review. There was **no release**, domain
+  change, ownership transfer, CMS content publication, payment activation or form
+  submission. No redirect was activated.
 - No analytics, pixels, trackers, cookies or third-party embeds added. The same-origin
   CSP is preserved unchanged. No external image or font host introduced.
 - No dependency added to `headless/package.json`. Playwright lives in the scratchpad.
@@ -581,13 +610,20 @@ Batch 6:
 38. Banner control fixes: play resuming, icon-only control, accessible name restored.
 39. This record.
 
+Batch 7:
+
+40. CMS specification and additive private schema aligned to the redesigned frontend.
+41. Draft-first lifecycle, live schema inspection and expanded anonymous-access report.
+42. This record.
+
 Pushed to `wix-headless-migration`. Not merged to `main`, and never force-pushed: the
 history was arranged before the branch was published.
 
 ## Exact next action for another agent
 
-The frontend is at the review gate. Do **not** start CMS wiring, deployment, redirects,
-ownership transfer or form activation.
+The frontend remains at the review gate and the CMS structure is ready but empty. Do
+not populate or wire public CMS responses, release, activate redirects, transfer
+ownership or activate forms without the next explicit implementation instruction.
 
 1. Walk the local review build with the client and collect decisions on the outstanding
    copy and media above.
@@ -599,3 +635,4 @@ ownership transfer or form activation.
 4. When copy is approved, move the string out of `review-copy.server.ts` into an
    `approved()` call at its page, and delete it from the blocklist in
    `scripts/verify-production.mjs`.
+

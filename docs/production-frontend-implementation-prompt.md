@@ -26,7 +26,7 @@ Complete the frontend experience end to end using safe local fixtures and explic
 - Separate Wix-managed Headless site ID: `6dabfd00-04c6-4f6f-8282-fb56b240c160`.
 - Wix companion app ID: `7c983a5c-6496-4542-8036-6ffd5a3c71eb`.
 - The Headless site currently belongs to the developer's Wix account. Its dashboard exposes `Transfer Site`; ownership will be transferred to the client later.
-- The new Wix CMS contains eight private, empty foundation collections. Leave them untouched in this phase.
+- The new Wix CMS contains 18 private, empty, draft-first collections aligned to this frontend. Leave their schemas, permissions and data untouched during further frontend work.
 - The existing Editor/Velo source, root dependencies, Wix configuration, site settings, CMS, forms, and live domain must remain unchanged.
 - The frontend has not been released or deployed.
 
@@ -94,7 +94,7 @@ Treat the following as client-provided frontend content:
 
 - Event: `The Inaugural Pan-African Fabric & Fashion Showcase`
 - Date: `Saturday, September 26, 2026`
-- Time: `1:00 PM–5:00 PM`
+- Time: `1:00 PMâ€“5:00 PM`
 - Venue: `Smithsonian National Museum of African Art`
 - Location: `Washington, D.C.`
 
@@ -115,7 +115,7 @@ After the event date, the interface must support an archive state without claimi
 The source artwork is:
 
 - Local source: `C:\Users\USER PRO\Downloads\COLOURS AND COUNTRY.png`
-- Dimensions: `1086 × 1448` pixels.
+- Dimensions: `1086 Ã— 1448` pixels.
 - SHA-256: `454E0F88A2EF0A6F34243D90DB1C38066B2625A880F3349751C75A9C470C08AD`
 
 The source contains gentle gradients rather than twelve perfectly flat swatches. The following CSS values are representative samples from four unobstructed areas in each panel; retain the gradient character instead of presenting them as official print colour specifications:
@@ -255,7 +255,7 @@ Make this the strongest campaign page after the homepage. Explain the approved c
 - Create reusable primitives for containers, media, credits, buttons, links, labels, navigation, colour panels, cards, event date blocks, empty states, and form fields.
 - Create strongly typed page/view models that mirror the eventual CMS-facing needs without importing or querying the private CMS layer.
 - Keep fixture content in a clearly named local review module. Ensure default production builds cannot accidentally expose unapproved fixture copy.
-- Keep `headless/scripts/cms/`, collection permissions, Wix data, and the server-only administrative transport unchanged.
+- Keep `headless/scripts/cms/`, the 18 collection schemas and permissions, Wix data, and the server-only administrative transport unchanged during further frontend work.
 - Do not place administrative tokens, secrets, `.env.local`, draft approval evidence, or private data in browser bundles or commits.
 - Preserve the same-origin Content Security Policy. If approved external images or services are introduced later, document the minimum required policy change instead of broadly weakening it.
 
@@ -415,3 +415,4 @@ The frontend phase is complete only when:
 - The implementation and progress record are committed and pushed only to `wix-headless-migration`.
 
 At completion, provide the user with a local preview URL, a concise list of completed pages and interactions, actual validation evidence, remaining content/media dependencies, and an explicit statement that CMS wiring and deployment remain pending.
+

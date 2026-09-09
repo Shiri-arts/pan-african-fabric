@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { EXISTING_EDITOR_SITE_ID, assertPrivateCollection, collections, creationPlan } from './manifest.mjs';
+import { EXISTING_EDITOR_SITE_ID, HEADLESS_SITE_ID, assertPrivateCollection, collections, creationPlan } from './manifest.mjs';
 import { createPrivateCmsClient, getPublicContent } from './content.server.mjs';
 import { applyFoundation } from './apply-foundation.mjs';
 
-const siteId = '11111111-2222-4333-8444-555555555555';
+const siteId = HEADLESS_SITE_ID;
 const token = 'TEST_ONLY_NOT_A_CREDENTIAL';
 
 test('public content cannot leak even apparently approved private data', () => {
@@ -15,22 +15,29 @@ test('public content cannot leak even apparently approved private data', () => {
 test('old Editor site, invalid IDs and missing credentials are rejected before network access', () => {
   let called = false;
   const fetchImpl = () => { called = true; };
-  for (const rejected of [EXISTING_EDITOR_SITE_ID, undefined, 'other-site']) assert.throws(() => createPrivateCmsClient({ siteId: rejected, token, fetchImpl }), /separate/);
+  for (const rejected of [EXISTING_EDITOR_SITE_ID, undefined, 'other-site', '11111111-2222-4333-8444-555555555555']) assert.throws(() => createPrivateCmsClient({ siteId: rejected, token, fetchImpl }), /Headless|separate/);
   assert.throws(() => createPrivateCmsClient({ siteId, token: '', fetchImpl }), /token/);
   assert.equal(called, false);
 });
 
-test('exactly eight schemas are private and all relationship targets exist', () => {
-  assert.deepEqual(collections.map(value => value.id), ['Editions', 'Countries', 'Symbols', 'Designers', 'Garments', 'Events', 'MediaAssets', 'Stories']);
+test('the redesigned schemas are private, draft-first and all relationship targets exist', () => {
+  assert.deepEqual(collections.map(value => value.id), [
+    'SiteSettings', 'Pages', 'PageSections', 'Editions', 'Regions', 'Countries', 'EditionColours', 'Symbols',
+    'Designers', 'Participations', 'Garments', 'Events', 'MediaAssets', 'Stories', 'PressItems',
+    'PartnershipOptions', 'ContactChannels', 'ShopItems',
+  ]);
   for (const collection of collections) {
     assert.deepEqual(Object.values(collection.permissions), ['ADMIN', 'ADMIN', 'ADMIN', 'ADMIN']);
+    assert.equal(collection.plugins[0].type, 'PUBLISH');
+    assert.equal(collection.plugins[0].publishOptions.defaultStatus, 'DRAFT');
     assert.equal(new Set(collection.fields.map(value => value.key)).size, collection.fields.length);
     for (const field of collection.fields.filter(value => value.typeMetadata)) {
       const target = field.typeMetadata.reference?.referencedCollectionId ?? field.typeMetadata.multiReference?.referencedCollectionId;
       assert.ok(collections.some(value => value.id === target));
     }
   }
-  assert.ok(creationPlan().slice(0, 8).every(value => value.body.collection && value.body.collection.fields.every(field => !field.typeMetadata)));
+  assert.ok(creationPlan().slice(0, collections.length).every(value => value.body.collection && value.body.collection.fields.every(field => !field.typeMetadata)));
+  assert.equal(creationPlan().filter(value => value.body.plugin?.type === 'PUBLISH').length, collections.length);
 });
 
 test('permission verification fails closed when permissions are missing or visitor-readable', () => {
@@ -70,20 +77,42 @@ test('foundation creates shells before references, verifies schemas and empty co
       }
       mutations.push(operation);
       if (operation.body.collection) stored.set(operation.body.collection.id, structuredClone(operation.body.collection));
-      else {
+      else if (operation.body.field) {
         const { dataCollectionId, field } = operation.body;
         const target = field.typeMetadata.reference?.referencedCollectionId ?? field.typeMetadata.multiReference?.referencedCollectionId;
         assert.ok(stored.has(target));
         stored.get(dataCollectionId).fields.push(structuredClone(field));
+      } else {
+        const { dataCollectionId, plugin } = operation.body;
+        stored.get(dataCollectionId).plugins = [structuredClone(plugin)];
       }
       return {};
     },
     async queryPrivate() { return []; },
   };
-  assert.equal((await applyFoundation(client)).collections.length, 8);
+  assert.equal((await applyFoundation(client)).collections.length, collections.length);
   const firstCount = mutations.length;
   await applyFoundation(client);
   assert.equal(mutations.length, firstCount);
+});
+
+test('foundation adds a new scalar field to an existing collection', async () => {
+  const stored = new Map(collections.map(value => [value.id, structuredClone(value)]));
+  stored.get('Editions').fields = stored.get('Editions').fields.filter(value => value.key !== 'leadLine');
+  const created = [];
+  const client = {
+    async request(path, operation) {
+      if (!operation) return { collection: structuredClone(stored.get(path.split('/').at(-1).split('?')[0])) };
+      if (operation.body.field) {
+        stored.get(operation.body.dataCollectionId).fields.push(structuredClone(operation.body.field));
+        created.push(`${operation.body.dataCollectionId}.${operation.body.field.key}`);
+      }
+      return {};
+    },
+    async queryPrivate() { return []; },
+  };
+  await applyFoundation(client);
+  assert.deepEqual(created, ['Editions.leadLine']);
 });
 
 test('foundation refuses permission drift before any mutations', async () => {
@@ -95,3 +124,4 @@ test('foundation refuses permission drift before any mutations', async () => {
   await assert.rejects(applyFoundation(client), /permissions/);
   assert.equal(writes, 0);
 });
+

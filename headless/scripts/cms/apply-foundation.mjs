@@ -10,15 +10,20 @@ export async function applyFoundation(client) {
     try {
       const result = await read(expected.id);
       // For an existing shell, validate every known field before adding missing references.
-      assertPrivateCollection(result.collection, { ...expected, fields: expected.fields.filter(wanted => !wanted.typeMetadata || result.collection?.fields?.some(actual => actual.key === wanted.key)) });
+      assertPrivateCollection(
+        result.collection,
+        { ...expected, fields: expected.fields.filter(wanted => result.collection?.fields?.some(actual => actual.key === wanted.key)) },
+        { requirePublish: false },
+      );
       existing.set(expected.id, result.collection);
     } catch (error) { if (error.status !== 404) throw error; }
   }
   for (const operation of creationPlan()) {
     const id = operation.body.collection?.id ?? operation.body.dataCollectionId;
-    const current = operation.body.field ? (await read(id)).collection : existing.get(id);
+    const current = (operation.body.field || operation.body.plugin) ? (await read(id)).collection : existing.get(id);
     if (operation.body.collection && current) continue;
     if (operation.body.field && current?.fields?.some(value => value.key === operation.body.field.key)) continue;
+    if (operation.body.plugin && current?.plugins?.some(value => value.type === operation.body.plugin.type)) continue;
     await client.request(operation.path, operation);
   }
   const verified = [];
@@ -29,7 +34,7 @@ export async function applyFoundation(client) {
     if (items.length) throw new Error(`Unexpected existing items in ${expected.id}; Phase 1 does not populate or publish content.`);
     verified.push({ id: expected.id, fields: expected.fields.length, permissions: result.collection.permissions, itemCount: 0 });
   }
-  return { status: 'verified-private-foundation', collections: verified };
+  return { status: 'verified-private-draft-foundation', collections: verified, publication: 'disabled' };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
@@ -46,3 +51,4 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     }
   } catch (error) { console.error(error.message); process.exitCode = 1; }
 }
+

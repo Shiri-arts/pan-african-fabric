@@ -34,12 +34,13 @@ Phase 1 disables unused Wix HTML embeds and managed page integrations. A respons
 
 ## Content access
 
-`src/lib/public-content.mjs` is the public content contract. Publication is disabled in Phase 1 and returns no private records. Administrative REST transport and provisioning live under `scripts/cms/`, outside frontend source. The eight schemas are private and empty; see `cms-access-verification.json` for the live anonymous query/direct-read checks. All temporary canaries were removed. No administrative token is bundled or stored in the repo. Managed local environment stays in ignored `.env.local`.
+`src/lib/public-content.mjs` is the public content contract. CMS wiring is disabled and returns no private records. Administrative REST transport and provisioning live under `scripts/cms/`, outside frontend source. The 18 redesigned schemas are private, empty and draft-first; see `cms-access-verification.json` for the live anonymous access checks. No administrative token is bundled or stored in the repo. Managed local environment stays in ignored `.env.local`.
 
-Publication needs a separately approved and tested mechanism in Phase 2. Never enable visitor access to these draft collections or use a status filter as access control. Approval evidence and media permissions remain private; private CMS metadata cannot protect a file uploaded to a public CDN.
+Wix's collection publish plugin supplies the draft/live lifecycle. Visitor access and frontend CMS queries remain disabled until the integration gate is implemented and tested. Never use a status filter as access control. Approval evidence and media permissions remain private; private CMS metadata cannot protect a file uploaded to a public CDN.
 
 ## Fonts and source
 
 Libre Caslon Text provides the Caslon-style headings; Archivo provides body and interface type. Both use SIL OFL 1.1 and are bundled through Fontsource with notices under `public/licenses/`. Adobe Caslon Pro is not bundled. See `FONT-LICENSES.md`. Wix starter configuration is derived from the official blank Astro template; its MIT notice is retained in `LICENSE.wix-template`.
 
-The supplied strategy PDF is source material, not permission to implement its later releases. Country profiles, galleries, populated CMS, archives, forms, redirects and publication remain outside this Phase 1 implementation.
+The supplied strategy PDF is source material, not permission to invent or publish content. Country profiles, galleries, CMS population, forms, redirects and public CMS wiring remain pending.
+
