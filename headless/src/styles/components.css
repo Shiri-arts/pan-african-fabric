@@ -320,8 +320,8 @@
   inset: 0;
   z-index: -1;
   background:
-    linear-gradient(to top, rgb(12 10 9 / 88%) 0%, rgb(12 10 9 / 62%) 32%, rgb(12 10 9 / 18%) 62%, rgb(12 10 9 / 6%) 100%),
-    linear-gradient(105deg, rgb(12 10 9 / 55%) 0%, rgb(12 10 9 / 10%) 58%, transparent 100%);
+    linear-gradient(to top, rgb(12 10 9 / 80%) 0%, rgb(12 10 9 / 54%) 32%, rgb(12 10 9 / 15%) 62%, rgb(12 10 9 / 5%) 100%),
+    linear-gradient(105deg, rgb(12 10 9 / 64%) 0%, rgb(12 10 9 / 14%) 58%, transparent 75%);
 }
 .page-hero__inner { position: relative; padding-block: clamp(40px, 6vw, 96px); width: 100%; }
 /*
@@ -367,6 +367,12 @@
   .page-hero__copy { max-width: none; }
   .page-hero--full { min-height: min(88svh, 760px); }
   .page-hero__title { max-width: none; }
+  /* Text covers most of the photograph here, so the overlay keeps its original strength. */
+  .page-hero__scrim {
+    background:
+      linear-gradient(to top, rgb(12 10 9 / 88%) 0%, rgb(12 10 9 / 62%) 32%, rgb(12 10 9 / 18%) 62%, rgb(12 10 9 / 6%) 100%),
+      linear-gradient(105deg, rgb(12 10 9 / 55%) 0%, rgb(12 10 9 / 10%) 58%, transparent 100%);
+  }
 }
 
 /* --------------------------------------------------------------- Media slot */
