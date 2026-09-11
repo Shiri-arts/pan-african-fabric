@@ -300,6 +300,17 @@
 .page-hero__media > * { width: 100%; height: 100%; }
 .page-hero__media img { width: 100%; height: 100%; object-fit: cover; }
 /*
+  The approved hero photograph is shot on a pure white backdrop. `darken` resolves
+  that white to the pale beige behind it, while leaving every colour in the fabric
+  that is already darker than the beige untouched, so the twelve colours are not
+  shifted. Only near-white highlights clip.
+
+  The beige is a literal rather than var(--canvas), because .on-ink remaps --canvas
+  to near-black inside the hero, which would blend the photograph to black.
+*/
+.page-hero__media .media__frame { background: #f7f3e8; isolation: isolate; }
+.page-hero__media img { mix-blend-mode: darken; }
+/*
   Art-directed overlay. Weight sits at the bottom, where text sits, and clears the
   upper-centre of the frame so a face or garment detail is not covered once
   approved photography replaces the placeholder.
