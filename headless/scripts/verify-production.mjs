@@ -47,36 +47,18 @@ const drafts = [
 ];
 
 /**
- * Client-provided content that must survive into a production response.
- * The homepage carries the countdown bar rather than the full poster, so venue and
- * location are asserted on the event detail route instead.
+ * Client-provided, already-published content that must survive into a production
+ * response. Draft country, colour and event records are checked separately below.
  */
 const approvedContent = {
   '/': [
     'One Fabric. Many African Stories.',
-    'The Inaugural Pan-African Fabric &amp; Fashion Showcase',
-    'Saturday, September 26, 2026',
-    // Venue and location returned to the homepage on the event banner.
-    'Smithsonian National Museum of African Art',
-    'Washington, D.C.',
-    '1:00 PM–5:00 PM ET',
-    'Central African Republic',
-    'Nigeria',
+    '9b8a9d_d81646c73b064c9a97cb6fa7cc5a70c2~mv2.jpg',
+    'A colourful circular folding fan made with patterned fabric on a white background.',
   ],
-  // Colour names are supplied client data. They left the homepage tiles when the
-  // grid became country-led, so they are asserted where they now live.
-  '/edition-one': [
-    'Hot pink',
-    'Dark green',
-    'Mint green',
-    'Central African Republic',
-  ],
-  '/events/inaugural-pan-african-fabric-fashion-showcase': [
-    'The Inaugural Pan-African Fabric &amp; Fashion Showcase',
-    'Saturday, September 26, 2026',
-    '1:00 PM–5:00 PM ET',
-    'Smithsonian National Museum of African Art',
-    'Washington, D.C.',
+  '/about': [
+    '9b8a9d_acd2a1d61856468eadb400ce97965bf7~mv2.png',
+    'Portrait of Shiri Achu wearing a black hat, glasses and a colourful patterned tie.',
   ],
 };
 
@@ -100,10 +82,10 @@ const routes = [
   { path: '/', status: 200 },
   { path: '/about', status: 200 },
   { path: '/edition-one', status: 200 },
-  { path: '/edition-one/cameroon', status: 200 },
-  { path: '/edition-one/central-african-republic', status: 200 },
+  { path: '/edition-one/cameroon', status: 404 },
+  { path: '/edition-one/central-african-republic', status: 404 },
   { path: '/events', status: 200 },
-  { path: '/events/inaugural-pan-african-fabric-fashion-showcase', status: 200 },
+  { path: '/events/inaugural-pan-african-fabric-fashion-showcase', status: 404 },
   { path: '/stories', status: 200 },
   { path: '/shop', status: 200 },
   { path: '/press-contact', status: 200 },
@@ -153,21 +135,16 @@ for (const [path, expected] of Object.entries(approvedContent)) {
   }
 }
 
-// The homepage countdown must ship its no-JavaScript day count and its exact
-// instant, and must never expose a countdown for an event with no confirmed zone.
+// The approved event exists only as a Wix draft. Public responses must not expose
+// its countdown, instant or venue before explicit CMS publication.
 const home = await (await worker.fetch(new Request(origin + '/'), environment)).text();
-assert(home.includes('data-countdown '), 'Home is missing the event countdown bar');
-assert(home.includes('2026-09-26T13:00:00-04:00'), 'Countdown is missing the confirmed start instant');
-assert(/data-countdown-text[^>]*>[^<]*\d+ days? until/.test(home), 'Countdown is missing its static accessible sentence');
-// Continuous motion needs a way to stop it. The control ships in the markup, and
-// the duplicate scrolling copy must never be announced twice.
-assert(home.includes('data-countdown-pause'), 'Banner is missing its pause control');
-assert(/countdown__group" aria-hidden="true"/.test(home), 'Duplicate banner copy must be hidden from assistive technology');
-assert(/countdown__digits|data-countdown-digits[^>]*aria-hidden="true"/.test(home), 'Countdown digits must be hidden from assistive technology');
+assert(!home.includes('data-countdown '), 'Home exposes the unpublished event countdown');
+assert(!home.includes('2026-09-26T13:00:00-04:00'), 'Home exposes the unpublished event instant');
+assert(!home.includes('Smithsonian National Museum of African Art'), 'Home exposes unpublished event details');
 
 console.log(JSON.stringify({
   productionBundle: 'no draft copy, admin code or managed secret',
   approvedContentRendered: approvedChecked,
-  countdown: 'server-rendered, exact instant, accessible sentence present',
+  draftEvent: 'not present in public homepage or detail route',
   responses: results,
 }, null, 2));

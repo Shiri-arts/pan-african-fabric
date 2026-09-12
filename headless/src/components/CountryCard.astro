@@ -6,14 +6,14 @@
  */
 import { coloursForCountry } from '../data/colours';
 import { countryPath, regionName, type Country } from '../data/countries';
-interface Props { country: Country; index?: number; }
-const { country, index } = Astro.props;
-const colours = coloursForCountry(country.slug);
+interface Props { country: Country; index?: number; colourStyles?: readonly string[]; }
+const { country, index, colourStyles } = Astro.props;
+const colours = colourStyles ?? (import.meta.env.DEV ? coloursForCountry(country.slug).map(colour => `--rail:var(${colour.variable})`) : []);
 const status = country.hasApprovedProfile ? 'Profile available' : 'Profile in review';
 ---
 <a class="card card--link country-card" href={countryPath(country.slug)}>
   <span class="card__rail" aria-hidden="true">
-    {colours.map((colour) => <span style={`--rail:var(${colour.variable})`}></span>)}
+    {colours.map((style) => <span style={style}></span>)}
   </span>
   <span class="card__body">
     <span class="card__meta">

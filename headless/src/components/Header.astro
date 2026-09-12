@@ -16,20 +16,28 @@
 import Container from './Container.astro';
 import MenuToggle from './MenuToggle';
 import { isCurrent, navigation, primaryAction } from '../data/navigation';
-interface Props { mode?: 'solid' | 'overlay'; }
-const { mode = 'solid' } = Astro.props;
+import type { CmsNavigationItem } from '../lib/wix-cms';
+import { mergeNavigation } from '../lib/cms-presentation';
+interface Props { mode?: 'solid' | 'overlay'; siteName?: string; cmsNavigation?: readonly CmsNavigationItem[]; cmsNavigationConfigured?: boolean; }
+const { mode = 'solid', siteName = 'The Pan-African Fabric', cmsNavigation = [], cmsNavigationConfigured = false } = Astro.props;
 const path = Astro.url.pathname;
+const primaryCms = cmsNavigation.filter(item => !item.highlighted);
+const actionCms = cmsNavigation.find(item => item.highlighted);
+const resolvedNavigation = cmsNavigationConfigured ? mergeNavigation(primaryCms, navigation, false) : navigation;
+const resolvedAction = actionCms && actionCms.href === primaryAction.href
+  ? { ...primaryAction, label: actionCms.label }
+  : cmsNavigationConfigured ? undefined : primaryAction;
 ---
 <span id="header-sentinel" aria-hidden="true" style={`--sentinel-height:${mode === 'overlay' ? 'min(58vh, 560px)' : '16px'}`}></span>
 <header class="site-header" data-mode={mode} data-stuck="false">
   <Container class="header-row">
-    <a class="brand" href="/" aria-label="The Pan-African Fabric, home">
-      <span class="brand__name">The Pan-African Fabric</span>
+    <a class="brand" href="/" aria-label={`${siteName}, home`}>
+      <span class="brand__name">{siteName}</span>
     </a>
     <MenuToggle client:load />
     <nav id="primary-navigation" class="header-nav" aria-label="Main">
       <ul class="header-nav__list">
-        {navigation.map((item) => (
+        {resolvedNavigation.map((item) => (
           <li class="header-nav__item">
             <a
               class="header-nav__link"
@@ -52,11 +60,13 @@ const path = Astro.url.pathname;
           </li>
         ))}
       </ul>
-      <a
-        class="header-action"
-        href={primaryAction.href}
-        aria-current={isCurrent(primaryAction.href, path) ? 'page' : undefined}
-      >{primaryAction.label}</a>
+      {resolvedAction && (
+        <a
+          class="header-action"
+          href={resolvedAction.href}
+          aria-current={isCurrent(resolvedAction.href, path) ? 'page' : undefined}
+        >{resolvedAction.label}</a>
+      )}
     </nav>
   </Container>
 </header>

@@ -17,14 +17,32 @@ import Reveal from '../components/Reveal.astro';
 import ScrollProgress from '../components/ScrollProgress.astro';
 import { loadReviewCopy } from '../lib/review';
 import type { PageMeta } from '../lib/seo';
+import { getFooterNavigationState, getMediaById, getPageByKey, getPrimaryNavigationState, getSiteSettings, type CmsPage, type CmsSiteSettings } from '../lib/wix-cms';
 
 interface Props extends PageMeta {
   /** Quiet transparent header over a dark hero; solid everywhere else. */
   header?: 'solid' | 'overlay';
   progress?: boolean;
+  cmsPageKey?: string;
+  cmsPage?: CmsPage;
+  cmsSettings?: CmsSiteSettings;
 }
-const { header = 'solid', progress = false, ...meta } = Astro.props;
+const { header = 'solid', progress = false, cmsPageKey, cmsPage: suppliedPage, cmsSettings: suppliedSettings, ...fallbackMeta } = Astro.props;
 const review = await loadReviewCopy();
+const [settings, page, primaryNavigation, footerNavigation] = await Promise.all([
+  suppliedSettings ? Promise.resolve(suppliedSettings) : getSiteSettings(),
+  suppliedPage ? Promise.resolve(suppliedPage) : cmsPageKey ? getPageByKey(cmsPageKey) : Promise.resolve(undefined),
+  getPrimaryNavigationState(),
+  getFooterNavigationState(),
+]);
+const meta = {
+  ...fallbackMeta,
+  title: page?.seoTitle ?? (cmsPageKey === 'home' ? fallbackMeta.title : page?.title ?? fallbackMeta.title),
+  description: page?.seoDescription ?? settings?.defaultSeoDescription ?? fallbackMeta.description,
+  path: page?.path ?? fallbackMeta.path,
+};
+const socialAssetId = page?.socialShareAssetId ?? settings?.socialShareAssetId ?? settings?.defaultSeoAssetId;
+const socialImage = socialAssetId ? await getMediaById(socialAssetId) : undefined;
 ---
 <!doctype html>
 <html lang="en">
@@ -34,7 +52,8 @@ const review = await loadReviewCopy();
     <meta name="theme-color" content="#161412" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta name="color-scheme" content="light" />
-    <Meta {...meta} />
+    <Meta {...meta} siteName={settings?.siteName} canonicalOrigin={settings?.canonicalOrigin} cmsRobots={page?.robots}
+      titlePattern={settings?.defaultSeoTitlePattern} socialImageUrl={socialImage?.desktop?.src} socialImageAlt={socialImage?.alt} />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -44,10 +63,24 @@ const review = await loadReviewCopy();
         <span>Draft copy is marked. No approved photography. CMS wiring and deployment pending.</span>
       </aside>
     )}
+    {settings?.announcementEnabled && settings.announcementText && (
+      <aside class="site-announcement" aria-label="Announcement">
+        <span>{settings.announcementText}</span>
+        {settings.announcementLinkUrl && settings.announcementLinkLabel && (
+          <a href={settings.announcementLinkUrl}>{settings.announcementLinkLabel}</a>
+        )}
+      </aside>
+    )}
     {progress && <ScrollProgress />}
-    <Header mode={header} />
+    <Header mode={header} siteName={settings?.headerIdentity ?? settings?.siteName} cmsNavigation={primaryNavigation.items} cmsNavigationConfigured={primaryNavigation.configured} />
     <main id="main" tabindex="-1" class:list={[header === 'overlay' && 'has-overlay-hero']}><slot /></main>
-    <Footer review={review} />
+    <Footer review={review} settings={settings} cmsNavigation={footerNavigation.items} cmsNavigationConfigured={footerNavigation.configured} />
     <Reveal />
   </body>
 </html>
+
+<style is:global>
+  .site-announcement { position: relative; z-index: 1001; display: flex; justify-content: center; align-items: center; gap: 1rem; min-height: 2.5rem; padding: 0.5rem var(--gutter); background: var(--gold); color: var(--ink); font-size: 0.8125rem; text-align: center; }
+  .site-announcement a { color: currentColor; font-weight: 600; }
+  @media (max-width: 40rem) { .site-announcement { align-items: flex-start; flex-direction: column; gap: 0.25rem; } }
+</style>

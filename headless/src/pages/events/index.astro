@@ -7,19 +7,46 @@ import PageHero from '../../components/PageHero.astro';
 import EventPoster from '../../components/EventPoster.astro';
 import EventCard from '../../components/EventCard.astro';
 import EmptyState from '../../components/EmptyState.astro';
-import { eventStructuredData, groupEvents, inauguralShowcase } from '../../data/events';
+import { eventPhase, eventStructuredData, events, inauguralShowcase } from '../../data/events';
 import { awaiting, draft } from '../../lib/content';
 import { mediaSlot } from '../../lib/media';
+import { cmsPlainText, escapeCmsHeading, presentCmsEvent, sectionsByKey } from '../../lib/cms-route-presenters';
 import { loadReviewCopy } from '../../lib/review';
+import { getEventBySlug, getMediaById, getPageByKey, getPageHeroMedia, getPageSections, getUpcomingEvents } from '../../lib/wix-cms';
 
 const review = await loadReviewCopy();
-const { featured, upcoming, archive } = groupEvents();
+const [cmsPage, cmsSections, cmsHeroMedia, upcomingCms, knownCmsEvent] = await Promise.all([
+  getPageByKey('events'),
+  getPageSections('events'),
+  getPageHeroMedia('events'),
+  getUpcomingEvents(),
+  getEventBySlug(inauguralShowcase.slug),
+]);
+const sectionContent = sectionsByKey(cmsSections);
+const cmsSources = [...upcomingCms, ...(knownCmsEvent && !upcomingCms.some(event => event.id === knownCmsEvent.id) ? [knownCmsEvent] : [])];
+const cmsPairs = (await Promise.all(cmsSources.map(async source => ({ source, event: await presentCmsEvent(source, getMediaById) }))))
+  .filter((pair): pair is { source: typeof cmsSources[number]; event: NonNullable<Awaited<ReturnType<typeof presentCmsEvent>>> } => Boolean(pair.event));
+const eventRecords = [
+  ...cmsPairs.map(pair => pair.event),
+  ...(import.meta.env.DEV ? events.filter(fallback => !cmsPairs.some(pair => pair.event.slug === fallback.slug)) : []),
+];
+const now = new Date();
+const active = eventRecords.filter(event => eventPhase(event, now) !== 'archive').sort((a, b) => Date.parse(a.startsAt ?? a.isoDate) - Date.parse(b.startsAt ?? b.isoDate));
+const archive = eventRecords.filter(event => eventPhase(event, now) === 'archive').sort((a, b) => Date.parse(b.startsAt ?? b.isoDate) - Date.parse(a.startsAt ?? a.isoDate));
+const preferredSlug = cmsPairs.find(pair => pair.source.featured)?.event.slug;
+const featured = active.find(event => event.slug === preferredSlug) ?? active[0] ?? archive[0];
+const upcoming = active.filter(event => event.slug !== featured?.slug);
 
 const intro = review
   ? draft(review.events.intro, 'Content lead')
   : awaiting('Events introduction', 'Approve the introduction to public programmes and presentations.');
 
-const heroMedia = mediaSlot('events-hero', '21/9', 'Approved photograph from a public programme or exhibition.');
+const cmsIntro = cmsPlainText(cmsPage?.introduction);
+const heroMedia = cmsHeroMedia ?? mediaSlot('events-hero', '21/9', 'Approved photograph from a public programme or exhibition.');
+const upcomingSection = sectionContent.get('upcoming');
+const formatsSection = sectionContent.get('formats');
+const archiveSection = sectionContent.get('archive');
+const sectionEnabled = (key: string) => cmsSections.find(section => section.sectionKey === key)?.isEnabled ?? true;
 
 /** Formats the initiative presents. Layouts exist for each; none is populated with invented events. */
 const formats = [
@@ -32,33 +59,35 @@ const formats = [
 ];
 ---
 <Layout
-  title="Events"
-  description="Where The Pan-African Fabric happens: the inaugural showcase at the Smithsonian National Museum of African Art, and the exhibitions, workshops, competitions, receptions and talks that follow."
+  title={cmsPage?.seoTitle ?? cmsPage?.title ?? 'Events'}
+  description={cmsPage?.seoDescription ?? 'Where The Pan-African Fabric happens: the inaugural showcase at the Smithsonian National Museum of African Art, and the exhibitions, workshops, competitions, receptions and talks that follow.'}
   path="/events"
   header="overlay"
-  structuredData={eventStructuredData(inauguralShowcase)}
+  structuredData={featured ? eventStructuredData(featured) : undefined}
 >
   <PageHero
-    eyebrow="Events"
-    title="Where it<span>happens.</span>"
+    eyebrow={cmsPage?.eyebrow ?? 'Events'}
+    title={escapeCmsHeading(cmsPage?.heroTitle, 'Where it<span>happens.</span>')}
     size="tall"
     media={heroMedia}
     meta={['Exhibitions', 'Workshops', 'Talks']}
   >
-    <Copy copy={intro} class="page-hero__intro lead" fallbackTitle="Events introduction" emptyTone="ink" />
+    {cmsIntro
+      ? <p class="page-hero__intro lead">{cmsIntro}</p>
+      : <Copy copy={intro} class="page-hero__intro lead" fallbackTitle="Events introduction" emptyTone="ink" />}
   </PageHero>
 
   {featured && (
-    <Section tone="paper" id="featured">
+    <Section tone="paper" id="featured" hidden={!sectionEnabled('featured')}>
       <div data-reveal="rise">
         <EventPoster event={featured} level={2} />
       </div>
     </Section>
   )}
 
-  <Section tone="ivory" id="upcoming">
-    <SectionHead eyebrow="Upcoming" title="What is coming next.">
-      <p>Only confirmed events are listed. Nothing provisional is shown as if it were scheduled.</p>
+  <Section tone="ivory" id="upcoming" hidden={!sectionEnabled('upcoming')}>
+    <SectionHead eyebrow={upcomingSection?.eyebrow ?? 'Upcoming'} title={upcomingSection?.heading ?? 'What is coming next.'}>
+      <p>{cmsPlainText(upcomingSection?.body) ?? 'Only confirmed events are listed. Nothing provisional is shown as if it were scheduled.'}</p>
     </SectionHead>
     {upcoming.length > 0 ? (
       <ul class="card-grid card-grid--wide">
@@ -73,9 +102,9 @@ const formats = [
     )}
   </Section>
 
-  <Section tone="surface" id="formats">
-    <SectionHead eyebrow="Formats" title="The shapes this initiative takes.">
-      <p>Each format has a layout ready. A format appears in the listings above only when a real event is confirmed.</p>
+  <Section tone="surface" id="formats" hidden={!sectionEnabled('formats')}>
+    <SectionHead eyebrow={formatsSection?.eyebrow ?? 'Formats'} title={formatsSection?.heading ?? 'The shapes this initiative takes.'}>
+      <p>{cmsPlainText(formatsSection?.body) ?? 'Each format has a layout ready. A format appears in the listings above only when a real event is confirmed.'}</p>
     </SectionHead>
     <ul class="format-grid">
       {formats.map((format) => (
@@ -87,12 +116,9 @@ const formats = [
     </ul>
   </Section>
 
-  <Section tone="ink" id="archive">
-    <SectionHead eyebrow="Archive" title="Past events.">
-      <p>
-        After an event has taken place, it moves here. The archive records what was scheduled; it never claims
-        attendance, outcomes or press response that has not been supplied.
-      </p>
+  <Section tone="ink" id="archive" hidden={!sectionEnabled('archive')}>
+    <SectionHead eyebrow={archiveSection?.eyebrow ?? 'Archive'} title={archiveSection?.heading ?? 'Past events.'}>
+      <p>{cmsPlainText(archiveSection?.body) ?? 'After an event has taken place, it moves here. The archive records what was scheduled; it never claims attendance, outcomes or press response that has not been supplied.'}</p>
     </SectionHead>
     {archive.length > 0 ? (
       <ul class="card-grid card-grid--wide">

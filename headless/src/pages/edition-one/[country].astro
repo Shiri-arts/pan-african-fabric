@@ -4,38 +4,121 @@ import Section from '../../components/Section.astro';
 import SectionHead from '../../components/SectionHead.astro';
 import Button from '../../components/Button.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import ColourChips from '../../components/ColourChips.astro';
 import EmptyState from '../../components/EmptyState.astro';
 import Media from '../../components/Media.astro';
 import NotFound from '../../components/NotFound.astro';
-import EventCard from '../../components/EventCard.astro';
-import { colourStyle, coloursForCountry } from '../../data/colours';
+import { coloursForCountry } from '../../data/colours';
+import type { Media as MediaRecord } from '../../lib/media';
 import { adjacentCountries, countryPath, findCountry, regionName } from '../../data/countries';
 import { events } from '../../data/events';
 import { mediaSlot } from '../../lib/media';
 import { loadReviewCopy } from '../../lib/review';
+import {
+  getDesigners, getEditionColours, getGarments, getMediaById, getParticipations, getPrimaryEdition,
+  getCountryBySlug, getEditionCountries, getRegions, getSymbols, getUpcomingEvents,
+} from '../../lib/wix-cms';
 
 export const prerender = false;
 
-const country = findCountry(Astro.params.country);
+const staticCountry = findCountry(Astro.params.country);
+const [review, cmsEdition, candidateCmsCountry, cmsRegions] = await Promise.all([
+  staticCountry ? loadReviewCopy() : Promise.resolve(undefined),
+  getPrimaryEdition(),
+  Astro.params.country ? getCountryBySlug(Astro.params.country) : Promise.resolve(undefined),
+  getRegions(),
+]);
+const cmsCountry = candidateCmsCountry && (!cmsEdition || !candidateCmsCountry.editionId || candidateCmsCountry.editionId === cmsEdition.id)
+  ? candidateCmsCountry
+  : undefined;
+const cmsRegion = cmsCountry?.regionId ? cmsRegions.find((region) => region.id === cmsCountry.regionId) : undefined;
+const country = cmsCountry && staticCountry ? {
+  ...staticCountry,
+  name: cmsCountry.countryName ?? staticCountry.name,
+  regionNote: cmsCountry.regionNote ?? staticCountry.regionNote,
+} : import.meta.env.DEV ? staticCountry : undefined;
 if (!country) Astro.response.status = 404;
 
-const review = country ? await loadReviewCopy() : undefined;
-const colours = country ? coloursForCountry(country.slug) : [];
+const [editionCountries, cmsColours, participations, designers, cmsGarments, symbols, upcomingEvents, heroMediaFromCms] = country ? await Promise.all([
+  cmsEdition ? getEditionCountries(cmsEdition.id) : Promise.resolve([]),
+  getEditionColours(cmsEdition?.id),
+  cmsCountry ? getParticipations({ countryId: cmsCountry.id }) : Promise.resolve([]),
+  getDesigners(),
+  cmsCountry ? getGarments({ countryId: cmsCountry.id }) : Promise.resolve([]),
+  getSymbols(),
+  getUpcomingEvents(),
+  cmsCountry?.heroAssetId ? getMediaById(cmsCountry.heroAssetId) : Promise.resolve(undefined),
+]) : [[], [], [], [], [], [], [], undefined];
+
+const textOnly = (value: unknown): string | undefined => typeof value === 'string' && value.trim() ? value.trim() : undefined;
+const fallbackColours = country ? coloursForCountry(country.slug) : [];
+const cmsCountryById = new Map(editionCountries.map((item) => [item.id, item]));
+const colours = fallbackColours.flatMap((fallback) => {
+  const record = cmsColours.find((item) => item.sourcePosition === fallback.index && item.countryId === cmsCountry?.id);
+  const relatedCountry = record?.countryId ? cmsCountryById.get(record.countryId) : undefined;
+  return record && record.textHex && (record.contrastRatio ?? 0) >= 4.5 ? [{
+    index: record.sourcePosition ?? fallback.index, name: record.colourName, style: `--panel:${record.hexValue};--panel-on:${record.textHex}`,
+    symbolId: record.symbolId, countryName: relatedCountry?.countryName ?? country?.name ?? fallback.country,
+  }] : import.meta.env.DEV ? [{
+    index: fallback.index, name: fallback.name, style: `--panel:var(${fallback.variable});--panel-on:${fallback.textOn}`,
+    symbolId: undefined, countryName: country?.name ?? fallback.country,
+  }] : [];
+});
 const designer = country ? review?.designerRoster.find((entry) => entry.country === country.slug) : undefined;
-const siblings = country ? adjacentCountries(country.slug) : undefined;
+const principalParticipation = participations.find((item) => item.isPrincipal) ?? participations[0];
+const cmsDesigner = principalParticipation ? designers.find((item) => item.id === principalParticipation.designerId) : undefined;
+const featuredSymbol = cmsCountry?.featuredSymbolId ? symbols.find((item) => item.id === cmsCountry.featuredSymbolId) : undefined;
+const siblingBase = country ? adjacentCountries(country.slug) : undefined;
+const displayNameFor = (slug: string, fallback: string) => editionCountries.find((item) => item.slug === slug)?.countryName ?? fallback;
+const siblingRecordsPublished = siblingBase
+  ? editionCountries.some(item => item.slug === siblingBase.previous.slug) && editionCountries.some(item => item.slug === siblingBase.next.slug)
+  : false;
+const siblings = siblingBase && (import.meta.env.DEV || siblingRecordsPublished) ? {
+  previous: { ...siblingBase.previous, name: displayNameFor(siblingBase.previous.slug, siblingBase.previous.name) },
+  next: { ...siblingBase.next, name: displayNameFor(siblingBase.next.slug, siblingBase.next.name) },
+} : undefined;
 const lead = colours[0];
 
 const heroMedia = country
-  ? mediaSlot(`country-${country.slug}-hero`, '21/9', `Approved hero image for ${country.name}, with focal point, alt text, caption, credit and reuse permission.`)
+  ? heroMediaFromCms ?? mediaSlot(`country-${country.slug}-hero`, '21/9', `Approved hero image for ${country.name}, with focal point, alt text, caption, credit and reuse permission.`)
   : undefined;
-const garments = country
+const cmsGarmentMediaIds = [...new Set(cmsGarments.flatMap((item) => [item.heroAssetId, ...item.galleryAssetIds]).filter((id): id is string => Boolean(id)))].slice(0, 3);
+const cmsGarmentMedia = await Promise.all(cmsGarmentMediaIds.map((id) => getMediaById(id)));
+const garments = country && cmsGarmentMedia.some(Boolean)
+  ? cmsGarmentMedia.filter((item): item is MediaRecord => Boolean(item))
+  : country
   ? [
       mediaSlot(`country-${country.slug}-garment-1`, '4/5', 'Approved garment photograph, primary look.'),
       mediaSlot(`country-${country.slug}-garment-2`, '4/5', 'Approved supporting garment photograph.'),
       mediaSlot(`country-${country.slug}-garment-3`, '4/5', 'Approved supporting garment or detail photograph.'),
     ]
   : [];
+
+const relatedCmsEvents = cmsCountry
+  ? upcomingEvents.filter((event) => event.countryIds.includes(cmsCountry.id) && event.slug && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(event.slug) && event.title && event.dateLabel)
+  : [];
+const usingCmsRelatedEvents = relatedCmsEvents.length > 0;
+const relatedEvents = relatedCmsEvents.length ? relatedCmsEvents.map((event) => ({
+  slug: event.slug, title: event.title, dateLabel: event.dateLabel, timeLabel: event.timeLabel,
+  timezoneLabel: event.timezoneLabel, venue: event.venue, location: event.location, eventType: event.eventType ?? 'Event',
+})) : import.meta.env.DEV ? events.map((event) => ({
+  slug: event.slug, title: event.title, dateLabel: event.dateLabel, timeLabel: event.timeLabel,
+  timezoneLabel: event.timezoneLabel, venue: event.venue, location: event.location, eventType: event.kind,
+})) : [];
+const profileReady = Boolean(cmsCountry && (
+  heroMediaFromCms || textOnly(cmsCountry.introduction) || textOnly(cmsCountry.interpretation)
+  || textOnly(cmsCountry.participationSummary) || textOnly(cmsCountry.credits) || cmsDesigner
+));
+const profileStatus = profileReady ? (cmsCountry?.profileStatus ?? 'Profile available') : 'Profile in review';
+const regionLabel = cmsRegion?.name ?? cmsCountry?.regionLabel ?? (country ? regionName(country.region) : '');
+
+const slotContent = {
+  introduction: textOnly(cmsCountry?.introduction),
+  symbol: textOnly(featuredSymbol?.meaning),
+  designer: textOnly(cmsDesigner?.biography),
+  interpretation: textOnly(cmsCountry?.interpretation) ?? textOnly(principalParticipation?.statement),
+  participation: textOnly(cmsCountry?.participationSummary) ?? principalParticipation?.selectionContext,
+  credits: textOnly(cmsCountry?.credits),
+} as const;
 
 /** Every slot on this template, so an incomplete profile reads as in-review rather than as a finished page. */
 const slots = [
@@ -54,23 +137,30 @@ const slots = [
 ) : (
   <Layout
     title={country.name}
-    description={`${country.name} in Edition One of The Pan-African Fabric: its colours in the twelve-colour system, its designer, creative interpretation and finished garments.`}
+    description={cmsCountry?.summary ?? `${country.name} in Edition One of The Pan-African Fabric: its colours in the twelve-colour system, its designer, creative interpretation and finished garments.`}
     path={countryPath(country.slug)}
     header="overlay"
     progress
   >
-    <section class="country-hero on-ink" style={lead ? colourStyle(lead) : undefined}>
+    <section class="country-hero on-ink" style={lead?.style}>
       <div class="country-hero__media" aria-hidden="true"></div>
       <div class="page-hero__scrim" aria-hidden="true"></div>
       <div class="container country-hero__inner">
         <Breadcrumbs trail={[{ href: '/edition-one', label: 'Edition One' }]} current={country.name} />
         <div class="hero-enter">
-          <p class="eyebrow"><span>{regionName(country.region)}</span></p>
+          <p class="eyebrow"><span>{regionLabel}</span></p>
           <h1 class="country-hero__title">{country.name}</h1>
-          <ColourChips country={country.slug} label={`Edition One colours for ${country.name}`} />
+          <ul class="colour-chips" aria-label={`Edition One colours for ${country.name}`}>
+            {colours.map((colour) => (
+              <li class="colour-chip" style={colour.style}>
+                <span class="colour-chip__dot" aria-hidden="true"></span>
+                <span>{colour.name}</span>
+              </li>
+            ))}
+          </ul>
           <p class="country-hero__status">
-            <span class="badge badge--awaiting">Profile in review</span>
-            <span>Approved material has not been supplied for this country yet.</span>
+            <span class:list={['badge', !profileReady && 'badge--awaiting']}>{profileStatus}</span>
+            {!profileReady && <span>Approved profile material has not been supplied for this country yet.</span>}
           </p>
         </div>
       </div>
@@ -97,7 +187,7 @@ const slots = [
       </SectionHead>
       <ul class="country-colours">
         {colours.map((colour) => (
-          <li class="country-colour" style={colourStyle(colour)}>
+          <li class="country-colour" style={colour.style}>
             <span class="country-colour__field">
               <span class="country-colour__index">{String(colour.index).padStart(2, '0')}</span>
               <span class="country-colour__name">{colour.name}</span>
@@ -114,7 +204,12 @@ const slots = [
     {slots.map((slot, index) => (
       <Section tone={index % 2 === 0 ? 'surface' : 'ivory'} id={slot.id}>
         <SectionHead eyebrow={slot.label} title={slot.title}>
-          {slot.id === 'designer' && designer ? (
+          {slot.id === 'symbol' && featuredSymbol?.approvedName ? (
+            <p class="designer-name">{featuredSymbol.approvedName}</p>
+          ) : null}
+          {slot.id === 'designer' && cmsDesigner ? (
+            <p class="designer-name">{cmsDesigner.displayName}</p>
+          ) : slot.id === 'designer' && designer ? (
             <div class="stack stack--sm">
               <p class="designer-name">
                 {designer.designer}
@@ -123,11 +218,15 @@ const slots = [
               <p class="state__note"><strong>Review note:</strong> {designer.note}</p>
             </div>
           ) : null}
-          <EmptyState
-            title={`${slot.title} is not approved yet.`}
-            text="The position, typography and spacing are final. Approved material replaces this state without a layout change."
-            note={import.meta.env.DEV ? slot.need : undefined}
-          />
+          {slotContent[slot.id as keyof typeof slotContent] ? (
+            <p class="lead">{slotContent[slot.id as keyof typeof slotContent]}</p>
+          ) : (
+            <EmptyState
+              title={`${slot.title} is not approved yet.`}
+              text="The position, typography and spacing are final. Approved material replaces this state without a layout change."
+              note={import.meta.env.DEV ? slot.need : undefined}
+            />
+          )}
         </SectionHead>
       </Section>
     ))}
@@ -145,17 +244,31 @@ const slots = [
       <SectionHead eyebrow="Related experience" title="Where you can see this work.">
         <p>Events linked to this country appear here once the connection is confirmed.</p>
       </SectionHead>
-      {events.length > 0 ? (
+      {relatedEvents.length > 0 ? (
         <ul class="card-grid card-grid--wide">
-          {events.map((event) => <li><EventCard event={event} /></li>)}
+          {relatedEvents.map((event) => (
+            <li>
+              <a class="card card--link" href={`/events/${event.slug}`}>
+                <span class="card__body">
+                  <span class="card__meta"><span>{event.eventType}</span><span>Event</span></span>
+                  <span class="card__title">{event.title}</span>
+                  <span class="card__summary">{event.dateLabel}{event.timeLabel ? ` · ${event.timeLabel}${event.timezoneLabel ? ` ${event.timezoneLabel}` : ''}` : ''}</span>
+                  {(event.venue || event.location) && <span class="card__summary">{[event.venue, event.location].filter(Boolean).join(', ')}</span>}
+                  <span class="card__foot"><span class="card__cue">Event details<span aria-hidden="true">&#8594;</span></span></span>
+                </span>
+              </a>
+            </li>
+          ))}
         </ul>
       ) : (
         <EmptyState title="No related event has been confirmed for this country yet." layout="centred" />
       )}
-      <p class="caption" style="margin-top:16px">
-        The inaugural showcase is listed because it is the confirmed event for Edition One. A country-specific
-        programme link is added only when it is confirmed.
-      </p>
+      {import.meta.env.DEV && !usingCmsRelatedEvents && (
+        <p class="caption" style="margin-top:16px">
+          The inaugural showcase is listed because it is the confirmed event for Edition One. A country-specific
+          programme link is added only when it is confirmed.
+        </p>
+      )}
     </Section>
 
     {siblings && (

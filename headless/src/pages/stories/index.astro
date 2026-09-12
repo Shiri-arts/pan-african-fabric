@@ -8,32 +8,46 @@ import StoryCard from '../../components/StoryCard.astro';
 import EmptyState from '../../components/EmptyState.astro';
 import { storyCategories, stories } from '../../data/stories';
 import { mediaSlot } from '../../lib/media';
+import { cmsPlainText, escapeCmsHeading, presentCmsStory, sectionsByKey } from '../../lib/cms-route-presenters';
 import { reviewStories } from '../../lib/review';
+import { getMediaById, getPageByKey, getPageHeroMedia, getPageSections, getPublishedStories } from '../../lib/wix-cms';
 
-const all = [...stories, ...(await reviewStories())];
-const heroMedia = mediaSlot('stories-hero', '21/9', 'Approved editorial photograph: a workshop, a fitting, a preparation or a portrait.');
+const [cmsPage, cmsSections, cmsHeroMedia, cmsStoryItems] = await Promise.all([
+  getPageByKey('stories'),
+  getPageSections('stories'),
+  getPageHeroMedia('stories'),
+  getPublishedStories(),
+]);
+const cmsStories = (await Promise.all(cmsStoryItems.map(story => presentCmsStory(story, getMediaById))))
+  .filter((story): story is NonNullable<Awaited<ReturnType<typeof presentCmsStory>>> => Boolean(story));
+const all = cmsStories.length > 0 ? cmsStories : [...stories, ...(await reviewStories())];
+const heroMedia = cmsHeroMedia ?? mediaSlot('stories-hero', '21/9', 'Approved editorial photograph: a workshop, a fitting, a preparation or a portrait.');
+const intro = cmsPlainText(cmsPage?.introduction);
+const sections = sectionsByKey(cmsSections);
+const indexSection = sections.get('index');
+const categoriesSection = sections.get('categories');
+const sectionEnabled = (key: string) => cmsSections.find(section => section.sectionKey === key)?.isEnabled ?? true;
+const categoryCounts = new Map(storyCategories.map(category => [category, all.filter(story => story.category === category).length]));
 ---
 <Layout
-  title="Stories"
-  description="The living voice of The Pan-African Fabric: behind the scenes, country and designer stories, announcements, partnerships, founder reflections, interviews and milestones."
+  title={cmsPage?.seoTitle ?? cmsPage?.title ?? 'Stories'}
+  description={cmsPage?.seoDescription ?? 'The living voice of The Pan-African Fabric: behind the scenes, country and designer stories, announcements, partnerships, founder reflections, interviews and milestones.'}
   path="/stories"
   header="overlay"
 >
   <PageHero
-    eyebrow="Stories"
-    title="The living<span>voice.</span>"
+    eyebrow={cmsPage?.eyebrow ?? 'Stories'}
+    title={escapeCmsHeading(cmsPage?.heroTitle, 'The living<span>voice.</span>')}
     size="tall"
     media={heroMedia}
     meta={['Behind the scenes', 'Interviews', 'Milestones']}
   >
-    <p class="page-hero__intro lead">
-      Where the initiative speaks in its own words, as the work is being made rather than after it is finished.
-    </p>
+    <p class="page-hero__intro lead">{intro ?? 'Where the initiative speaks in its own words, as the work is being made rather than after it is finished.'}</p>
   </PageHero>
 
-  <Section tone="ivory" id="index">
-    <SectionHead eyebrow="Index" title="Everything published so far.">
-      <p>Stories are grouped by category and dated. Each one carries its author credit and links back to the countries, designers and events it touches.</p>
+  <Section tone="ivory" id="index" hidden={!sectionEnabled('index')}>
+    <SectionHead eyebrow={indexSection?.eyebrow ?? 'Index'} title={indexSection?.heading ?? 'Everything published so far.'}>
+      <p>{cmsPlainText(indexSection?.body) ?? 'Stories are grouped by category and dated. Each one carries its author credit and links back to the countries, designers and events it touches.'}</p>
     </SectionHead>
     {all.length > 0 ? (
       <ul class="card-grid card-grid--wide">
@@ -48,15 +62,15 @@ const heroMedia = mediaSlot('stories-hero', '21/9', 'Approved editorial photogra
     )}
   </Section>
 
-  <Section tone="surface" id="categories">
-    <SectionHead eyebrow="Categories" title="What stories cover.">
-      <p>Each category has a layout ready. A category appears in the index only when a story is published in it.</p>
+  <Section tone="surface" id="categories" hidden={!sectionEnabled('categories')}>
+    <SectionHead eyebrow={categoriesSection?.eyebrow ?? 'Categories'} title={categoriesSection?.heading ?? 'What stories cover.'}>
+      <p>{cmsPlainText(categoriesSection?.body) ?? 'Each category has a layout ready. A category appears in the index only when a story is published in it.'}</p>
     </SectionHead>
     <ul class="category-list">
       {storyCategories.map((category) => (
         <li class="category">
           <span class="category__name">{category}</span>
-          <span class="category__count">0</span>
+          <span class="category__count">{categoryCounts.get(category) ?? 0}</span>
         </li>
       ))}
     </ul>

@@ -14,25 +14,49 @@ import Button from '../components/Button.astro';
 import PageHero from '../components/PageHero.astro';
 import EmptyState from '../components/EmptyState.astro';
 import Field from '../components/Field.astro';
+import CmsRichText from '../components/CmsRichText.astro';
 import { editionColours } from '../data/colours';
 import { COUNTRY_COUNT, REGION_COUNT } from '../data/countries';
 import { inauguralShowcase } from '../data/events';
 import { mediaSlot } from '../lib/media';
+import { cmsPlainText, escapeCmsHeading, presentCmsEvent, sectionsByKey } from '../lib/cms-route-presenters';
+import { getEventBySlug, getMediaById, getPageByKey, getPageHeroMedia, getPageSections, getPartnershipOptions } from '../lib/wix-cms';
 
-const heroMedia = mediaSlot('partner-hero', '21/9', 'Approved photograph from an exhibition, workshop or reception.');
+const [cmsPage, cmsSections, cmsHeroMedia, cmsOptions, cmsEvent] = await Promise.all([
+  getPageByKey('partner-with-us'),
+  getPageSections('partner-with-us'),
+  getPageHeroMedia('partner-with-us'),
+  getPartnershipOptions(),
+  getEventBySlug(inauguralShowcase.slug),
+]);
+const heroMedia = cmsHeroMedia ?? mediaSlot('partner-hero', '21/9', 'Approved photograph from an exhibition, workshop or reception.');
+const sectionContent = sectionsByKey(cmsSections);
+const whySection = sectionContent.get('why-partner');
+const collaboratorSection = sectionContent.get('collaborators');
+const waysSection = sectionContent.get('ways');
+const enquirySection = sectionContent.get('enquiry');
+const sectionEnabled = (key: string) => cmsSections.find(section => section.sectionKey === key)?.isEnabled ?? true;
+const confirmedEvent = cmsEvent ? await presentCmsEvent(cmsEvent, getMediaById) : undefined;
+const eventForCaption = confirmedEvent;
 
 /** Collaborator types named in the implementation brief. */
-const collaborators = [
-  'Museums',
-  'Embassies',
-  'Universities',
-  'Sponsors',
-  'Cultural organisations',
-  'Designers',
-  'Future hosts',
+const collaboratorFallbacks = [
+  { label: 'Museums', description: undefined },
+  { label: 'Embassies', description: undefined },
+  { label: 'Universities', description: undefined },
+  { label: 'Sponsors', description: undefined },
+  { label: 'Cultural organisations', description: undefined },
+  { label: 'Designers', description: undefined },
+  { label: 'Future hosts', description: undefined },
 ];
 
-const enquiryTypes = [
+const collaboratorOptions = cmsOptions.filter(option => option.optionType?.toLowerCase() === 'collaborator');
+const collaborators = collaboratorOptions.length > 0
+  ? collaboratorOptions.map(option => ({ label: option.label, description: cmsPlainText(option.description) }))
+  : collaboratorFallbacks;
+const wayOptions = cmsOptions.filter(option => option.optionType?.toLowerCase() === 'format');
+const enquiryOptions = cmsOptions.filter(option => option.optionType?.toLowerCase() === 'enquiry');
+const enquiryFallbacks = [
   'Hosting an exhibition',
   'Workshop or education programme',
   'Sponsorship',
@@ -40,28 +64,28 @@ const enquiryTypes = [
   'Designer collaboration',
   'Something else',
 ];
+const enquiryTypes = enquiryOptions.length > 0 ? enquiryOptions.map(option => option.label) : enquiryFallbacks;
 ---
 <Layout
-  title="Partner With Us"
-  description="Museums, embassies, universities, sponsors, cultural organisations, designers and future hosts can collaborate with The Pan-African Fabric."
+  title={cmsPage?.seoTitle ?? cmsPage?.title ?? 'Partner With Us'}
+  description={cmsPage?.seoDescription ?? 'Museums, embassies, universities, sponsors, cultural organisations, designers and future hosts can collaborate with The Pan-African Fabric.'}
   path="/partner-with-us"
   header="overlay"
 >
   <PageHero
-    eyebrow="Partner with us"
-    title="Bring the fabric<span>to your city.</span>"
+    eyebrow={cmsPage?.eyebrow ?? 'Partner with us'}
+    title={escapeCmsHeading(cmsPage?.heroTitle, 'Bring the fabric<span>to your city.</span>')}
     size="full"
     media={heroMedia}
-    meta={[`${COUNTRY_COUNT} countries`, `${REGION_COUNT} regions`, 'Open to hosts']}
+    tagline={cmsPage?.heroTagline}
+    meta={cmsPage?.heroMetaLabels.length ? cmsPage.heroMetaLabels : [`${COUNTRY_COUNT} countries`, `${REGION_COUNT} regions`, 'Open to hosts']}
   >
-    <p class="page-hero__intro lead">
-      Edition One travels through the institutions and people who choose to carry it. If that could be you, start here.
-    </p>
+    {cmsPage?.introduction ? <CmsRichText value={cmsPage.introduction} class="page-hero__intro lead" /> : <p class="page-hero__intro lead">Edition One travels through the institutions and people who choose to carry it. If that could be you, start here.</p>}
     <p class="actions">
-      <Button href="#enquiry" size="large">
-        Start an enquiry<span class="button__arrow" aria-hidden="true">&#8595;</span>
+      <Button href={cmsPage?.primaryCtaHref ?? '#enquiry'} size="large">
+        {cmsPage?.primaryCtaLabel ?? 'Start an enquiry'}<span class="button__arrow" aria-hidden="true">&#8595;</span>
       </Button>
-      <Button href="/edition-one" variant="secondary" size="large">See what travels</Button>
+      <Button href={cmsPage?.secondaryCtaHref ?? '/edition-one'} variant="secondary" size="large">{cmsPage?.secondaryCtaLabel ?? 'See what travels'}</Button>
     </p>
   </PageHero>
 
@@ -71,54 +95,66 @@ const enquiryTypes = [
     </div>
   </Section>
 
-  <Section tone="ivory" id="why-partner">
-    <SectionHead eyebrow="01 — Why partner" title="What a partnership makes possible.">
-      <EmptyState
-        title="The case for partnership is not approved yet."
-        text="This is where the initiative sets out what a partner gains and what the collaboration produces. The section is designed and ready for approved copy."
-        note={import.meta.env.DEV ? 'Approve the partnership rationale: audience, cultural value and what a host receives.' : undefined}
-      />
+  <Section tone="ivory" id="why-partner" hidden={!sectionEnabled('why-partner')}>
+    <SectionHead eyebrow={whySection?.eyebrow ?? '01 — Why partner'} title={whySection?.heading ?? 'What a partnership makes possible.'}>
+      {whySection?.body
+        ? <CmsRichText value={whySection.body} class="lead" />
+        : <EmptyState
+            title="The case for partnership is not approved yet."
+            text="This is where the initiative sets out what a partner gains and what the collaboration produces. The section is designed and ready for approved copy."
+            note={import.meta.env.DEV ? 'Approve the partnership rationale: audience, cultural value and what a host receives.' : undefined}
+          />}
     </SectionHead>
   </Section>
 
-  <Section tone="ink" id="collaborators">
-    <SectionHead eyebrow="02 — Who we work with" title="Seven kinds of collaborator.">
-      <p>
-        These are the collaborator types the initiative works with. What each collaboration involves is set out by the
-        initiative, not assumed here.
-      </p>
+  <Section tone="ink" id="collaborators" hidden={!sectionEnabled('collaborators')}>
+    <SectionHead eyebrow={collaboratorSection?.eyebrow ?? '02 — Who we work with'} title={collaboratorSection?.heading ?? 'Seven kinds of collaborator.'}>
+      <p>{cmsPlainText(collaboratorSection?.body) ?? 'These are the collaborator types the initiative works with. What each collaboration involves is set out by the initiative, not assumed here.'}</p>
     </SectionHead>
     <ul class="collab-grid">
       {collaborators.map((collaborator, index) => (
         <li class="collab" data-reveal="rise" style={`--reveal-delay:${Math.min(index, 6) * 40}ms`}>
           <span class="collab__index">{String(index + 1).padStart(2, '0')}</span>
-          <span class="collab__name">{collaborator}</span>
-          <span class="badge badge--awaiting">Description awaiting approval</span>
+          <span class="collab__name">{collaborator.label}</span>
+          {collaborator.description
+            ? <span class="collab__description">{collaborator.description}</span>
+            : <span class="badge badge--awaiting">Description awaiting approval</span>}
         </li>
       ))}
     </ul>
   </Section>
 
-  <Section tone="paper" id="ways">
-    <SectionHead eyebrow="03 — Ways to collaborate" title="How this usually starts.">
-      <EmptyState
-        title="Collaboration routes are not approved yet."
-        text="The formats the initiative can offer a host, and what each one asks of them, are described here once approved."
-        note={import.meta.env.DEV ? 'Approve the list of collaboration formats and what each involves for a host.' : undefined}
-      />
+  <Section tone="paper" id="ways" hidden={!sectionEnabled('ways')}>
+    <SectionHead eyebrow={waysSection?.eyebrow ?? '03 — Ways to collaborate'} title={waysSection?.heading ?? 'How this usually starts.'}>
+      {cmsPlainText(waysSection?.body) && <p>{cmsPlainText(waysSection?.body)}</p>}
+      {wayOptions.length > 0 ? (
+        <ul class="way-grid">
+          {wayOptions.map(option => (
+            <li class="way">
+              <h3>{option.label}</h3>
+              {cmsPlainText(option.description) && <p>{cmsPlainText(option.description)}</p>}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <EmptyState
+          title="Collaboration routes are not approved yet."
+          text="The formats the initiative can offer a host, and what each one asks of them, are described here once approved."
+          note={import.meta.env.DEV ? 'Approve the list of collaboration formats and what each involves for a host.' : undefined}
+        />
+      )}
     </SectionHead>
-    <p class="caption" style="max-width:74ch">
-      The confirmed inaugural showcase is {inauguralShowcase.dateLabel} at {inauguralShowcase.venue},
-      {' '}{inauguralShowcase.location}.
-    </p>
+    {eventForCaption && (
+      <p class="caption" style="max-width:74ch">
+        The confirmed inaugural showcase is {eventForCaption.dateLabel} at {eventForCaption.venue},
+        {' '}{eventForCaption.location}.
+      </p>
+    )}
   </Section>
 
-  <Section tone="surface" id="enquiry">
-    <SectionHead eyebrow="04 — Enquiry" title="Tell us what you have in mind.">
-      <p>
-        This form is a design preview. It does not send, store or transmit anything, and every control is disabled until
-        a recipient, privacy notice, consent wording and spam protection are approved.
-      </p>
+  <Section tone="surface" id="enquiry" hidden={!sectionEnabled('enquiry')}>
+    <SectionHead eyebrow={enquirySection?.eyebrow ?? '04 — Enquiry'} title={enquirySection?.heading ?? 'Tell us what you have in mind.'}>
+      <p>{cmsPlainText(enquirySection?.body) ?? 'This form is a design preview. It does not send, store or transmit anything, and every control is disabled until a recipient, privacy notice, consent wording and spam protection are approved.'}</p>
     </SectionHead>
 
     <div class="enquiry">
@@ -175,6 +211,12 @@ const enquiryTypes = [
   .collab { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2xs); padding-block: var(--space-md); border-top: 1px solid var(--on-ink-rule); }
   .collab__index { font-size: 0.625rem; letter-spacing: 0.14em; color: var(--gold); }
   .collab__name { font-family: var(--font-display); font-size: clamp(1.375rem, 2.2vw, 1.75rem); line-height: 1.1; }
+  .collab__description { font-size: 0.875rem; line-height: 1.5; color: var(--on-ink-muted); }
+
+  .way-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: clamp(16px, 2vw, 32px); width: 100%; }
+  .way { padding-top: var(--space-sm); border-top: 2px solid var(--text); }
+  .way h3 { margin: 0 0 var(--space-xs); font-size: 1.375rem; }
+  .way p { white-space: pre-line; }
 
   .enquiry { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: clamp(24px, 4vw, 64px); align-items: start; }
   .enquiry__notice { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-sm); padding: var(--space-md); border: 1px dashed var(--border); background: rgb(255 255 255 / 55%); position: sticky; top: 108px; }

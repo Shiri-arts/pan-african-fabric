@@ -10,61 +10,122 @@ import EventCountdownBar from '../components/EventCountdownBar.astro';
 import EmptyState from '../components/EmptyState.astro';
 import StoryCard from '../components/StoryCard.astro';
 import Media from '../components/Media.astro';
+import CmsRichText from '../components/CmsRichText.astro';
 import { COLOUR_COUNT } from '../data/colours';
-import { COUNTRY_COUNT, REGION_COUNT } from '../data/countries';
-import { eventPath, eventStructuredData, nextEvent } from '../data/events';
+import { COUNTRY_COUNT, REGION_COUNT, countries as knownCountries, regions as knownRegions, type RegionSlug } from '../data/countries';
+import { eventPath, eventStructuredData, nextEvent, type EventKind, type EventRecord } from '../data/events';
 import { TAGLINE, fastFacts } from '../data/site';
-import { stories } from '../data/stories';
-import { awaiting, draft } from '../lib/content';
+import { stories, storyCategories, type StoryCategory, type StoryRecord } from '../data/stories';
+import { approved, awaiting, draft } from '../lib/content';
 import { mediaSlot } from '../lib/media';
-import { getPageHeroMedia } from '../lib/wix-cms';
+import { getEditionColours, getEditionCountries, getMediaById, getPageByKey, getPageSections, getPrimaryEdition, getPublishedStories, getRegions, getSiteSettings, getUpcomingEvents, type CmsEvent } from '../lib/wix-cms';
+import { cmsPlainText, escapedHeroTitle } from '../lib/cms-presentation';
 import { loadReviewCopy, reviewStories } from '../lib/review';
 
 const review = await loadReviewCopy();
+const [cmsPage, cmsSections, cmsSettings, cmsEvents, cmsStoryRecords, cmsEdition, cmsRegions] = await Promise.all([
+  getPageByKey('home'), getPageSections('home'), getSiteSettings(), getUpcomingEvents(), getPublishedStories(), getPrimaryEdition(), getRegions(),
+]);
+const [cmsCountries, cmsColours] = await Promise.all([
+  cmsEdition ? getEditionCountries(cmsEdition.id) : Promise.resolve([]),
+  getEditionColours(cmsEdition?.id),
+]);
+const section = (key: string) => cmsSections.find(item => item.sectionKey === key);
+const sectionEnabled = (key: string) => section(key)?.isEnabled ?? true;
+const editionSection = section('edition-one');
+const designersSection = section('designers');
+const storiesSection = section('stories');
+const partnerSection = section('partner');
 // The bar follows whichever event is soonest, and disappears on its own once none
 // is upcoming, so the homepage needs no per-event wiring.
-const upcoming = nextEvent();
-const homeStories = [...stories, ...(await reviewStories())].slice(0, 3);
+const cmsEventToRecord = (event: CmsEvent): EventRecord | undefined => {
+  const kind = event.eventType as EventKind | undefined;
+  const isoDate = event.startsAt?.slice(0, 10);
+  if (!event.slug || !event.title || !kind || !['showcase', 'exhibition', 'workshop', 'competition', 'reception', 'talk', 'travelling'].includes(kind)
+    || !event.dateLabel || !isoDate || !event.venue || !event.location || !event.isConfirmed) return undefined;
+  return { slug: event.slug, kind, title: event.title, dateLabel: event.dateLabel, isoDate, timeLabel: event.timeLabel ?? null,
+    timezoneLabel: event.timezoneLabel ?? null, startsAt: event.startsAt ?? null, endsAt: event.endsAt ?? null, venue: event.venue,
+    location: event.location, hero: mediaSlot(`event-${event.id}-hero`, '3/2', 'Approved event image.'), officialUrl: null, isConfirmed: true };
+};
+const upcoming = cmsEvents.map(cmsEventToRecord).find((event): event is EventRecord => Boolean(event))
+  ?? (import.meta.env.DEV ? nextEvent() : undefined);
+const cmsStories = (await Promise.all(cmsStoryRecords.slice(0, 3).map(async (story): Promise<StoryRecord | undefined> => {
+  const category = story.category as StoryCategory | undefined;
+  const isoDate = story.storyDate?.slice(0, 10) ?? story.publishedDate?.slice(0, 10);
+  if (!story.slug || !story.title || !category || !storyCategories.includes(category) || !story.dateLabel || !isoDate) return undefined;
+  const hero = story.heroAssetId ? await getMediaById(story.heroAssetId) : undefined;
+  return { slug: story.slug, title: story.title, category, dateLabel: story.dateLabel, isoDate, author: story.authorCredit ?? null,
+    standfirst: story.standfirst ?? story.excerpt ?? null, hero: hero ?? mediaSlot(`story-${story.id}-hero`, '3/2', 'Approved story image.'),
+    body: [], relatedCountries: story.countryIds, relatedEvents: story.eventIds };
+}))).filter((story): story is StoryRecord => Boolean(story));
+const homeStories = [...cmsStories, ...stories, ...(await reviewStories())].slice(0, 3);
+const knownCountryBySlug = new Map(knownCountries.map(country => [country.slug, country]));
+const cmsRegionById = new Map(cmsRegions.map(region => [region.id, region]));
+const homepageCountryEntries = cmsCountries.flatMap(record => {
+  const known = record.slug ? knownCountryBySlug.get(record.slug as typeof knownCountries[number]['slug']) : undefined;
+  if (!known) return [];
+  const region = record.regionId ? cmsRegionById.get(record.regionId) : undefined;
+  const regionKey = knownRegions.some(item => item.slug === region?.regionKey) ? region!.regionKey as RegionSlug : known.region;
+  const colours = cmsColours
+    .filter(colour => colour.countryId === record.id && colour.textHex && (colour.contrastRatio ?? 0) >= 4.5)
+    .map(colour => ({ hex: colour.hexValue, textOn: colour.textHex! }));
+  return [{
+    country: { ...known, name: record.countryName, region: regionKey, regionNote: record.regionNote ?? known.regionNote,
+      hasApprovedProfile: Boolean(record.introduction || record.interpretation || record.participationSummary || record.heroAssetId) },
+    regionLabel: region?.name ?? record.regionLabel,
+    colours,
+    status: record.profileStatus,
+  }];
+});
 
-const introduction = review
+const cmsIntroduction = cmsPlainText(cmsPage?.introduction);
+const introduction = cmsIntroduction ? approved(cmsIntroduction) : review
   ? draft(review.home.definition, 'Founder / content lead')
   : awaiting('Initiative introduction', 'Approve the short introduction that sits under the hero tagline.');
 
-const editionHeading = review
+const cmsEditionHeading = editionSection?.heading;
+const editionHeading = cmsEditionHeading ? approved(cmsEditionHeading) : review
   ? draft(review.home.editionHeading, 'Founder / content lead')
   : awaiting('Edition One heading');
 
-const editionIntro = review
+const cmsEditionIntro = cmsPlainText(editionSection?.body);
+const editionIntro = cmsEditionIntro ? approved(cmsEditionIntro) : review
   ? draft(review.home.editionIntro, 'Founder / content lead')
   : awaiting('Edition One introduction');
 
-const heroMedia = (await getPageHeroMedia('home'))
+const heroMedia = (cmsPage?.heroAssetId ? await getMediaById(cmsPage.heroAssetId) : undefined)
   ?? mediaSlot('home-hero', '16/9', 'Approved hero photograph with separate desktop and mobile crops, focal point, alt text, credit and reuse permission.');
-const partnerMedia = mediaSlot('home-partner', '4/5', 'Approved photograph from a public programme, workshop or exhibition.');
+const partnerMedia = (partnerSection?.mediaAssetId ? await getMediaById(partnerSection.mediaAssetId) : undefined)
+  ?? mediaSlot('home-partner', '4/5', 'Approved photograph from a public programme, workshop or exhibition.');
 ---
 <Layout
   description="An international cultural initiative. Edition One carries a twelve-colour fabric across nine African countries, leading to the inaugural showcase in Washington, D.C."
   path="/"
   header="overlay"
   structuredData={upcoming ? eventStructuredData(upcoming) : undefined}
+  cmsPageKey="home"
+  cmsPage={cmsPage}
+  cmsSettings={cmsSettings}
 >
   <PageHero
-    eyebrow="An international cultural initiative"
-    title="The Pan-African<span>Fabric</span>"
-    tagline={TAGLINE}
+    eyebrow={cmsPage?.eyebrow ?? 'An international cultural initiative'}
+    title={escapedHeroTitle(cmsPage?.heroTitle, 'The Pan-African<span>Fabric</span>', true)}
+    tagline={cmsPage?.heroTagline ?? cmsSettings?.tagline ?? TAGLINE}
     size="full"
     media={heroMedia}
-    meta={[`${COLOUR_COUNT} colours`, `${COUNTRY_COUNT} countries`, `${REGION_COUNT} regions`]}
+    meta={cmsPage?.heroMetaLabels.length ? cmsPage.heroMetaLabels : [`${COLOUR_COUNT} colours`, `${COUNTRY_COUNT} countries`, `${REGION_COUNT} regions`]}
     credit={heroMedia.credit?.creditLine}
   >
-    <Copy copy={introduction} class="page-hero__intro lead" fallbackTitle="Initiative introduction" emptyTone="ink" />
+    {cmsPage?.introduction
+      ? <CmsRichText value={cmsPage.introduction} class="page-hero__intro lead" />
+      : <Copy copy={introduction} class="page-hero__intro lead" fallbackTitle="Initiative introduction" emptyTone="ink" />}
     <p class="actions">
-      <Button href="/edition-one" size="large">
-        Explore Edition One<span class="button__arrow" aria-hidden="true">&#8594;</span>
+      <Button href={cmsPage?.primaryCtaHref ?? '/edition-one'} size="large">
+        {cmsPage?.primaryCtaLabel ?? 'Explore Edition One'}<span class="button__arrow" aria-hidden="true">&#8594;</span>
       </Button>
-      {upcoming && (
-        <Button href={eventPath(upcoming.slug)} variant="secondary" size="large">
-          {upcoming.slug === 'inaugural-pan-african-fabric-fashion-showcase' ? 'The inaugural showcase' : 'The next event'}<span class="button__arrow" aria-hidden="true">&#8594;</span>
+      {(cmsPage?.secondaryCtaHref || upcoming) && (
+        <Button href={cmsPage?.secondaryCtaHref ?? eventPath(upcoming!.slug)} variant="secondary" size="large">
+          {cmsPage?.secondaryCtaLabel ?? (upcoming?.slug === 'inaugural-pan-african-fabric-fashion-showcase' ? 'The inaugural showcase' : 'The next event')}<span class="button__arrow" aria-hidden="true">&#8594;</span>
         </Button>
       )}
     </p>
@@ -72,15 +133,19 @@ const partnerMedia = mediaSlot('home-partner', '4/5', 'Approved photograph from 
 
   <EventCountdownBar event={upcoming} />
 
-  <Section tone="ivory" id="edition-one">
-    <SectionHead eyebrow="01 — Edition One" title="One fabric. Nine countries." top>
+  <Section tone="ivory" id="edition-one" hidden={!sectionEnabled('edition-one')}>
+    <SectionHead eyebrow={editionSection?.eyebrow ?? '01 — Edition One'} title={editionSection?.heading ?? 'One fabric. Nine countries.'} top>
       <Copy copy={editionHeading} class="lead" fallbackTitle="Edition One heading" />
-      <Copy copy={editionIntro} fallbackTitle="Edition One introduction" />
-      <Button href="/edition-one" variant="text">
-        Explore the edition<span class="button__arrow" aria-hidden="true">&#8594;</span>
+      {editionSection?.body ? <CmsRichText value={editionSection.body} /> : <Copy copy={editionIntro} fallbackTitle="Edition One introduction" />}
+      <Button href={editionSection?.ctaHref ?? '/edition-one'} variant="text">
+        {editionSection?.ctaLabel ?? 'Explore the edition'}<span class="button__arrow" aria-hidden="true">&#8594;</span>
       </Button>
     </SectionHead>
-    <CountryGrid label="The nine countries of Edition One" />
+    {homepageCountryEntries.length > 0 || import.meta.env.DEV ? (
+      <CountryGrid label="The countries of Edition One" entries={homepageCountryEntries.length ? homepageCountryEntries : undefined} />
+    ) : (
+      <EmptyState title="Country profiles are awaiting publication." text="The approved country and colour records will appear here after they pass the CMS review gate." layout="centred" />
+    )}
     <p class="caption" style="margin-top:24px;max-width:78ch">
       Each country carries its own colour from the Edition One fabric; Cameroon, Ghana and South Africa carry two.
       Colour values are representative samples from the source artwork, which has gentle gradients rather than flat
@@ -88,31 +153,28 @@ const partnerMedia = mediaSlot('home-partner', '4/5', 'Approved photograph from 
     </p>
   </Section>
 
-  <Section tone="ink" id="designers">
+  <Section tone="ink" id="designers" hidden={!sectionEnabled('designers')}>
     <div class="designer-teaser">
       <div>
-        <p class="eyebrow"><span>02 — Designers and garments</span></p>
-        <h2 class="designer-teaser__title">One fabric,<br />interpreted nine ways.</h2>
+        <p class="eyebrow"><span>{designersSection?.eyebrow ?? '02 — Designers and garments'}</span></p>
+        <h2 class="designer-teaser__title">{designersSection?.heading ?? <Fragment>One fabric,<br />interpreted nine ways.</Fragment>}</h2>
       </div>
       <div class="designer-teaser__body">
-        <p class="lead">
-          Every country works with the same fabric and arrives somewhere different. Designer profiles, creative
-          statements and finished garments publish only once the designer has approved them.
-        </p>
+        {designersSection?.body ? <CmsRichText value={designersSection.body} class="lead" /> : <p class="lead">Every country works with the same fabric and arrives somewhere different. Designer profiles, creative statements and finished garments publish only once the designer has approved them.</p>}
         <p class="actions">
-          <Button href="/edition-one#designers" variant="secondary">
-            Meet the designers<span class="button__arrow" aria-hidden="true">&#8594;</span>
+          <Button href={designersSection?.ctaHref ?? '/edition-one#designers'} variant="secondary">
+            {designersSection?.ctaLabel ?? 'Meet the designers'}<span class="button__arrow" aria-hidden="true">&#8594;</span>
           </Button>
         </p>
       </div>
     </div>
   </Section>
 
-  <Section tone="ivory" id="stories">
-    <SectionHead eyebrow="03 — Stories" title="The living voice of the initiative.">
-      <p>Behind the scenes, country and designer stories, partnerships, founder reflections, interviews and milestones.</p>
-      <Button href="/stories" variant="text">
-        Go to Stories<span class="button__arrow" aria-hidden="true">&#8594;</span>
+  <Section tone="ivory" id="stories" hidden={!sectionEnabled('stories')}>
+    <SectionHead eyebrow={storiesSection?.eyebrow ?? '03 — Stories'} title={storiesSection?.heading ?? 'The living voice of the initiative.'}>
+      {storiesSection?.body ? <CmsRichText value={storiesSection.body} /> : <p>Behind the scenes, country and designer stories, partnerships, founder reflections, interviews and milestones.</p>}
+      <Button href={storiesSection?.ctaHref ?? '/stories'} variant="text">
+        {storiesSection?.ctaLabel ?? 'Go to Stories'}<span class="button__arrow" aria-hidden="true">&#8594;</span>
       </Button>
     </SectionHead>
     {homeStories.length > 0 ? (
@@ -128,18 +190,15 @@ const partnerMedia = mediaSlot('home-partner', '4/5', 'Approved photograph from 
     )}
   </Section>
 
-  <Section tone="paper" id="partner">
+  <Section tone="paper" id="partner" hidden={!sectionEnabled('partner')}>
     <div class="partner-block">
       <div class="partner-block__copy" data-reveal="rise">
-        <p class="eyebrow"><span>04 — Partner with us</span></p>
-        <h2 class="partner-block__title">Bring the fabric<br />to your city.</h2>
-        <p class="lead">
-          Museums, embassies, universities, sponsors, cultural organisations, designers and future hosts shape where this
-          initiative goes next.
-        </p>
+        <p class="eyebrow"><span>{partnerSection?.eyebrow ?? '04 — Partner with us'}</span></p>
+        <h2 class="partner-block__title">{partnerSection?.heading ?? <Fragment>Bring the fabric<br />to your city.</Fragment>}</h2>
+        {partnerSection?.body ? <CmsRichText value={partnerSection.body} class="lead" /> : <p class="lead">Museums, embassies, universities, sponsors, cultural organisations, designers and future hosts shape where this initiative goes next.</p>}
         <p class="actions">
-          <Button href="/partner-with-us" size="large">
-            Partner With Us<span class="button__arrow" aria-hidden="true">&#8594;</span>
+          <Button href={partnerSection?.ctaHref ?? '/partner-with-us'} size="large">
+            {partnerSection?.ctaLabel ?? 'Partner With Us'}<span class="button__arrow" aria-hidden="true">&#8594;</span>
           </Button>
           <Button href="/press-contact" variant="text">Press and contact</Button>
         </p>

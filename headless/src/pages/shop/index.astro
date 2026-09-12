@@ -14,10 +14,25 @@ import PageHero from '../../components/PageHero.astro';
 import ProductCard from '../../components/ProductCard.astro';
 import { COMMERCE_ENABLED, products } from '../../data/shop';
 import { mediaSlot } from '../../lib/media';
+import { cmsPlainText, escapeCmsHeading, presentCmsProduct, sectionsByKey } from '../../lib/cms-route-presenters';
 import { reviewProducts } from '../../lib/review';
+import { getMediaById, getPageByKey, getPageHeroMedia, getPageSections, getShopItems } from '../../lib/wix-cms';
 
-const all = [...products, ...(await reviewProducts())];
-const heroMedia = mediaSlot('shop-hero', '21/9', 'Approved product or styling photograph for the storefront header.');
+const [cmsPage, cmsSections, cmsHeroMedia, cmsItems] = await Promise.all([
+  getPageByKey('shop'),
+  getPageSections('shop'),
+  getPageHeroMedia('shop'),
+  getShopItems(),
+]);
+const cmsProducts = (await Promise.all(cmsItems.map(item => presentCmsProduct(item, getMediaById))))
+  .filter((product): product is NonNullable<Awaited<ReturnType<typeof presentCmsProduct>>> => Boolean(product));
+const reviewFallbacks = [...products, ...(await reviewProducts())];
+const heroMedia = cmsHeroMedia ?? mediaSlot('shop-hero', '21/9', 'Approved product or styling photograph for the storefront header.');
+const intro = cmsPlainText(cmsPage?.introduction);
+const sections = sectionsByKey(cmsSections);
+const collectionSection = sections.get('collection');
+const positionsSection = sections.get('positions');
+const sectionEnabled = (key: string) => cmsSections.find(section => section.sectionKey === key)?.isEnabled ?? true;
 
 /** Positions the storefront reserves. None of these is a claim that a product exists. */
 const positions = [
@@ -27,28 +42,32 @@ const positions = [
 ];
 ---
 <Layout
-  title="Shop"
-  description="Own a piece of the story. The Pan-African Fabric shop is being prepared; no products are available for purchase yet."
+  title={cmsPage?.seoTitle ?? cmsPage?.title ?? 'Shop'}
+  description={cmsPage?.seoDescription ?? 'Own a piece of the story. The Pan-African Fabric shop is being prepared; no products are available for purchase yet.'}
   path="/shop"
   header="overlay"
 >
   <PageHero
-    eyebrow="Shop"
-    title="Own a piece<span>of the story.</span>"
+    eyebrow={cmsPage?.eyebrow ?? 'Shop'}
+    title={escapeCmsHeading(cmsPage?.heroTitle, 'Own a piece<span>of the story.</span>')}
     size="tall"
     media={heroMedia}
   >
-    <p class="page-hero__intro lead">
-      The shop is being prepared. Nothing is on sale yet, and no product, price or delivery term is shown until it is
-      confirmed.
-    </p>
+    <p class="page-hero__intro lead">{intro ?? 'The shop is being prepared. Nothing is on sale yet, and no product, price or delivery term is shown until it is confirmed.'}</p>
   </PageHero>
 
-  <Section tone="paper" id="collection">
-    {all.length > 0 && COMMERCE_ENABLED ? (
-      <ul class="card-grid card-grid--wide">
-        {all.map((product) => <li><ProductCard product={product} /></li>)}
-      </ul>
+  <Section tone="paper" id="collection" hidden={!sectionEnabled('collection')}>
+    {cmsProducts.length > 0 ? (
+      <>
+        {(collectionSection?.heading || collectionSection?.body) && (
+          <SectionHead eyebrow={collectionSection.eyebrow ?? 'Collection'} title={collectionSection.heading ?? 'Published pieces.'}>
+            {cmsPlainText(collectionSection.body) && <p>{cmsPlainText(collectionSection.body)}</p>}
+          </SectionHead>
+        )}
+        <ul class="card-grid card-grid--wide">
+          {cmsProducts.map((product) => <li><ProductCard product={product} /></li>)}
+        </ul>
+      </>
     ) : (
       <div class="shop-empty">
         <p class="eyebrow"><span>Collection</span></p>
@@ -65,7 +84,7 @@ const positions = [
     )}
   </Section>
 
-  {all.length > 0 && !COMMERCE_ENABLED && (
+  {cmsProducts.length === 0 && reviewFallbacks.length > 0 && !COMMERCE_ENABLED && (
     <Section tone="ivory" id="templates">
       <SectionHead eyebrow="Template preview" title="Product presentation template.">
         <p>
@@ -74,14 +93,14 @@ const positions = [
         </p>
       </SectionHead>
       <ul class="card-grid card-grid--wide">
-        {all.map((product) => <li><ProductCard product={product} /></li>)}
+        {reviewFallbacks.map((product) => <li><ProductCard product={product} /></li>)}
       </ul>
     </Section>
   )}
 
-  <Section tone="surface" id="positions">
-    <SectionHead eyebrow="What the shop will carry" title="Prepared, not promised.">
-      <p>These positions exist in the design. Each one publishes only when a real, approved product fills it.</p>
+  <Section tone="surface" id="positions" hidden={!sectionEnabled('positions')}>
+    <SectionHead eyebrow={positionsSection?.eyebrow ?? 'What the shop will carry'} title={positionsSection?.heading ?? 'Prepared, not promised.'}>
+      <p>{cmsPlainText(positionsSection?.body) ?? 'These positions exist in the design. Each one publishes only when a real, approved product fills it.'}</p>
     </SectionHead>
     <ul class="position-grid">
       {positions.map((position) => (

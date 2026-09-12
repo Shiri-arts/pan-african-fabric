@@ -7,15 +7,22 @@
  * country, region and status are all text.
  */
 import CountryTile from './CountryTile.astro';
-import { countries } from '../data/countries';
+import { countries, type Country } from '../data/countries';
 
-interface Props { label?: string; class?: string; }
-const { label = 'Edition One countries', class: className } = Astro.props;
+interface CountryEntry {
+  readonly country: Country;
+  readonly regionLabel?: string;
+  readonly colours?: readonly { readonly hex: string; readonly textOn: string }[];
+  readonly status?: string;
+}
+interface Props { label?: string; class?: string; entries?: readonly CountryEntry[]; }
+const { label = 'Edition One countries', class: className, entries: suppliedEntries } = Astro.props;
+const entries = suppliedEntries ?? (import.meta.env.DEV ? countries.map(country => ({ country })) : []);
 ---
 <ul class:list={['tile-grid', className]} aria-label={label}>
-  {countries.map((country, index) => (
+  {entries.map((entry, index) => (
     <li data-reveal="rise" style={`--reveal-delay:${Math.min(index, 8) * 45}ms`}>
-      <CountryTile country={country} index={index} />
+      <CountryTile {...entry} index={index} />
     </li>
   ))}
 </ul>

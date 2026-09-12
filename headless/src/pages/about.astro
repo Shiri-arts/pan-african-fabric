@@ -7,22 +7,33 @@ import Copy from '../components/Copy.astro';
 import PageHero from '../components/PageHero.astro';
 import EmptyState from '../components/EmptyState.astro';
 import Media from '../components/Media.astro';
+import CmsRichText from '../components/CmsRichText.astro';
 import { COLOUR_COUNT } from '../data/colours';
 import { COUNTRY_COUNT, REGION_COUNT } from '../data/countries';
-import { awaiting, draft } from '../lib/content';
+import { approved, awaiting, draft } from '../lib/content';
 import { mediaSlot } from '../lib/media';
-import { getPageSectionMedia } from '../lib/wix-cms';
+import { getMediaById, getPageByKey, getPageSections, getSiteSettings } from '../lib/wix-cms';
+import { cmsPlainText, escapedHeroTitle } from '../lib/cms-presentation';
 import { loadReviewCopy } from '../lib/review';
 
 const review = await loadReviewCopy();
+const [cmsPage, cmsSections, cmsSettings] = await Promise.all([
+  getPageByKey('about'), getPageSections('about'), getSiteSettings(),
+]);
+const cmsSection = (key: string) => cmsSections.find(item => item.sectionKey === key);
+const sectionEnabled = (key: string) => cmsSection(key)?.isEnabled ?? true;
+const founderSection = cmsSection('founder');
+const milestonesSection = cmsSection('milestones');
 
-const opening = review
+const cmsOpening = cmsPlainText(cmsPage?.introduction);
+const opening = cmsOpening ? approved(cmsOpening) : review
   ? draft(review.about.opening, 'Founder / content lead')
   : awaiting('Origin story', 'Approve the 120-180 word introduction explaining why the initiative was created.');
 
-const founderPortrait = (await getPageSectionMedia('about', 'founder'))
+const founderPortrait = (founderSection?.mediaAssetId ? await getMediaById(founderSection.mediaAssetId) : undefined)
   ?? mediaSlot('about-founder', '4/5', 'Approved founder portrait with alt text, focal point, photographer credit and reuse permission.');
-const heroMedia = mediaSlot('about-hero', '21/9', 'Approved photograph of the fabric, a workshop or a public programme.');
+const heroMedia = (cmsPage?.heroAssetId ? await getMediaById(cmsPage.heroAssetId) : undefined)
+  ?? mediaSlot('about-hero', '21/9', 'Approved photograph of the fabric, a workshop or a public programme.');
 
 /** Section spine from the copy deck. Headings only: no narrative is invented. */
 const sections = [
@@ -37,57 +48,72 @@ const sections = [
   path="/about"
   header="overlay"
   progress
+  cmsPageKey="about"
+  cmsPage={cmsPage}
+  cmsSettings={cmsSettings}
 >
   <PageHero
-    eyebrow="About"
-    title="The why<span>behind the fabric.</span>"
+    eyebrow={cmsPage?.eyebrow ?? 'About'}
+    title={escapedHeroTitle(cmsPage?.heroTitle, 'The why<span>behind the fabric.</span>')}
     size="tall"
     media={heroMedia}
-    meta={[`${COLOUR_COUNT} colours`, `${COUNTRY_COUNT} countries`, `${REGION_COUNT} regions`]}
+    tagline={cmsPage?.heroTagline}
+    meta={cmsPage?.heroMetaLabels.length ? cmsPage.heroMetaLabels : [`${COLOUR_COUNT} colours`, `${COUNTRY_COUNT} countries`, `${REGION_COUNT} regions`]}
   >
-    <Copy copy={opening} class="page-hero__intro lead" fallbackTitle="Origin story" emptyTone="ink" />
+    {cmsPage?.introduction
+      ? <CmsRichText value={cmsPage.introduction} class="page-hero__intro lead" />
+      : <Copy copy={opening} class="page-hero__intro lead" fallbackTitle="Origin story" emptyTone="ink" />}
+    {cmsPage?.primaryCtaHref && cmsPage.primaryCtaLabel && (
+      <p class="actions"><Button href={cmsPage.primaryCtaHref} size="large">{cmsPage.primaryCtaLabel}<span class="button__arrow" aria-hidden="true">&#8594;</span></Button></p>
+    )}
   </PageHero>
 
-  {sections.map((section, index) => (
-    <Section tone={index % 2 === 0 ? 'ivory' : 'surface'} id={section.id}>
-      <SectionHead eyebrow={`${String(index + 1).padStart(2, '0')} — ${section.label}`} title={section.title}>
-        <EmptyState
+  {sections.map((section, index) => {
+    const content = cmsSection(section.id);
+    return (
+    <Section tone={index % 2 === 0 ? 'ivory' : 'surface'} id={section.id} hidden={!sectionEnabled(section.id)}>
+      <SectionHead eyebrow={content?.eyebrow ?? `${String(index + 1).padStart(2, '0')} — ${section.label}`} title={content?.heading ?? section.title}>
+        {content?.body ? <CmsRichText value={content.body} class="lead" /> : <EmptyState
           title={`${section.label} copy is not approved yet.`}
           text="This section is designed and ready. Approved copy drops straight in without a layout change."
           note={import.meta.env.DEV ? section.need : undefined}
-        />
+        />}
       </SectionHead>
     </Section>
-  ))}
+    );
+  })}
 
-  <Section tone="ink" id="founder">
+  <Section tone="ink" id="founder" hidden={!sectionEnabled('founder')}>
     <div class="founder">
       <div class="founder__media" data-reveal="mask">
         <Media media={founderPortrait} placeholderTone="ink" />
       </div>
       <div class="founder__copy" data-reveal="rise">
-        <p class="eyebrow"><span>04 — The founder</span></p>
-        <h2 class="founder__title">The creator.</h2>
-        <blockquote class="founder__quote">
-          <p class="founder__quote-text">A founder quote sits here, in the founder's own approved words.</p>
-          <footer class="founder__quote-note">No quotation has been supplied. Nothing is quoted until it is approved and attributed.</footer>
-        </blockquote>
-        <EmptyState
+        <p class="eyebrow"><span>{founderSection?.eyebrow ?? '04 — The founder'}</span></p>
+        <h2 class="founder__title">{founderSection?.heading ?? 'The creator.'}</h2>
+        {founderSection?.quoteText ? (
+          <blockquote class="founder__quote">
+            <p class="founder__quote-text">{founderSection.quoteText}</p>
+            {founderSection.quoteAttribution && <footer class="founder__quote-note">{founderSection.quoteAttribution}</footer>}
+          </blockquote>
+        ) : (
+          <p class="founder__quote-note">No quotation has been supplied. Nothing is quoted until it is approved and attributed.</p>
+        )}
+        {founderSection?.body ? <CmsRichText value={founderSection.body} class="lead" /> : <EmptyState
           title="Founder biography is not approved yet."
           text="The portrait, quote and biography positions are all reserved above and beside this note."
           tone="ink"
           note={import.meta.env.DEV ? 'Supply approved portrait with photographer credit, a 120-180 word biography and one attributable quote.' : undefined}
-        />
+        />}
       </div>
     </div>
   </Section>
 
-  <Section tone="paper" id="milestones">
-    <SectionHead eyebrow="05 — Milestones" title="A public journey, recorded honestly.">
-      <p>
-        Milestones appear here once each one is verified. Dates, titles and outcomes are never estimated or filled in
-        from a planning document.
-      </p>
+  <Section tone="paper" id="milestones" hidden={!sectionEnabled('milestones')}>
+    <SectionHead eyebrow={milestonesSection?.eyebrow ?? '05 — Milestones'} title={milestonesSection?.heading ?? 'A public journey, recorded honestly.'}>
+      {milestonesSection?.body
+        ? <CmsRichText value={milestonesSection.body} />
+        : <p>Milestones appear here once each one is verified. Dates, titles and outcomes are never estimated or filled in from a planning document.</p>}
     </SectionHead>
     <ol class="timeline">
       {[1, 2, 3].map((position) => (

@@ -14,16 +14,23 @@ import Media from '../../components/Media.astro';
 import NotFound from '../../components/NotFound.astro';
 import EmptyState from '../../components/EmptyState.astro';
 import { COMMERCE_ENABLED, productPath, products } from '../../data/shop';
+import { presentCmsProduct } from '../../lib/cms-route-presenters';
 import { reviewProducts } from '../../lib/review';
+import { getMediaById, getShopItemBySlug } from '../../lib/wix-cms';
 
 export const prerender = false;
 
-const all = [...products, ...(await reviewProducts())];
-const product = all.find((entry) => entry.slug === Astro.params.slug);
+const cmsItem = Astro.params.slug ? await getShopItemBySlug(Astro.params.slug) : undefined;
+const cmsProduct = cmsItem ? await presentCmsProduct(cmsItem, getMediaById) : undefined;
+const fallbackProduct = import.meta.env.DEV
+  ? [...products, ...(await reviewProducts())].find((entry) => entry.slug === Astro.params.slug)
+  : undefined;
+const product = cmsProduct ?? fallbackProduct;
 if (!product) Astro.response.status = 404;
 
 const cover = product?.gallery[0];
 const rest = product?.gallery.slice(1) ?? [];
+const availability = cmsProduct?.availabilityLabel ?? product?.availability ?? 'Not available for purchase';
 ---
 {!product ? (
   <Layout title="Product not found" description="The requested product does not exist." path={Astro.url.pathname}>
@@ -59,7 +66,7 @@ const rest = product?.gallery.slice(1) ?? [];
             </div>
             <div>
               <dt>Availability</dt>
-              <dd>{product.availability ?? 'Not available for purchase'}</dd>
+              <dd>{availability}</dd>
             </div>
             {product.variantLabel && (
               <div>

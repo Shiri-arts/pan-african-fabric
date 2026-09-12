@@ -12,17 +12,28 @@ import { editionColours } from '../data/colours';
 import { menuItems } from '../data/navigation';
 import { externalLinks, SITE_NAME } from '../data/site';
 import type { ReviewCopy } from '../data/review-copy.server';
-interface Props { review?: ReviewCopy | undefined; }
-const { review } = Astro.props;
-const verified = externalLinks.filter((link) => link.verified);
+import type { CmsNavigationItem, CmsSiteSettings } from '../lib/wix-cms';
+import { mergeNavigation } from '../lib/cms-presentation';
+interface Props { review?: ReviewCopy | undefined; settings?: CmsSiteSettings; cmsNavigation?: readonly CmsNavigationItem[]; cmsNavigationConfigured?: boolean; }
+const { review, settings, cmsNavigation = [], cmsNavigationConfigured = false } = Astro.props;
+const siteName = settings?.siteName ?? SITE_NAME;
+const footerStatement = settings?.footerStatement;
+const resolvedMenu = cmsNavigationConfigured ? mergeNavigation(cmsNavigation, menuItems, false) : menuItems;
+const cmsLinks = [
+  settings?.instagramUrl ? { label: 'Instagram', href: settings.instagramUrl, verified: true } : undefined,
+  settings?.founderSiteUrl ? { label: 'Shiri Achu Art', href: settings.founderSiteUrl, verified: true } : undefined,
+].filter((link): link is { label: string; href: string; verified: true } => Boolean(link));
+const verified = cmsLinks.length ? cmsLinks : externalLinks.filter((link) => link.verified);
 const pending = externalLinks.filter((link) => !link.verified);
 ---
 <footer class="site-footer">
   <Container>
     <div class="footer-top">
       <div class="footer-brand">
-        <a class="footer-brand__name" href="/">The Pan-African Fabric</a>
-        {review && (
+        <a class="footer-brand__name" href="/">{siteName}</a>
+        {footerStatement ? (
+          <p>{footerStatement}</p>
+        ) : review && (
           <p>
             {review.footerDescription}
             <span class="draft-copy__mark"><span class="visually-hidden">Status: </span>Draft copy · not approved</span>
@@ -34,7 +45,7 @@ const pending = externalLinks.filter((link) => !link.verified);
       <nav aria-label="Footer">
         <h2 class="footer-heading">Explore</h2>
         <ul>
-          {menuItems.map((item) => (
+          {resolvedMenu.map((item) => (
             <li><a class="footer-link" href={item.href}>{item.label}</a></li>
           ))}
         </ul>
@@ -75,7 +86,7 @@ const pending = externalLinks.filter((link) => !link.verified);
     </div>
 
     <div class="footer-bottom">
-      <span>{SITE_NAME}</span>
+      <span>{settings?.copyrightText ?? siteName}</span>
       <a href="#main">Back to top<span aria-hidden="true">&#8593;</span></a>
     </div>
   </Container>

@@ -8,8 +8,31 @@
  * as soon as an origin is approved.
  */
 import { resolveMeta, type PageMeta } from '../lib/seo';
-type Props = PageMeta;
-const meta = resolveMeta(Astro.props);
+import { safeRobots } from '../lib/cms-presentation';
+interface Props extends PageMeta {
+  siteName?: string;
+  canonicalOrigin?: string;
+  cmsRobots?: string;
+  titlePattern?: string;
+  socialImageUrl?: string;
+  socialImageAlt?: string;
+}
+const { siteName, canonicalOrigin, cmsRobots, titlePattern, socialImageUrl, socialImageAlt, ...pageMeta } = Astro.props;
+const fallback = resolveMeta(pageMeta);
+const canonical = canonicalOrigin ? new URL(pageMeta.path, canonicalOrigin).toString() : fallback.canonical;
+const resolvedSiteName = siteName ?? fallback.siteName;
+const defaultTitle = pageMeta.title ? `${pageMeta.title} | ${resolvedSiteName}` : resolvedSiteName;
+const patternedTitle = pageMeta.title && titlePattern && /\{(?:title|pageTitle)\}/.test(titlePattern)
+  ? titlePattern.replaceAll('{pageTitle}', pageMeta.title).replaceAll('{title}', pageMeta.title).replaceAll('{siteName}', resolvedSiteName).slice(0, 300)
+  : undefined;
+const meta = {
+  ...fallback,
+  siteName: resolvedSiteName,
+  documentTitle: patternedTitle ?? defaultTitle,
+  canonical,
+  robots: safeRobots(cmsRobots, fallback.robots),
+};
+const structuredData = meta.structuredData ? JSON.stringify(meta.structuredData).replaceAll('<', '\\u003c') : undefined;
 ---
 <title>{meta.documentTitle}</title>
 <meta name="description" content={meta.description} />
@@ -20,9 +43,13 @@ const meta = resolveMeta(Astro.props);
 <meta property="og:title" content={meta.documentTitle} />
 <meta property="og:description" content={meta.description} />
 {meta.canonical && <meta property="og:url" content={meta.canonical} />}
-<meta name="twitter:card" content="summary" />
+{socialImageUrl && <meta property="og:image" content={socialImageUrl} />}
+{socialImageUrl && socialImageAlt && <meta property="og:image:alt" content={socialImageAlt} />}
+<meta name="twitter:card" content={socialImageUrl ? 'summary_large_image' : 'summary'} />
 <meta name="twitter:title" content={meta.documentTitle} />
 <meta name="twitter:description" content={meta.description} />
-{meta.structuredData && (
-  <script type="application/ld+json" is:inline set:html={JSON.stringify(meta.structuredData)} />
+{socialImageUrl && <meta name="twitter:image" content={socialImageUrl} />}
+{socialImageUrl && socialImageAlt && <meta name="twitter:image:alt" content={socialImageAlt} />}
+{structuredData && (
+  <script type="application/ld+json" is:inline set:html={structuredData} />
 )}

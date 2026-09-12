@@ -13,11 +13,17 @@
 import { coloursForCountry } from '../data/colours';
 import { countryPath, regionName, type Country } from '../data/countries';
 
-interface Props { country: Country; index: number; }
-const { country, index } = Astro.props;
+interface Props {
+  country: Country;
+  index: number;
+  regionLabel?: string;
+  colours?: readonly { readonly hex: string; readonly textOn: string }[];
+  status?: string;
+}
+const { country, index, regionLabel, colours: suppliedColours, status } = Astro.props;
 
-const colours = coloursForCountry(country.slug);
-const ground = colours[0]!;
+const colours = suppliedColours ?? (import.meta.env.DEV ? coloursForCountry(country.slug) : []);
+const ground = colours[0] ?? { hex: '#f4efe4', textOn: '#191614' };
 const second = colours[1];
 const style = [
   `--tile:${ground.hex}`,
@@ -29,11 +35,11 @@ const style = [
   {second && <span class="tile__band" aria-hidden="true"></span>}
   <span class="tile__top">
     <span class="tile__index">{String(index + 1).padStart(2, '0')}</span>
-    <span class="tile__region">{regionName(country.region)}</span>
+    <span class="tile__region">{regionLabel ?? regionName(country.region)}</span>
   </span>
   <span class="tile__name">{country.name}</span>
   <span class="tile__foot">
-    <span class="tile__status">{country.hasApprovedProfile ? 'Profile available' : 'Profile in review'}</span>
+    <span class="tile__status">{status ?? (country.hasApprovedProfile ? 'Profile available' : 'Profile in review')}</span>
     <span class="tile__go">View country<span aria-hidden="true">&#8594;</span></span>
   </span>
 </a>

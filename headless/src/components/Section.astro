@@ -8,14 +8,16 @@ interface Props {
   id?: string;
   label?: string;
   class?: string;
+  hidden?: boolean;
 }
-const { tone = 'ivory', width = 'standard', size = 'default', flush = 'none', id, label, class: className } = Astro.props;
+const { tone = 'ivory', width = 'standard', size = 'default', flush = 'none', id, label, class: className, hidden = false } = Astro.props;
 const flushClass = flush === 'both'
   ? ['section--flush-top', 'section--flush-bottom']
   : flush === 'none' ? [] : [`section--flush-${flush}`];
 ---
 <section
   id={id}
+  hidden={hidden || undefined}
   aria-label={label}
   class:list={[
     'section',

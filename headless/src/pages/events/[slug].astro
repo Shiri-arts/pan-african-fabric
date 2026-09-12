@@ -17,16 +17,25 @@ import Media from '../../components/Media.astro';
 import NotFound from '../../components/NotFound.astro';
 import { eventPath, eventPhase, eventStructuredData, findEvent, posterDate } from '../../data/events';
 import { COUNTRY_COUNT } from '../../data/countries';
+import { cmsPlainText, presentCmsEvent } from '../../lib/cms-route-presenters';
+import { getEventBySlug, getMediaById } from '../../lib/wix-cms';
 
 export const prerender = false;
 
-const event = findEvent(Astro.params.slug);
+const cmsEvent = Astro.params.slug ? await getEventBySlug(Astro.params.slug) : undefined;
+const cmsPresentation = cmsEvent ? await presentCmsEvent(cmsEvent, getMediaById) : undefined;
+const event = cmsPresentation ?? (import.meta.env.DEV ? findEvent(Astro.params.slug) : undefined);
 if (!event) Astro.response.status = 404;
 
 const previewArchive = import.meta.env.DEV && Astro.url.searchParams.get('preview') === 'archive';
 const phase = event ? (previewArchive ? 'archive' : eventPhase(event)) : 'upcoming';
 const date = event ? posterDate(event) : undefined;
 const timeWithZone = event?.timeLabel && event.timezoneLabel ? `${event.timeLabel} ${event.timezoneLabel}` : event?.timeLabel;
+const overview = cmsPlainText(cmsEvent?.overview);
+const programme = cmsPlainText(cmsEvent?.programme);
+const admission = cmsPlainText(cmsEvent?.admission);
+const accessibility = cmsPlainText(cmsEvent?.accessibility);
+const partnerCredits = cmsPlainText(cmsEvent?.publicPartnerCredits);
 ---
 {!event || !date ? (
   <Layout title="Event not found" description="The requested event does not exist." path={Astro.url.pathname}>
@@ -75,9 +84,14 @@ const timeWithZone = event?.timeLabel && event.timezoneLabel ? `${event.timeLabe
         </dl>
       </div>
       <p class="caption" style="margin-top:24px;max-width:72ch">
-        These are the details supplied for this event. Timezone, tickets, registration, an official link, programme
-        participants and partner credits are not listed because they have not been confirmed.
+        These are the confirmed details supplied for this event. Information that has not been approved is left out.
       </p>
+      {(cmsEvent?.officialUrl || cmsEvent?.ticketUrl) && (
+        <p class="actions">
+          {cmsEvent.officialUrl && <Button href={cmsEvent.officialUrl} variant="secondary">Official event information<span class="button__arrow" aria-hidden="true">&#8599;</span></Button>}
+          {cmsEvent.ticketUrl && <Button href={cmsEvent.ticketUrl}>Attendance information<span class="button__arrow" aria-hidden="true">&#8599;</span></Button>}
+        </p>
+      )}
     </Section>
 
     <Section tone="ivory" size="tight" flush="bottom">
@@ -86,12 +100,16 @@ const timeWithZone = event?.timeLabel && event.timezoneLabel ? `${event.timeLabe
 
     <Section tone="ivory" id="about">
       <SectionHead eyebrow="About the event" title="What takes place.">
-        <EmptyState
-          title="The event description is not approved yet."
-          text="This is where the event is described. Programme, participants and partner credits are added only when each one is confirmed."
-          note={import.meta.env.DEV ? 'Approve the event description. Do not add Community Day framing, partner or sponsorship status, participants, ticketing or endorsement without separate approval.' : undefined}
-        />
+        {overview
+          ? <p class="lead">{overview}</p>
+          : <EmptyState
+              title="The event description is not approved yet."
+              text="This is where the event is described. Programme, participants and partner credits are added only when each one is confirmed."
+              note={import.meta.env.DEV ? 'Approve the event description. Do not add Community Day framing, partner or sponsorship status, participants, ticketing or endorsement without separate approval.' : undefined}
+            />}
       </SectionHead>
+      {programme && <div class="event-copy"><h3>Programme</h3><p>{programme}</p></div>}
+      {partnerCredits && <div class="event-copy"><h3>Credits</h3><p>{partnerCredits}</p></div>}
     </Section>
 
     {phase === 'archive' ? (
@@ -111,16 +129,16 @@ const timeWithZone = event?.timeLabel && event.timezoneLabel ? `${event.timeLabe
     ) : (
       <Section tone="ink" id="attend">
         <SectionHead eyebrow="Attending" title="How to attend.">
-          <p>
-            Access details are published once confirmed by the venue. No ticketing, registration or booking route is
-            offered here, because none has been confirmed.
-          </p>
+          <p>{admission ?? 'Access details are published once confirmed by the venue. No ticketing, registration or booking route is offered here unless it has been confirmed.'}</p>
         </SectionHead>
-        <EmptyState
-          title="Attendance details are not confirmed yet."
-          text="Timezone, entry arrangements and any official event link will appear here."
-          tone="ink"
-        />
+        {accessibility && <div class="event-copy event-copy--ink"><h3>Accessibility</h3><p>{accessibility}</p></div>}
+        {!admission && !accessibility && !cmsEvent?.ticketUrl && !cmsEvent?.officialUrl && (
+          <EmptyState
+            title="Attendance details are not confirmed yet."
+            text="Entry arrangements and any official event link will appear here."
+            tone="ink"
+          />
+        )}
       </Section>
     )}
 
@@ -159,5 +177,9 @@ const timeWithZone = event?.timeLabel && event.timezoneLabel ? `${event.timeLabe
   .event-detail { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: clamp(20px, 3vw, 56px); align-items: start; }
   .event-detail__poster { display: flex; flex-direction: column; gap: var(--space-sm); padding: clamp(20px, 2.6vw, 40px); background: var(--ink-deep); color: #f7f3e8; }
   .event-detail__facts { align-self: center; }
+  .event-copy { max-width: 62ch; margin-top: var(--space-lg); padding-top: var(--space-sm); border-top: 1px solid var(--border); }
+  .event-copy h3 { font-size: 1.25rem; margin: 0 0 var(--space-xs); }
+  .event-copy p { white-space: pre-line; }
+  .event-copy--ink { border-color: var(--on-ink-rule); }
   @media (max-width: 899px) { .event-detail { grid-template-columns: minmax(0, 1fr); } }
 </style>

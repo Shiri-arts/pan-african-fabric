@@ -12,16 +12,23 @@ import Button from '../../components/Button.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import Media from '../../components/Media.astro';
 import NotFound from '../../components/NotFound.astro';
+import EmptyState from '../../components/EmptyState.astro';
 import EventCard from '../../components/EventCard.astro';
 import { countryPath, findCountry } from '../../data/countries';
 import { findEvent } from '../../data/events';
 import { stories, storyPath } from '../../data/stories';
+import { presentCmsStory } from '../../lib/cms-route-presenters';
 import { reviewStories } from '../../lib/review';
+import { getMediaById, getStoryBySlug } from '../../lib/wix-cms';
 
 export const prerender = false;
 
-const all = [...stories, ...(await reviewStories())];
-const story = all.find((entry) => entry.slug === Astro.params.slug);
+const cmsStory = Astro.params.slug ? await getStoryBySlug(Astro.params.slug) : undefined;
+const cmsPresentation = cmsStory ? await presentCmsStory(cmsStory, getMediaById) : undefined;
+const fallbackStory = import.meta.env.DEV
+  ? [...stories, ...(await reviewStories())].find((entry) => entry.slug === Astro.params.slug)
+  : undefined;
+const story = cmsPresentation ?? fallbackStory;
 if (!story) Astro.response.status = 404;
 
 const relatedCountries = story ? story.relatedCountries.map(findCountry).filter((value) => value !== undefined) : [];
@@ -56,13 +63,17 @@ const relatedEvents = story ? story.relatedEvents.map(findEvent).filter((value) 
 
         <Media media={story.hero} class="article__hero" />
 
-        <div class="article__body">
-          {story.body.map((block) => (
-            block.type === 'subheading' ? <h2 class="article__subheading">{block.text}</h2>
-            : block.type === 'pullquote' ? <blockquote class="article__pullquote"><p>{block.text}</p></blockquote>
-            : <p>{block.text}</p>
-          ))}
-        </div>
+        {story.body.length > 0 ? (
+          <div class="article__body">
+            {story.body.map((block) => (
+              block.type === 'subheading' ? <h2 class="article__subheading">{block.text}</h2>
+              : block.type === 'pullquote' ? <blockquote class="article__pullquote"><p>{block.text}</p></blockquote>
+              : <p>{block.text}</p>
+            ))}
+          </div>
+        ) : (
+          <EmptyState title="This story has no published body yet." text="The article text will appear here after it is completed and published." />
+        )}
       </article>
     </Section>
 

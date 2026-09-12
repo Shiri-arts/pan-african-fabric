@@ -10,15 +10,49 @@ import { inauguralShowcase } from '../data/events';
 import { contactChannels, fastFacts } from '../data/site';
 import { awaiting, draft } from '../lib/content';
 import { mediaSlot } from '../lib/media';
+import { cmsPlainText, escapeCmsHeading, presentCmsEvent, sectionsByKey } from '../lib/cms-route-presenters';
 import { loadReviewCopy } from '../lib/review';
+import { getContactChannels, getEventBySlug, getMediaById, getPageByKey, getPageHeroMedia, getPageSections, getPressItems } from '../lib/wix-cms';
 
 const review = await loadReviewCopy();
+const [cmsPage, cmsSections, cmsHeroMedia, cmsPressItems, cmsChannels, cmsEvent] = await Promise.all([
+  getPageByKey('press-contact'),
+  getPageSections('press-contact'),
+  getPageHeroMedia('press-contact'),
+  getPressItems(),
+  getContactChannels(),
+  getEventBySlug(inauguralShowcase.slug),
+]);
 
 const intro = review
   ? draft(review.press.intro, 'Media lead')
   : awaiting('Press introduction', 'Approve the introduction for press and media users.');
 
-const heroMedia = mediaSlot('press-hero', '21/9', 'Approved photograph suitable for the press and contact header.');
+const cmsIntro = cmsPlainText(cmsPage?.introduction);
+const heroMedia = cmsHeroMedia ?? mediaSlot('press-hero', '21/9', 'Approved photograph suitable for the press and contact header.');
+const sectionContent = sectionsByKey(cmsSections);
+const releaseSection = sectionContent.get('releases');
+const assetsSection = sectionContent.get('assets');
+const coverageSection = sectionContent.get('coverage');
+const contactSection = sectionContent.get('contact');
+const sectionEnabled = (key: string) => cmsSections.find(section => section.sectionKey === key)?.isEnabled ?? true;
+const confirmedEvent = cmsEvent ? await presentCmsEvent(cmsEvent, getMediaById) : undefined;
+const eventForFacts = confirmedEvent;
+const releaseTypes = new Set(['press-release', 'release', 'statement']);
+const coverageTypes = new Set(['coverage', 'article', 'interview', 'media-coverage']);
+const releases = cmsPressItems.filter(item => releaseTypes.has(item.itemType?.toLowerCase() ?? ''));
+const coverage = cmsPressItems.filter(item => coverageTypes.has(item.itemType?.toLowerCase() ?? ''));
+const assets = cmsPressItems.filter(item => !releases.includes(item) && !coverage.includes(item));
+const channels = cmsChannels.length > 0
+  ? cmsChannels.map(channel => ({
+      id: channel.id,
+      label: channel.label,
+      description: channel.description ?? '',
+      address: channel.emailAddress ?? null,
+      pending: undefined,
+      responseNote: channel.responseNote,
+    }))
+  : contactChannels.map(channel => ({ ...channel, responseNote: undefined }));
 
 /**
  * Facts that are stated in the implementation brief. Structural counts and the
@@ -26,28 +60,32 @@ const heroMedia = mediaSlot('press-hero', '21/9', 'Approved photograph suitable 
  */
 const verifiedFacts = [
   ...fastFacts.map((fact) => ({ label: fact.label, value: fact.value })),
-  { label: 'Inaugural showcase', value: inauguralShowcase.dateLabel },
-  { label: 'Venue', value: inauguralShowcase.venue },
-  { label: 'Location', value: inauguralShowcase.location },
+  ...(eventForFacts ? [
+    { label: 'Inaugural showcase', value: eventForFacts.dateLabel },
+    { label: 'Venue', value: eventForFacts.venue },
+    { label: 'Location', value: eventForFacts.location },
+  ] : []),
 ];
 ---
 <Layout
-  title="Press and Contact"
-  description="Press and media resources for The Pan-African Fabric, plus routes for general, interview and partnership enquiries."
+  title={cmsPage?.seoTitle ?? cmsPage?.title ?? 'Press and Contact'}
+  description={cmsPage?.seoDescription ?? 'Press and media resources for The Pan-African Fabric, plus routes for general, interview and partnership enquiries.'}
   path="/press-contact"
   header="overlay"
 >
   <PageHero
-    eyebrow="Press and contact"
-    title="Professional<span>access.</span>"
+    eyebrow={cmsPage?.eyebrow ?? 'Press and contact'}
+    title={escapeCmsHeading(cmsPage?.heroTitle, 'Professional<span>access.</span>')}
     size="tall"
     media={heroMedia}
     meta={['Press', 'Media assets', 'Enquiries']}
   >
-    <Copy copy={intro} class="page-hero__intro lead" fallbackTitle="Press introduction" emptyTone="ink" />
+    {cmsIntro
+      ? <p class="page-hero__intro lead">{cmsIntro}</p>
+      : <Copy copy={intro} class="page-hero__intro lead" fallbackTitle="Press introduction" emptyTone="ink" />}
   </PageHero>
 
-  <Section tone="paper" id="fast-facts">
+  <Section tone="paper" id="fast-facts" hidden={!sectionEnabled('fast-facts')}>
     <SectionHead eyebrow="Fast facts" title="What can be stated today.">
       <p>
         Only confirmed facts appear here. Anything not on this list has not been confirmed and should not be attributed
@@ -68,52 +106,66 @@ const verifiedFacts = [
     </p>
   </Section>
 
-  <Section tone="ivory" id="releases">
-    <SectionHead eyebrow="Press releases" title="Releases and statements.">
-      <p>Dated releases are listed here as they are issued.</p>
+  <Section tone="ivory" id="releases" hidden={!sectionEnabled('releases')}>
+    <SectionHead eyebrow={releaseSection?.eyebrow ?? 'Press releases'} title={releaseSection?.heading ?? 'Releases and statements.'}>
+      <p>{cmsPlainText(releaseSection?.body) ?? 'Dated releases are listed here as they are issued.'}</p>
     </SectionHead>
-    <EmptyState
-      title="No press release has been issued yet."
-      text="Releases appear here with their date and full text once they are approved."
-      layout="centred"
-    />
+    {releases.length > 0 ? (
+      <ul class="press-list">
+        {releases.map(item => (
+          <li class="press-item">
+            <p class="press-item__meta">{[item.publicationName, item.dateLabel].filter(Boolean).join(' · ')}</p>
+            <h3>{item.headline}</h3>
+            {cmsPlainText(item.excerpt ?? item.body) && <p>{cmsPlainText(item.excerpt ?? item.body)}</p>}
+            {item.externalUrl && <a href={item.externalUrl}>Read the release<span aria-hidden="true">&#8599;</span></a>}
+          </li>
+        ))}
+      </ul>
+    ) : <EmptyState title="No press release has been issued yet." text="Releases appear here with their date and full text once they are approved." layout="centred" />}
   </Section>
 
-  <Section tone="surface" id="assets">
-    <SectionHead eyebrow="Media assets" title="Approved images and files.">
-      <p>
-        Download controls appear only for files that carry an approved version, file size, usage terms and a permitted
-        URL. Nothing on this site is made downloadable simply because it is visible.
-      </p>
+  <Section tone="surface" id="assets" hidden={!sectionEnabled('assets')}>
+    <SectionHead eyebrow={assetsSection?.eyebrow ?? 'Media assets'} title={assetsSection?.heading ?? 'Approved images and files.'}>
+      <p>{cmsPlainText(assetsSection?.body) ?? 'Download controls appear only for files that carry an approved version, file size, usage terms and a permitted URL. Nothing on this site is made downloadable simply because it is visible.'}</p>
     </SectionHead>
-    <EmptyState
-      title="No downloadable asset has been approved."
-      text="There is no press kit link here, because no approved press kit file has been supplied. A planning document is not a press kit."
-      note={import.meta.env.DEV ? 'Supply the current approved press kit PDF with its version, date, file size and permitted download URL.' : undefined}
-      layout="centred"
-    />
+    {assets.length > 0 ? (
+      <ul class="press-list">
+        {assets.map(item => (
+          <li class="press-item">
+            <p class="press-item__meta">{[item.itemType, item.version, item.fileSizeLabel].filter(Boolean).join(' · ')}</p>
+            <h3>{item.headline}</h3>
+            {cmsPlainText(item.usageNotes ?? item.excerpt) && <p>{cmsPlainText(item.usageNotes ?? item.excerpt)}</p>}
+            {item.downloadAllowed && item.externalUrl && <a href={item.externalUrl}>Download approved file<span aria-hidden="true">&#8599;</span></a>}
+          </li>
+        ))}
+      </ul>
+    ) : <EmptyState title="No downloadable asset has been approved." text="There is no press kit link here, because no approved press kit file has been supplied. A planning document is not a press kit." note={import.meta.env.DEV ? 'Supply the current approved press kit PDF with its version, date, file size and permitted download URL.' : undefined} layout="centred" />}
   </Section>
 
-  <Section tone="ivory" id="coverage">
-    <SectionHead eyebrow="Coverage" title="Selected coverage.">
-      <p>Coverage is listed only with a verified publication, date and link.</p>
+  <Section tone="ivory" id="coverage" hidden={!sectionEnabled('coverage')}>
+    <SectionHead eyebrow={coverageSection?.eyebrow ?? 'Coverage'} title={coverageSection?.heading ?? 'Selected coverage.'}>
+      <p>{cmsPlainText(coverageSection?.body) ?? 'Coverage is listed only with a verified publication, date and link.'}</p>
     </SectionHead>
-    <EmptyState
-      title="No coverage has been verified for listing."
-      text="No publication logo, quotation or headline is shown until the source is confirmed."
-      layout="centred"
-    />
+    {coverage.length > 0 ? (
+      <ul class="press-list">
+        {coverage.map(item => (
+          <li class="press-item">
+            <p class="press-item__meta">{[item.publicationName, item.dateLabel].filter(Boolean).join(' · ')}</p>
+            <h3>{item.headline}</h3>
+            {cmsPlainText(item.excerpt) && <p>{cmsPlainText(item.excerpt)}</p>}
+            {item.externalUrl && <a href={item.externalUrl}>Read coverage<span aria-hidden="true">&#8599;</span></a>}
+          </li>
+        ))}
+      </ul>
+    ) : <EmptyState title="No coverage has been verified for listing." text="No publication logo, quotation or headline is shown until the source is confirmed." layout="centred" />}
   </Section>
 
-  <Section tone="ink" id="contact">
-    <SectionHead eyebrow="Enquiries" title="How to reach the initiative.">
-      <p>
-        Each enquiry route below has a destination reserved. No address is published until it is confirmed for public
-        use, and no contact form on this site transmits anything.
-      </p>
+  <Section tone="ink" id="contact" hidden={!sectionEnabled('contact')}>
+    <SectionHead eyebrow={contactSection?.eyebrow ?? 'Enquiries'} title={contactSection?.heading ?? 'How to reach the initiative.'}>
+      <p>{cmsPlainText(contactSection?.body) ?? 'Each enquiry route below has a destination reserved. No address is published until it is confirmed for public use, and no contact form on this site transmits anything.'}</p>
     </SectionHead>
     <ul class="channels">
-      {contactChannels.map((channel) => (
+      {channels.map((channel) => (
         <li class="channel">
           <span class="channel__label">{channel.label}</span>
           <span class="channel__description">{channel.description}</span>
@@ -123,6 +175,7 @@ const verifiedFacts = [
             <span class="badge badge--awaiting">Address not confirmed</span>
           )}
           {import.meta.env.DEV && channel.pending && <span class="channel__pending">{channel.pending}</span>}
+          {channel.responseNote && <span class="channel__description">{channel.responseNote}</span>}
         </li>
       ))}
     </ul>
@@ -148,4 +201,10 @@ const verifiedFacts = [
   .channel__description { font-size: 0.875rem; line-height: 1.5; color: var(--on-ink-muted); }
   .channel__address { color: var(--on-ink); min-height: var(--touch-min); display: inline-flex; align-items: center; }
   .channel__pending { font-size: 0.75rem; line-height: 1.5; color: var(--on-ink-muted); padding-left: var(--space-sm); border-left: 2px solid var(--gold); }
+  .press-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: clamp(16px, 2vw, 32px); }
+  .press-item { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-xs); padding-top: var(--space-sm); border-top: 2px solid var(--text); }
+  .press-item__meta { margin: 0; color: var(--muted); font-size: 0.6875rem; letter-spacing: 0.08em; text-transform: uppercase; }
+  .press-item h3 { margin: 0; font-size: 1.375rem; }
+  .press-item p { white-space: pre-line; }
+  .press-item a { min-height: var(--control-min); display: inline-flex; align-items: center; gap: 8px; color: currentColor; font-weight: 600; }
 </style>
