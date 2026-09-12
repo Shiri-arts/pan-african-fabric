@@ -570,8 +570,9 @@ Nine browser suites pass in total.
 ## Boundaries held
 
 - Wix CMS schema changes were limited to the explicitly requested redesign on Headless
-  site `6dabfd00-04c6-4f6f-8282-fb56b240c160`. The 18 collections remain private,
-  draft-first and empty; no editorial content was created or published.
+  site `6dabfd00-04c6-4f6f-8282-fb56b240c160`. All 18 collections are public-read,
+  administrator-write and draft-first. Thirty approved-source records were migrated as
+  drafts; the five earlier published foundation records were preserved.
 - Existing Editor/Velo site `cf6dc8aa-2320-4c66-b52e-44252adf69f3`: **untouched**. Root
   `src/`, `package.json`, `wix.config.json` and `wix.lock` not modified.
 - A Wix-hosted frontend preview was created for review. There was **no release**, domain
@@ -579,7 +580,8 @@ Nine browser suites pass in total.
   submission. No redirect was activated.
 - No analytics, pixels, trackers, cookies or third-party embeds added. The same-origin
   CSP is preserved unchanged. No external image or font host introduced.
-- No dependency added to `headless/package.json`. Playwright lives in the scratchpad.
+- `parse5` was added to `headless/package.json` for server-side rich-text sanitizing.
+  Browser-test tooling and profiles remain ignored scratch artifacts.
 
 ## Commit history
 
@@ -657,22 +659,42 @@ Batch 8:
 43. The twelve-colour grid rebuilt as a three-by-four reference board.
 44. This record.
 
-Pushed to `wix-headless-migration`. Not merged to `main`, and never force-pushed: the
-history was arranged before the branch was published.
+Batch 9 — CMS backend and runtime wiring (2026-09-12):
 
-## Exact next action for another agent
+45. Additive 18-collection schema completion, including global, navigation, section,
+    SEO, media-rights and founder-quotation controls.
+46. Typed, allowlisted public CMS access layer and safe rich-text renderer.
+47. All public routes, header, footer, metadata, navigation, featured content and
+    dynamic slugs wired to published Wix CMS responses.
+48. Draft-only migration of 30 approved-source records, with zero publication calls.
+49. Read-only content validator, access report, data dictionary and client editing guide.
+50. Production response verification and real-browser Wix preview checks.
 
-The frontend remains at the review gate and the CMS structure is ready but empty. Do
-not populate or wire public CMS responses, release, activate redirects, transfer
-ownership or activate forms without the next explicit implementation instruction.
+Final verification on September 12, 2026: `astro check` reported zero diagnostics;
+all 37 automated CMS, access, migration and rich-text tests passed; the Astro build,
+production-response verifier and Wix build passed. The final Wix preview returned 200
+for all eight public index pages and a real 404 for an unpublished/unknown event slug.
+At 1440px, 768px and 390px it had no horizontal overflow or broken images; the mobile
+menu opened with Space and closed with Escape, and reduced-motion behavior remained
+enabled. The read-only live validator reported the seven known issues on the five older
+published records and performed zero mutations.
 
-1. Walk the local review build with the client and collect decisions on the outstanding
-   copy and media above.
-2. When approved hero photography arrives: place the files in `headless/public/`, fill in
-   the `Media` record on the relevant page (`desktop`, `mobile`, `srcset`, `focal`,
-   `alt`, `credit`, `permission`) and re-run the responsive suite. No component change
-   is needed.
-3. When an external destination is confirmed, set `verified: true` in `src/data/site.ts`.
-4. When copy is approved, move the string out of `review-copy.server.ts` into an
-   `approved()` call at its page, and delete it from the blocklist in
-   `scripts/verify-production.mjs`.
+All implementation belongs only on `wix-headless-migration`. It is not merged to
+`main`, and the branch must never be force-pushed.
+
+## Exact next action at the CMS review gate
+
+1. In the Wix dashboard, review the 30 draft records and publish only the records whose
+   copy, relationships and provenance have been approved.
+2. Complete the seven validator errors on the five earlier published records: add the
+   missing approval timestamps and the two page hero titles. This project does not
+   expose safe API-created revisions for those already-published items, so use the Wix
+   dashboard and publish the corrections deliberately.
+3. Add verified regions, biographies, symbols, garments, stories, press resources,
+   partnership descriptions and contact channels as drafts when source material exists.
+4. Approve solid web values for the 12 edition colours, enter an accessible label colour,
+   and have a developer verify at least 4.5:1 contrast before publishing those records.
+5. Run `npm.cmd run cms:validate` before publication, then verify the Wix preview after
+   the intended records are published.
+6. Keep the frontend unreleased until the client approves the CMS review gate. Forms,
+   commerce, domain changes and ownership changes remain outside this phase.

@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-09-09T16:25:37.757Z",
+  "checkedAt": "2026-09-12T14:39:20.145Z",
   "siteId": "6dabfd00-04c6-4f6f-8282-fb56b240c160",
   "anonymousAuthentication": "verified",
   "results": [
@@ -9,7 +9,9 @@
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
-      "draftItemCount": 0
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 1,
+      "pendingDraftCount": 1
     },
     {
       "collection": "Pages",
@@ -17,7 +19,9 @@
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 2,
-      "draftItemCount": 0
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 8,
+      "pendingDraftCount": 6
     },
     {
       "collection": "PageSections",
@@ -25,7 +29,9 @@
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 1,
-      "draftItemCount": 0
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 1,
+      "pendingDraftCount": 0
     },
     {
       "collection": "Editions",
@@ -33,7 +39,9 @@
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
-      "draftItemCount": 0
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 1,
+      "pendingDraftCount": 1
     },
     {
       "collection": "Regions",
@@ -41,7 +49,9 @@
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
-      "draftItemCount": 0
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 0,
+      "pendingDraftCount": 0
     },
     {
       "collection": "Countries",
@@ -49,7 +59,9 @@
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
-      "draftItemCount": 0
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 9,
+      "pendingDraftCount": 9
     },
     {
       "collection": "EditionColours",
@@ -57,7 +69,9 @@
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
-      "draftItemCount": 0
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 12,
+      "pendingDraftCount": 12
     },
     {
       "collection": "Symbols",
@@ -65,7 +79,9 @@
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
-      "draftItemCount": 0
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 0,
+      "pendingDraftCount": 0
     },
     {
       "collection": "Designers",
@@ -73,7 +89,9 @@
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
-      "draftItemCount": 0
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 0,
+      "pendingDraftCount": 0
     },
     {
       "collection": "Participations",
@@ -81,7 +99,9 @@
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
-      "draftItemCount": 0
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 0,
+      "pendingDraftCount": 0
     },
     {
       "collection": "Garments",
@@ -89,7 +109,9 @@
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
-      "draftItemCount": 0
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 0,
+      "pendingDraftCount": 0
     },
     {
       "collection": "Events",
@@ -97,7 +119,9 @@
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
-      "draftItemCount": 0
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 1,
+      "pendingDraftCount": 1
     },
     {
       "collection": "MediaAssets",
@@ -105,7 +129,9 @@
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 2,
-      "draftItemCount": 0
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 2,
+      "pendingDraftCount": 0
     },
     {
       "collection": "Stories",
@@ -113,7 +139,9 @@
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
-      "draftItemCount": 0
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 0,
+      "pendingDraftCount": 0
     },
     {
       "collection": "PressItems",
@@ -121,7 +149,9 @@
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
-      "draftItemCount": 0
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 0,
+      "pendingDraftCount": 0
     },
     {
       "collection": "PartnershipOptions",
@@ -129,7 +159,9 @@
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
-      "draftItemCount": 0
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 0,
+      "pendingDraftCount": 0
     },
     {
       "collection": "ContactChannels",
@@ -137,7 +169,9 @@
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
-      "draftItemCount": 0
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 0,
+      "pendingDraftCount": 0
     },
     {
       "collection": "ShopItems",
@@ -145,7 +179,9 @@
       "visitorDraftQueryStatus": 404,
       "draftCollectionState": "not-materialized",
       "publishedItemCount": 0,
-      "draftItemCount": 0
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 0,
+      "pendingDraftCount": 0
     }
   ],
   "mutations": 0

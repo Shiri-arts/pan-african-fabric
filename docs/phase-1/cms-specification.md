@@ -32,9 +32,9 @@ and `approvedAt`. Wix supplies the immutable item ID.
 
 | Collection | Purpose | Important fields and relationships |
 |---|---|---|
-| `SiteSettings` | One global site record. | Site name, tagline, footer statement, canonical origin and verified external links; primary edition, default SEO image and social image reference `Editions`/`MediaAssets`. |
-| `Pages` | Route-level metadata and hero content for the seven primary pages and home. | Stable `pageKey`, path, eyebrow, hero title, introduction, SEO fields, robots value and hero labels; hero references `MediaAssets`. |
-| `PageSections` | Ordered static-page sections. | Section key/type, heading, body, tone, optional CTA and enabled flag; belongs to one `Pages` item and may reference one `MediaAssets` item. Structured entities such as events stay in their own collections. |
+| `SiteSettings` | One global site record. | Site/header identity, taglines, footer/copyright copy, announcement controls, canonical origin and verified external links; SEO defaults, primary edition and global media references. |
+| `Pages` | Route-level metadata, hero content and one-level navigation for the seven primary pages and home. | Stable `pageKey`, path, header/footer navigation labels, visibility/order/highlight controls, hero copy, introduction, two CTAs, SEO/robots fields and social/hero media. |
+| `PageSections` | Ordered static-page sections. | Section key/type, eyebrow, heading/subheading, body, caption, approved tone/layout variant, optional CTA and enabled flag; belongs to one `Pages` item and may reference one `MediaAssets` item. |
 | `Editions` | Edition-level editorial content. | Year, lifecycle label, statement, fabric description, colour narrative and creative process; hero/fabric media; related events. |
 | `Regions` | Controlled display vocabulary for the five-region presentation. | Region key, name and approved description. A region assignment can therefore be reviewed without silently rewriting country data. |
 | `Countries` | One country's participation/profile in one edition. | Country name, profile state, approved introduction, interpretation, participation and credits; references edition, region, hero/supporting media, symbol and related events. `principalDesigner` remains as a compatibility field; `Participations.isPrincipal` is authoritative. Unique business key: edition + slug. |
@@ -125,8 +125,8 @@ arrays in ordinary item writes are not treated as proof that a relationship was 
 
 ## Migration from the original foundation
 
-The original eight collections are empty. The update is additive: their stable IDs
-remain, new fields are added and ten supporting collections are introduced. Historical
+The update is additive: every existing stable ID and field remains. Missing global,
+page, section and one-level navigation controls are added to the existing collections. Historical
 fields such as `Countries.regionLabel`, `Countries.principalDesigner`, event date
 fragments and redundant garment references remain temporarily so the schema can be
 updated without deleting fields. The content-access layer will prefer `Regions`,

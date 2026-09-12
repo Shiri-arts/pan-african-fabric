@@ -1,0 +1,68 @@
+{
+  "checkedAt": "2026-09-12T14:35:13.492Z",
+  "siteId": "6dabfd00-04c6-4f6f-8282-fb56b240c160",
+  "mutations": 0,
+  "valid": false,
+  "summary": {
+    "errors": 7,
+    "warnings": 0
+  },
+  "issues": [
+    {
+      "severity": "error",
+      "collection": "Pages",
+      "itemId": "page-about",
+      "field": "approvedAt",
+      "code": "required-public-field",
+      "message": "Published content is missing a required field."
+    },
+    {
+      "severity": "error",
+      "collection": "Pages",
+      "itemId": "page-about",
+      "field": "heroTitle",
+      "code": "required-public-field",
+      "message": "Published content is missing a required field."
+    },
+    {
+      "severity": "error",
+      "collection": "Pages",
+      "itemId": "page-home",
+      "field": "approvedAt",
+      "code": "required-public-field",
+      "message": "Published content is missing a required field."
+    },
+    {
+      "severity": "error",
+      "collection": "Pages",
+      "itemId": "page-home",
+      "field": "heroTitle",
+      "code": "required-public-field",
+      "message": "Published content is missing a required field."
+    },
+    {
+      "severity": "error",
+      "collection": "PageSections",
+      "itemId": "section-about-founder",
+      "field": "approvedAt",
+      "code": "required-public-field",
+      "message": "Published content is missing a required field."
+    },
+    {
+      "severity": "error",
+      "collection": "MediaAssets",
+      "itemId": "media-home-hero-pan-african-fan",
+      "field": "approvedAt",
+      "code": "required-public-field",
+      "message": "Published content is missing a required field."
+    },
+    {
+      "severity": "error",
+      "collection": "MediaAssets",
+      "itemId": "media-founder-shiri-achu",
+      "field": "approvedAt",
+      "code": "required-public-field",
+      "message": "Published content is missing a required field."
+    }
+  ]
+}
