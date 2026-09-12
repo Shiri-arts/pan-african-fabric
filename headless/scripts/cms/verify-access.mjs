@@ -38,12 +38,17 @@ for (const expected of collections) {
   assert.equal(schema.status, 200);
   assertEditorialCollection(schema.data.collection, expected);
   const publishedQuery = { dataCollectionId: expected.id, query: { paging: { limit: 100 } }, consistentRead: true };
+  const allAdminQuery = { ...publishedQuery, publishPluginOptions: { includeDraftItems: true } };
   const draftQuery = { ...publishedQuery, dataCollectionId: `${expected.id}__drafts` };
   const adminPublished = await request('/wix-data/v2/items/query', admin, 'POST', publishedQuery);
+  const adminAll = await request('/wix-data/v2/items/query', admin, 'POST', allAdminQuery);
   const adminDrafts = await request('/wix-data/v2/items/query', admin, 'POST', draftQuery);
   assert.equal(adminPublished.status, 200, `${expected.id}: admin cannot query the published collection.`);
+  assert.equal(adminAll.status, 200, `${expected.id}: admin cannot query draft-inclusive content.`);
   assert.ok([200, 404].includes(adminDrafts.status), `${expected.id}: unexpected draft collection response.`);
   const publishedItemCount = adminPublished.data.dataItems?.length ?? 0;
+  const draftInclusiveItemCount = adminAll.data.dataItems?.length ?? 0;
+  const pendingDraftCount = adminAll.data.dataItems?.filter(item => item.data?._publishStatus === 'DRAFT').length ?? 0;
   const draftItemCount = adminDrafts.status === 200 ? (adminDrafts.data.dataItems?.length ?? 0) : 0;
   const visitorPublished = await request('/wix-data/v2/items/query', visitor, 'POST', publishedQuery);
   const visitorDrafts = await request('/wix-data/v2/items/query', visitor, 'POST', draftQuery);
@@ -56,6 +61,8 @@ for (const expected of collections) {
     draftCollectionState: adminDrafts.status === 404 ? 'not-materialized' : 'empty',
     publishedItemCount,
     draftItemCount,
+    draftInclusiveItemCount,
+    pendingDraftCount,
   });
 }
 const report = { checkedAt: new Date().toISOString(), siteId, anonymousAuthentication: 'verified', results, mutations: 0 };

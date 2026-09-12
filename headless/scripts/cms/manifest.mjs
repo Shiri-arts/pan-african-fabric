@@ -1,10 +1,11 @@
-/** Private CMS schema for the redesigned public frontend. */
+/** Draft-first CMS schema for the redesigned public frontend. */
 export const EXISTING_EDITOR_SITE_ID = 'cf6dc8aa-2320-4c66-b52e-44252adf69f3';
 export const HEADLESS_SITE_ID = '6dabfd00-04c6-4f6f-8282-fb56b240c160';
 export const editorialPermissions = Object.freeze({ insert: 'ADMIN', update: 'ADMIN', remove: 'ADMIN', read: 'ANYONE' });
 export const publishPlugin = Object.freeze({ type: 'PUBLISH', publishOptions: { defaultStatus: 'DRAFT' } });
 
-const label = key => key.replace(/([A-Z])/g, ' $1').replace(/^./, value => value.toUpperCase());
+const label = key => key.replace(/([A-Z])/g, ' $1').replace(/^./, value => value.toUpperCase())
+  .replace(/\bSeo\b/g, 'SEO').replace(/\bCta\b/g, 'CTA').replace(/\bUrl\b/g, 'URL').replace(/\bHref\b/g, 'Link').replace(/\bId\b/g, 'ID');
 const field = (key, type = 'TEXT', extra = {}) => ({ key, displayName: label(key), type, ...extra });
 const fields = (type, names) => names.split(' ').map(key => field(key, type));
 const reference = (key, target, multiple = false, reciprocal) => field(key, multiple ? 'MULTI_REFERENCE' : 'REFERENCE', {
@@ -27,15 +28,20 @@ const collection = (id, ownFields) => ({
 
 export const collections = [
   collection('SiteSettings', [
-    ...fields('TEXT', 'siteName tagline footerStatement'), ...fields('URL', 'canonicalOrigin instagramUrl founderSiteUrl'),
+    ...fields('TEXT', 'siteName tagline headerIdentity footerStatement copyrightText defaultSeoTitlePattern defaultSeoDescription announcementText announcementLinkLabel'),
+    ...fields('URL', 'canonicalOrigin instagramUrl founderSiteUrl announcementLinkUrl'),
+    field('announcementEnabled', 'BOOLEAN'),
     reference('primaryEdition', 'Editions'), reference('defaultSeoAsset', 'MediaAssets'), reference('socialShareAsset', 'MediaAssets'),
   ]),
   collection('Pages', [
-    ...fields('TEXT', 'pageKey path eyebrow heroTitle seoTitle seoDescription robots'), field('introduction', 'RICH_TEXT'),
-    field('heroMetaLabels', 'ARRAY_STRING'), reference('heroAsset', 'MediaAssets'),
+    ...fields('TEXT', 'pageKey path navigationLabel footerNavigationLabel eyebrow heroTitle heroTagline seoTitle seoDescription robots primaryCtaLabel primaryCtaHref secondaryCtaLabel secondaryCtaHref'),
+    field('introduction', 'RICH_TEXT'),
+    ...fields('BOOLEAN', 'navigationVisible footerNavigationVisible navigationHighlighted'),
+    ...fields('NUMBER', 'navigationOrder footerNavigationOrder'),
+    field('heroMetaLabels', 'ARRAY_STRING'), reference('heroAsset', 'MediaAssets'), reference('socialShareAsset', 'MediaAssets'),
   ]),
   collection('PageSections', [
-    ...fields('TEXT', 'sectionKey sectionType eyebrow heading ctaLabel ctaHref tone'), field('body', 'RICH_TEXT'),
+    ...fields('TEXT', 'sectionKey sectionType eyebrow heading subheading quoteText quoteAttribution ctaLabel ctaHref tone layoutVariant mediaCaption'), field('body', 'RICH_TEXT'),
     field('isEnabled', 'BOOLEAN'), reference('page', 'Pages'), reference('mediaAsset', 'MediaAssets'),
   ]),
   collection('Editions', [

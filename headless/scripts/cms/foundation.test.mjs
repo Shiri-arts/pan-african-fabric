@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { EXISTING_EDITOR_SITE_ID, HEADLESS_SITE_ID, assertEditorialCollection, collections, creationPlan } from './manifest.mjs';
 import { createPrivateCmsClient, publicCollection } from './content.server.mjs';
 import { applyFoundation } from './apply-foundation.mjs';
+import { validateContent } from './validate-content.mjs';
 
 const siteId = HEADLESS_SITE_ID;
 const token = 'TEST_ONLY_NOT_A_CREDENTIAL';
@@ -66,7 +67,7 @@ test('upstream private error bodies and network errors are never surfaced', asyn
   await assert.rejects(network.queryPrivate('Countries'), /no content returned/);
 });
 
-test('foundation creates shells before references, verifies schemas and empty collections, and resumes without writes', async () => {
+test('foundation creates shells before references, verifies schemas and resumes without duplicate writes', async () => {
   const stored = new Map();
   const mutations = [];
   const client = {
@@ -116,6 +117,26 @@ test('foundation adds a new scalar field to an existing collection', async () =>
   assert.deepEqual(created, ['Editions.leadLine']);
 });
 
+test('foundation preserves existing content while applying additive schema fields', async () => {
+  const stored = new Map(collections.map(value => [value.id, structuredClone(value)]));
+  stored.get('Pages').fields = stored.get('Pages').fields.filter(value => value.key !== 'heroTagline');
+  const created = [];
+  const client = {
+    async request(path, operation) {
+      if (!operation) return { collection: structuredClone(stored.get(path.split('/').at(-1).split('?')[0])) };
+      if (operation.body.field) {
+        stored.get(operation.body.dataCollectionId).fields.push(structuredClone(operation.body.field));
+        created.push(`${operation.body.dataCollectionId}.${operation.body.field.key}`);
+      }
+      return {};
+    },
+    async queryPrivate(collectionId) { return collectionId === 'Pages' ? [{ id: 'page-home', data: { title: 'Home' } }] : []; },
+  };
+  const result = await applyFoundation(client);
+  assert.deepEqual(created, ['Pages.heroTagline']);
+  assert.equal(result.collections.find(value => value.id === 'Pages').hasPublishedItems, true);
+});
+
 test('foundation refuses permission drift before any mutations', async () => {
   let writes = 0;
   const client = { request: async (_path, operation) => {
@@ -124,4 +145,48 @@ test('foundation refuses permission drift before any mutations', async () => {
   } };
   await assert.rejects(applyFoundation(client), /permissions/);
   assert.equal(writes, 0);
+});
+
+test('content validator reports unsafe publication and accepts a complete page navigation record', () => {
+  const common = { title: 'About', slug: 'about', sourceVersion: 'client-approved-v1', approvedAt: '2026-09-11T00:00:00.000Z', _publishStatus: 'PUBLISHED' };
+  const records = {
+    Pages: [{ id: 'page-about', state: 'published', data: {
+      ...common, pageKey: 'about', path: '/about', heroTitle: 'About', navigationVisible: true, navigationLabel: 'About', navigationOrder: 1,
+    } }],
+  };
+  assert.deepEqual(validateContent(records), { valid: true, summary: { errors: 0, warnings: 0 }, issues: [] });
+  records.Pages[0].data.primaryCtaHref = 'javascript:alert(1)';
+  records.Pages[0].data.primaryCtaLabel = 'Unsafe';
+  Object.assign(records.Pages[0].data, { footerNavigationVisible: true });
+  const invalid = validateContent(records);
+  assert.equal(invalid.valid, false);
+  assert.ok(invalid.issues.some(issue => issue.code === 'unsafe-url'));
+  assert.ok(invalid.issues.some(issue => issue.code === 'incomplete-navigation'));
+});
+
+test('content validator catches draft dependencies, media rights and invalid event ranges', () => {
+  const common = { title: 'Item', slug: 'item', sourceVersion: 'approved-v1', approvedAt: '2026-09-11T00:00:00.000Z', _publishStatus: 'PUBLISHED' };
+  const records = {
+    MediaAssets: [{ id: 'media-draft', state: 'draft', data: { title: 'Draft image', slug: 'draft-image', assetType: 'image' } }],
+    Pages: [{ id: 'page-home', state: 'published', data: { ...common, pageKey: 'home', path: '/', heroTitle: 'Home', heroAsset: 'media-draft' } }],
+    Events: [{ id: 'event-one', state: 'published', data: {
+      ...common, eventType: 'showcase', eventStatus: 'confirmed', startsAt: '2026-09-26T17:00:00.000Z', endsAt: '2026-09-26T16:00:00.000Z',
+      timezoneLabel: 'America/New_York', venue: 'Venue', location: 'Washington, D.C.', isConfirmed: true,
+    } }],
+  };
+  const result = validateContent(records);
+  assert.equal(result.valid, false);
+  assert.ok(result.issues.some(issue => issue.code === 'draft-dependency'));
+  assert.ok(result.issues.some(issue => issue.code === 'invalid-date-range'));
+});
+
+test('content validator measures published edition-colour contrast', () => {
+  const common = { title: 'Colour', slug: 'colour', sourceVersion: 'approved-v1', approvedAt: '2026-09-11T00:00:00.000Z', _publishStatus: 'PUBLISHED' };
+  const records = { EditionColours: [{ id: 'colour', state: 'published', data: {
+    ...common, colourName: 'White', hexValue: '#ffffff', textHex: '#eeeeee', edition: 'edition-one', country: 'ghana', contrastRatio: 9,
+  } }] };
+  const result = validateContent(records);
+  assert.equal(result.valid, false);
+  assert.ok(result.issues.some(issue => issue.code === 'insufficient-contrast'));
+  assert.ok(result.issues.some(issue => issue.code === 'stale-contrast-ratio'));
 });
