@@ -7,7 +7,10 @@
     "dev": "astro dev --host 127.0.0.1",
     "build": "astro build",
     "check": "astro check",
-    "test": "node --test scripts/cms/foundation.test.mjs",
+    "test": "node --test scripts/cms/*.test.mjs",
+    "cms:apply-foundation": "node scripts/cms/apply-foundation.mjs",
+    "cms:migrate-approved": "node scripts/cms/migrate-approved-content.mjs",
+    "cms:validate": "node scripts/cms/validate-content.mjs",
     "cms:publish-approved-media": "node scripts/cms/publish-approved-media.mjs",
     "cms:verify-published-media": "node scripts/cms/verify-published-media.mjs",
     "build:wix": "wix build"
@@ -24,6 +27,7 @@
     "@wix/essentials": "^1.0.6",
     "@wix/sdk": "^1.21.5",
     "astro": "^5.8.0",
+    "parse5": "^7.3.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "typescript": "^5.8.3"
