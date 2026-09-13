@@ -23,6 +23,7 @@ review copy and layout scaffolding are not evidence of client approval.
 | Client-supplied `COLOURS AND COUNTRY.png` and `headless/src/data/colours.ts` | Twelve colour names, source order and country assignments | `EditionColours`; minimal `Countries`; minimal `Editions` |
 | Client event message and `headless/src/data/events.ts` | Exact event title, date, time, venue and location; subsequently confirmed Eastern time instants | `Events` |
 | Existing verified Wix CMS records | Home hero reference `media-home-hero-pan-african-fan`; founder portrait reference `media-founder-shiri-achu` | Home `Pages.heroAsset`; founder `PageSections.mediaAsset` |
+| `The_Pan_African_Fabric_Official_Press_ _Media_Guide_1.pdf`, pp. 7, 12–14; user-authorized unambiguous draft population | Five region names; nine designer/studio display identities; exact Edition One colour and creative-process narratives | `Regions`; minimal `Designers`; `Editions.colourNarrative`; `Editions.creativeProcess` |
 
 The seed does not recreate or upload the two media items. Apply mode first verifies
 that both published dependency records exist on the Headless site.
@@ -91,3 +92,11 @@ Apply mode ran against the allowlisted Headless site on September 12, 2026. It c
 home page, About page and founder section were preserved instead of overwritten; the
 two existing Media assets were reused. The migration did not upload media, release
 the frontend or publish any seeded content.
+
+The guarded source-truth migration ran again on September 13, 2026. It added five
+`Regions` drafts and nine minimal `Designers` drafts. It also filled the two previously
+blank Edition One narrative fields with exact source wording in Wix rich-text format.
+The repeat-safe preflight found no semantic duplicates, treated all previously seeded
+records as no-ops, and performed zero publication operations. Content with unresolved
+classification, wording, relationships, dates, contact permission or media rights was
+not added.
