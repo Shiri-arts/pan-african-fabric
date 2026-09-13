@@ -21,14 +21,15 @@ interface Props {
   meta?: readonly string[];
   credit?: string;
   class?: string;
+  mediaFit?: 'cover' | 'contain';
 }
-const { eyebrow, title, tagline, size = 'tall', media, meta = [], credit, class: className } = Astro.props;
+const { eyebrow, title, tagline, size = 'tall', media, meta = [], credit, class: className, mediaFit = 'cover' } = Astro.props;
 const ready = media ? hasApprovedSource(media) : false;
 ---
 <section class:list={['page-hero', `page-hero--${size}`, 'on-ink', className]}>
   <div class="page-hero__media">
     {media && ready ? (
-      <Media media={media} priority showCaption={false} sizes="100vw" />
+      <Media media={media} priority showCaption={false} sizes="100vw" fit={mediaFit} />
     ) : (
       <div class="hero-placeholder" aria-hidden="true">
         <span class="hero-placeholder__label">Hero image position · no approved asset</span>

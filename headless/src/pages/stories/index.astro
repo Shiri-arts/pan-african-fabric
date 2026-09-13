@@ -36,6 +36,7 @@ const categoryCounts = new Map(storyCategories.map(category => [category, all.fi
   header="overlay"
 >
   <PageHero
+    class="page-hero--stories"
     eyebrow={cmsPage?.eyebrow ?? 'Stories'}
     title={escapeCmsHeading(cmsPage?.heroTitle, 'The living<span>voice.</span>')}
     size="tall"

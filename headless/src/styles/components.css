@@ -299,6 +299,7 @@
 .page-hero__media { position: absolute; inset: 0; z-index: -2; overflow: hidden; }
 .page-hero__media > * { width: 100%; height: 100%; }
 .page-hero__media img { width: 100%; height: 100%; object-fit: cover; }
+.page-hero__media .media--contain img { object-fit: contain; }
 /*
   The approved hero photograph is shot on a pure white backdrop. `darken` resolves
   that white to the pale beige behind it, while leaving every colour in the fabric
@@ -338,6 +339,11 @@
 }
 .page-hero__title span { display: block; }
 .page-hero__title { max-width: 14ch; }
+.page-hero--home .page-hero__copy { max-width: min(100%, 78rem); }
+.page-hero--home .page-hero__title,
+.page-hero--home .page-hero__tagline { max-width: none; white-space: nowrap; text-wrap: nowrap; }
+.page-hero--home .page-hero__title { font-size: clamp(2.35rem, 6.6vw, 7rem); }
+.page-hero--stories .page-hero__media img { object-position: 50% 32%; }
 .page-hero__tagline {
   font-family: var(--font-display);
   font-style: italic;
@@ -367,6 +373,8 @@
   .page-hero__copy { max-width: none; }
   .page-hero--full { min-height: min(88svh, 760px); }
   .page-hero__title { max-width: none; }
+  .page-hero--home .page-hero__title { font-size: clamp(1.85rem, 9.4vw, 3.5rem); }
+  .page-hero--home .page-hero__tagline { font-size: clamp(1rem, 5vw, 1.5rem); }
   /* Text covers most of the photograph here, so the overlay keeps its original strength. */
   .page-hero__scrim {
     background:
@@ -385,6 +393,8 @@
   aspect-ratio: var(--media-ratio, 3 / 2);
 }
 .media__frame img { width: 100%; height: 100%; object-fit: cover; object-position: var(--media-focal, 50% 50%); }
+.media--contain .media__frame img { object-fit: contain; }
+.product-card__media .media__frame { background: #fff; }
 /*
   Missing-media presentation: an unmistakable review placeholder. It is not a
   photograph, is not downloadable, and cannot be mistaken for approved artwork.

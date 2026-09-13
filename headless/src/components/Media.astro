@@ -21,8 +21,9 @@ interface Props {
   showCaption?: boolean;
   class?: string;
   sizes?: string;
+  fit?: 'cover' | 'contain';
 }
-const { media, priority = false, placeholderTone = 'paper', showCaption = true, class: className, sizes } = Astro.props;
+const { media, priority = false, placeholderTone = 'paper', showCaption = true, class: className, sizes, fit = 'cover' } = Astro.props;
 const ratio = media.ratio.replace('/', ' / ');
 const style = `--media-ratio:${ratio};--media-focal:${media.focal ?? '50% 50%'};`;
 const ready = hasApprovedSource(media);
@@ -32,7 +33,7 @@ const primary = desktop ?? mobile;
 const caption = showCaption ? media.caption : undefined;
 const creditLine = media.credit?.creditLine;
 ---
-<figure class:list={['media', className]} style={style}>
+<figure class:list={['media', `media--${fit}`, className]} style={style}>
   <div class="media__frame">
     {ready && primary ? (
       <picture>

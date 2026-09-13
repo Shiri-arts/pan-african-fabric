@@ -46,10 +46,10 @@ const availability = cmsProduct?.availabilityLabel ?? product?.availability ?? '
       <Breadcrumbs trail={[{ href: '/shop', label: 'Shop' }]} current={product.title} />
       <div class="product">
         <div class="product__gallery">
-          {cover && <Media media={cover} showCaption={false} />}
+          {cover && <Media media={cover} showCaption={false} fit="contain" />}
           {rest.length > 0 && (
             <ul class="product__thumbs">
-              {rest.map((image) => <li><Media media={image} showCaption={false} /></li>)}
+              {rest.map((image) => <li><Media media={image} showCaption={false} fit="contain" /></li>)}
             </ul>
           )}
         </div>
