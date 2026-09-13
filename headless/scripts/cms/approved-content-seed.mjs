@@ -306,8 +306,15 @@ const additionalEvents = [
   ['event-international-womens-day-workshop', "International Women's Day Workshop", 'international-womens-day-workshop', 'March 2026', '', 'Bukom Café DC', 'Washington, D.C.'],
   ['event-fashioning-power-fashioning-peace', 'Fashioning Power, Fashioning Peace', 'fashioning-power-fashioning-peace', 'April 27–May 9, 2026', '', 'President Woodrow Wilson House Museum', 'Washington, D.C.'],
 ];
+const eventPublication = {
+  'pan-african-fabric-cultural-reception': { eventType: 'reception', startsAt: '2026-09-26T18:00:00-04:00', endsAt: '2026-09-26T20:30:00-04:00', eventStatus: 'upcoming', isConfirmed: true, heroAsset: 'media-source-obp06356' },
+  'official-launch': { eventType: 'exhibition', startsAt: '2025-04-25T12:00:00-04:00', eventStatus: 'archive', isConfirmed: true, heroAsset: 'media-source-obp05927' },
+  'africa-with-love': { eventType: 'workshop', startsAt: '2026-02-13T09:52:00-05:00', eventStatus: 'archive', isConfirmed: true, heroAsset: 'media-source-photo-feb-13-2026-9-52-41-am' },
+  'international-womens-day-workshop': { eventType: 'workshop', eventStatus: 'documented', isConfirmed: false, heroAsset: 'media-source-bukum-workshop' },
+  'fashioning-power-fashioning-peace': { eventType: 'exhibition', startsAt: '2026-04-27T12:00:00-04:00', endsAt: '2026-05-09T17:00:00-04:00', eventStatus: 'archive', isConfirmed: true, heroAsset: 'media-source-africa-to-the-world' },
+};
 const additionalEventRecords = additionalEvents.map(([id, title, slug, dateLabel, timeLabel, venue, location], index) => sourceTruthRecord('Events', id, 'Official Press & Media Guide and showcase invitation', {
-  title, slug, eventType: 'cultural event', dateLabel, ...(timeLabel ? { timeLabel } : {}), venue, location, eventStatus: 'documented', isConfirmed: false, featured: false, edition: 'edition-one',
+  title, slug, dateLabel, ...(timeLabel ? { timeLabel } : {}), venue, location, featured: false, edition: 'edition-one', ...eventPublication[slug],
   ...(slug === 'pan-african-fabric-cultural-reception' ? { admission: richText('By Invitation'), programme: richText('Continue the celebration through an evening of cultural exchange and connection with designers, diplomats, cultural leaders, and invited guests, while enjoying The Pan-African Fabric exhibition and celebrating a shared vision of African unity.'), publicPartnerCredits: richText('Hosted by the Embassy of the Republic of Cameroon') } : {}),
   ...(slug === 'africa-with-love' ? { overview: richText('“Africa, With Love” Workshop; Approximately 1,000 participants.') } : {}),
   ...(slug === 'international-womens-day-workshop' ? { overview: richText('Nine women representing the participating countries.') } : {}),
@@ -341,7 +348,7 @@ const garmentRecord = sourceTruthRecord('Garments', 'garment-inaugural-pan-afric
 });
 
 const pressRecords = [
-  ['press-showcase-release-august-2026', 'The Inaugural Pan-African Fabric & Fashion Showcase to Debut at the Smithsonian National Museum of African Art', 'showcase-release-august-2026', 'Media Release', 'August 2026'],
+  ['press-showcase-release-august-2026', 'The Inaugural Pan-African Fabric & Fashion Showcase to Debut at the Smithsonian National Museum of African Art', 'showcase-release-august-2026', 'press-release', 'August 2026'],
   ['press-official-media-guide', 'THE PAN-AFRICAN FABRIC — OFFICIAL PRESS & MEDIA GUIDE', 'official-press-media-guide', 'Press and media guide', 'August 2026'],
   ['press-official-press-kit', 'THE PAN-AFRICAN FABRIC — PRESS KIT', 'official-press-kit', 'Press kit', 'July 2026'],
   ['press-showcase-reception-invitation', 'Showcase and reception invitation', 'showcase-reception-invitation', 'Invitation', 'September 2026'],
