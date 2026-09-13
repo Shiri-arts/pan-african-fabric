@@ -10,11 +10,13 @@ import type { Media } from '../lib/media';
 
 export type StoryCategory =
   | 'Behind the scenes' | 'Country story' | 'Designer story' | 'Announcement'
-  | 'Partnership' | 'Founder reflection' | 'Interview' | 'Preparation' | 'Milestone';
+  | 'Partnership' | 'Founder reflection' | 'Interview' | 'Preparation' | 'Milestone'
+  | 'Poetry';
 
 export const storyCategories: readonly StoryCategory[] = [
   'Behind the scenes', 'Country story', 'Designer story', 'Announcement',
   'Partnership', 'Founder reflection', 'Interview', 'Preparation', 'Milestone',
+  'Poetry',
 ];
 
 export interface StoryRecord {
