@@ -3,7 +3,7 @@
 **Project:** The Pan-African Fabric
 **Purpose:** Editorial and CMS review before implementation
 **Prepared:** 13 September 2026
-**Implementation status:** Proposal only. This document does not authorize CMS writes, code changes, media transformation, or publication.
+**Implementation status:** Reviewed and approved for implementation on 13 September 2026. Subsequent corrections remain part of the review process.
 
 ## 1. Review method
 
