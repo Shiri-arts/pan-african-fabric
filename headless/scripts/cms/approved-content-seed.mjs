@@ -10,6 +10,7 @@ export const HEADLESS_SITE_ID = '6dabfd00-04c6-4f6f-8282-fb56b240c160';
 export const FORBIDDEN_EDITOR_SITE_ID = 'cf6dc8aa-2320-4c66-b52e-44252adf69f3';
 export const SOURCE_VERSION = 'client-approved-content-2026-09-09';
 export const SOURCE_TRUTH_VERSION = 'source-truth-2026-09-13';
+export const PUBLICATION_APPROVED_AT = '2026-09-13T00:00:00.000Z';
 
 export const existingPublishedDependencies = Object.freeze([
   Object.freeze({ collectionId: 'MediaAssets', id: 'media-home-hero-pan-african-fan' }),
@@ -21,7 +22,7 @@ const record = (collectionId, id, approvalSource, data) => Object.freeze({
   id,
   classification: 'approved-client-supplied',
   approvalSource,
-  data: Object.freeze({ sourceVersion: SOURCE_VERSION, ...data }),
+  data: Object.freeze({ sourceVersion: SOURCE_VERSION, approvedAt: PUBLICATION_APPROVED_AT, ...data }),
 });
 
 const sourceTruthRecord = (collectionId, id, source, data) => record(
@@ -38,6 +39,10 @@ const richText = text => ({
     paragraphData: { textStyle: { textAlignment: 'AUTO' } },
   }],
 });
+
+const aboutIntroduction = 'The Pan-African Fabric is the first contemporary Pan-African textile intentionally designed to unite authentic cultural symbols from across North, East, West, Central, and Southern Africa into a single shared fabric. Founded by artist and architect Shiri Achu, The Pan-African Fabric Initiative celebrates African unity through culture, creativity, collaboration, and cultural diplomacy.\n\nOfficially launched at the Embassy of the Republic of Cameroon in Washington, D.C., in April 2025, the initiative has grown into an international platform bringing together artists, fashion designers, museums, embassies, educational institutions, cultural organisations, and communities through exhibitions, workshops, designer competitions, educational programmes, public engagement, and creative collaborations.\n\nThrough the language of art and fashion, The Pan-African Fabric continues to celebrate the richness and diversity of African cultures while strengthening connections across the continent and its global diaspora.';
+
+const founderBiography = 'Shiri Achu is an internationally exhibited, award-winning artist, architect, and cultural practitioner whose work explores how creativity can strengthen cultural identity, foster international collaboration, and build lasting connections between people, communities, and nations.\n\nBased in the Washington, D.C. area, she develops interdisciplinary projects that bring together visual art, architecture, fashion, museums, education, cultural diplomacy, and community engagement. Her work is guided by the belief that creativity has the power not only to inspire, but also to connect cultures, preserve heritage, encourage dialogue, and build meaningful relationships across borders.\n\nIn 2025, Shiri founded The Pan-African Fabric Initiative and created The Pan-African Fabric—the first contemporary Pan-African textile intentionally designed to unite authentic cultural symbols representing North, East, West, Central, and Southern Africa into one shared fabric. More than a textile, the initiative has grown into an international cultural platform that brings together artists, designers, museums, embassies, educational institutions, cultural organisations, and communities through exhibitions, designer competitions, museum programmes, educational workshops, public engagement, and creative collaboration.\n\nOfficially launched at the Embassy of the Republic of Cameroon in Washington, D.C., the initiative has expanded through partnerships across Africa and the United States, culminating in The Inaugural Pan-African Fabric & Fashion Showcase at the Smithsonian National Museum of African Art and the official Pan-African Fabric Cultural Reception hosted by the Embassy of the Republic of Cameroon.\n\nAlongside The Pan-African Fabric Initiative, Shiri is recognised for her contemporary African-inspired paintings and for creating InPrint, the long-running international exhibition series showcasing her African-inspired artworks in print form. Developed to make her work more accessible, affordable, and transportable, InPrint has introduced audiences around the world to contemporary African-inspired art while celebrating the richness of African cultures through a growing body of work. Throughout her career, she has consistently developed projects that extend beyond traditional artistic practice, creating opportunities for participation, education, cultural dialogue, and international collaboration.\n\nOver the course of her career, Shiri has received more than thirty national and international awards and recognitions for her artistic practice, cultural leadership, and community engagement. In 2026, she was named one of the Top Investable Artists by Art Market Experts, recognising both the strength of her artistic practice and the growing international significance of her work.\n\nWhether creating paintings, curating her own exhibitions, designing cultural programmes, or building international partnerships, Shiri approaches every project with the conviction that meaningful ideas can be intentionally designed, thoughtfully nurtured, and transformed into lasting cultural movements.\n\nThrough art, fashion, architecture, and cultural diplomacy, she continues to create platforms that celebrate African creativity while strengthening connections across the continent and its global diaspora.';
 
 const pages = [
   ['page-home', 'Home', 'home', '/', 'Home', 0],
@@ -71,9 +76,36 @@ const pageRecords = pages.map(([id, title, pageKey, path, navigationLabel, displ
       heroTagline: 'One Fabric. Many African Stories.',
       heroAsset: 'media-home-hero-pan-african-fan',
     } : {}),
+    ...(path === '/about' ? { introduction: richText(aboutIntroduction) } : {}),
     displayOrder,
   },
 ));
+
+const countryRegions = {
+  'country-cameroon-edition-one': 'region-central-africa',
+  'country-central-african-republic-edition-one': 'region-central-africa',
+  'country-egypt-edition-one': 'region-north-africa',
+  'country-ethiopia-edition-one': 'region-east-africa',
+  'country-ghana-edition-one': 'region-west-africa',
+  'country-kenya-edition-one': 'region-east-africa',
+  'country-morocco-edition-one': 'region-north-africa',
+  'country-nigeria-edition-one': 'region-west-africa',
+  'country-south-africa-edition-one': 'region-southern-africa',
+};
+const countryDesigners = {
+  'country-cameroon-edition-one': 'designer-muks-couture', 'country-central-african-republic-edition-one': 'designer-diana-melissa-ngoumape',
+  'country-egypt-edition-one': 'designer-moja-design-studio', 'country-ethiopia-edition-one': 'designer-yyasmina-star',
+  'country-ghana-edition-one': 'designer-afua-sam', 'country-kenya-edition-one': 'designer-amos-onyango',
+  'country-morocco-edition-one': 'designer-naima-el-messaoudi', 'country-nigeria-edition-one': 'designer-goodys-stitches',
+  'country-south-africa-edition-one': 'designer-fatima-barnes',
+};
+const countrySymbols = {
+  'country-cameroon-edition-one': 'symbol-cameroon-double-bell', 'country-central-african-republic-edition-one': 'symbol-car-kuba',
+  'country-egypt-edition-one': 'symbol-egypt-eye-of-horus', 'country-ethiopia-edition-one': 'symbol-ethiopia-traditional-pattern',
+  'country-ghana-edition-one': 'symbol-ghana-nkonsonkonson', 'country-kenya-edition-one': 'symbol-kenya-massai-shuka',
+  'country-morocco-edition-one': 'symbol-morocco-diamond-amazigh', 'country-nigeria-edition-one': 'symbol-nigeria-northern-knot',
+  'country-south-africa-edition-one': 'symbol-south-africa-shwe-shwe',
+};
 
 const countries = [
   ['country-cameroon-edition-one', 'Cameroon', 'cameroon'],
@@ -96,6 +128,9 @@ const countryRecords = countries.map(([id, countryName, slug]) => record(
     slug,
     countryName,
     edition: 'edition-one',
+    region: countryRegions[id],
+    principalDesigner: countryDesigners[id],
+    featuredSymbol: countrySymbols[id],
   },
 ));
 
@@ -113,6 +148,9 @@ const colours = [
   ['purple', 'Purple', 'country-ghana-edition-one'],
   ['green', 'Green', 'country-south-africa-edition-one'],
 ];
+const screenColours = {
+  'dark-green': ['#284f49', '#ffffff'], red: ['#ef001e', '#000000'], yellow: ['#efd300', '#000000'], pink: ['#eaa4a4', '#000000'], black: ['#020706', '#ffffff'], white: ['#faf7f7', '#000000'], blue: ['#12a8de', '#000000'], 'mint-green': ['#8edaca', '#000000'], orange: ['#dc671d', '#000000'], 'hot-pink': ['#e52c7b', '#000000'], purple: ['#64139b', '#ffffff'], green: ['#009b1a', '#000000'],
+};
 
 const colourRecords = colours.map(([slug, colourName, country], index) => record(
   'EditionColours',
@@ -125,6 +163,10 @@ const colourRecords = colours.map(([slug, colourName, country], index) => record
     sourcePosition: index + 1,
     edition: 'edition-one',
     country,
+    hexValue: screenColours[slug][0],
+    textHex: screenColours[slug][1],
+    screenValueNote: 'Representative on-screen sample interpreted from the supplied colour artwork; not a print specification.',
+    largeTextOnly: false,
     displayOrder: index + 1,
   },
 ));
@@ -155,14 +197,14 @@ const designers = [
   ['designer-diana-melissa-ngoumape', 'Diana-Melissa Ngoumape'],
   ['designer-moja-design-studio', 'MOJA Design Studio'],
   ['designer-yyasmina-star', 'YYASMINA STAR'],
-  ['designer-afua-sam', 'Afua Sam'],
-  ['designer-amos-onyango', 'Amos Onyango'],
-  ['designer-naima-el-messaoudi', 'Naima El Messaoudi'],
+  ['designer-afua-sam', 'Afua Sam', 'Studio D’Maxsi'],
+  ['designer-amos-onyango', 'Amos Onyango', 'LAWY Afrik'],
+  ['designer-naima-el-messaoudi', 'Naima El Messaoudi', 'Caftan Joujou'],
   ['designer-goodys-stitches', 'Goody’s Stitches'],
   ['designer-fatima-barnes', 'Fatima Barnes'],
 ];
 
-const designerRecords = designers.map(([id, displayName], index) => sourceTruthRecord(
+const designerRecords = designers.map(([id, displayName, studioName], index) => sourceTruthRecord(
   'Designers',
   id,
   'The_Pan_African_Fabric_Official_Press_ _Media_Guide_1.pdf, page 14',
@@ -170,6 +212,7 @@ const designerRecords = designers.map(([id, displayName], index) => sourceTruthR
     title: displayName,
     slug: id.replace(/^designer-/, ''),
     displayName,
+    ...(studioName ? { studioName } : {}),
     displayOrder: index + 1,
   },
 ));
@@ -193,15 +236,123 @@ const sourceMediaRecords = sourceMedia.map(([id, title, slug, filename, alt, rat
   `Source asset ${filename}`,
   {
     title, slug, filename, assetType: 'image', alt, ratio, focalPosition: '50% 50%',
-    image, width, height, decorative: false, usagePermission: 'review-only',
-    downloadAllowed: false, version: '1', displayOrder: index + 1,
+    image, width, height, decorative: false, usagePermission: 'web-display-approved',
+    usageTerms: 'User authorized website publication from the supplied source-truth folder on 2026-09-13.', downloadAllowed: false, version: '1', displayOrder: index + 1,
   },
 ));
 
+const additionalMediaSource = [
+  ['10oct.jpg',2550,3300,'9b8a9d_ebc4bbff185842c19d883126933f04bc~mv2.jpg'],['11nov.jpg',2550,3300,'9b8a9d_8c20043b12d94c238519348b0a93a747~mv2.jpg'],['12Dec.jpg',2550,3300,'9b8a9d_4d6fc397b8564fb8a7d75856375f3898~mv2.jpg'],
+  ['2.jpg',2550,3300,'9b8a9d_5fe44178212e4d3d8eb8c562d761c1ae~mv2.jpg'],['3.jpg',2550,3300,'9b8a9d_95c21cd9184744189314c4a7766afab0~mv2.jpg'],['3march.jpg',2550,3300,'9b8a9d_60e04d294e014bc28f1756195775bd43~mv2.jpg'],
+  ['5may.jpg',2550,3300,'9b8a9d_28cfad06eae24eabb3e04b896b497318~mv2.jpg'],['7.jpg',2550,3300,'9b8a9d_6ba9282c0ff4438ba71284bb6b642f90~mv2.jpg'],['8Florence.jpg',2550,3300,'9b8a9d_3390f407af654179bc0a3d4596f81a38~mv2.jpg'],
+  ['Bukum workshop.JPG',1600,1200,'9b8a9d_33bae757f1ae47e7a34396b493d193f7~mv2.jpg'],['Colour board.jpg',2550,3300,'9b8a9d_e618f5acea904b4a89e3125134f67fbb~mv2.jpg'],['DSC_0737.JPG',6000,4000,'9b8a9d_1d9bd3aa202d4bd1a19c8d344d1aab82~mv2.jpg'],
+  ['FAN.png',1220,1204,'9b8a9d_2339c45f91664efaaa5adb15308cd481~mv2.png'],['IMG_6999.jpg',3889,5833,'9b8a9d_e013b82b004b464e9d0fa1368b6b54c4~mv2.jpg'],['IMG_8963.jpeg',640,480,'9b8a9d_1390bb8e50474ec49037613b1b9d7b84~mv2.jpeg'],['IMG_9007.jpeg',640,480,'9b8a9d_7b91710c8d33414c906944d2d96019d1~mv2.jpeg'],
+  ['OBP05746.jpg',1541,2000,'9b8a9d_8373ec3a224446b385d45550819095d7~mv2.jpg'],['OBP05905.jpg',2000,1333,'9b8a9d_0ef72f85116b4d2ba31955be895b9e3f~mv2.jpg'],['OBP05927.jpg',2000,1566,'9b8a9d_aeb006084a9f4ed8919f98ee94762f0f~mv2.jpg'],['OBP05964.jpg',2000,1333,'9b8a9d_d188ab5f25fe4ffd85b1f9f0bc0a5999~mv2.jpg'],
+  ['OBP05996.jpg',2000,1486,'9b8a9d_9ad2eb4e531b4053bbe7e654916918a6~mv2.jpg'],['OBP06037.jpg',1541,2000,'9b8a9d_ea40c2aac0274ee6b2bf8eff2055bd9f~mv2.jpg'],['OBP06111.jpg',2000,1488,'9b8a9d_79a5c3812cd1401bb26119da0ec52b55~mv2.jpg'],['OBP06178.jpg',1514,2000,'9b8a9d_d348cb90919641829e8a7eb81d5ed0ab~mv2.jpg'],
+  ['OBP06356.jpg',2000,1547,'9b8a9d_b133cd456dcf4e58908bd1168bf28ed9~mv2.jpg'],['OBP06404.jpg',1333,2000,'9b8a9d_f63734b7d77f477cac75776c47e5bd6e~mv2.jpg'],['OBP06410.jpg',1333,2000,'9b8a9d_b28dc48d4f5c47948c29aaaae1f5ba34~mv2.jpg'],['OBP06537.jpg',1399,2000,'9b8a9d_8fe24618f81e4814be8356ef92227adb~mv2.jpg'],
+  ['Photo Feb 13 2026, 9 52 41 AM.jpg',2287,3211,'9b8a9d_4eb149f5a7d14f379bb0029e2de407ad~mv2.jpg'],['Screenshot 2024-09-25 141914.jpg',1722,1222,'9b8a9d_01d15c1a2e6c4270afcacc5507389643~mv2.jpg'],['Screenshot 2024-09-25 142025.jpg',1627,1277,'9b8a9d_ecd72eecab2543d89a63c8ff7f9ca003~mv2.jpg'],
+  ['SHIRI ACHU WITH COLOUR BLOCK 2.JPG',1366,2048,'9b8a9d_280e0dbb052e4aa9ab1fb8ab18ddc5e1~mv2.jpg'],['Styling the Tie.jpg',2550,3300,'9b8a9d_f1401b3ab2914809b818da9db8e1929c~mv2.jpg'],
+];
+const slugify = value => value.toLowerCase().replace(/\.[^.]+$/, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const additionalMediaRecords = additionalMediaSource.map(([filename, width, height, wixId], index) => sourceTruthRecord('MediaAssets', `media-source-${slugify(filename)}`, `Source asset ${filename}; publication authorized by user on 2026-09-13`, {
+  title: filename.replace(/\.[^.]+$/, ''), slug: `source-${slugify(filename)}`, filename, assetType: 'image', alt: `Supplied project image: ${filename}.`, ratio: width === height ? '1/1' : width > height ? '3/2' : '4/5', focalPosition: '50% 50%', image: `https://static.wixstatic.com/media/${wixId}`, width, height, decorative: false, usagePermission: 'web-display-approved', usageTerms: 'User authorized website publication from the supplied source-truth folder on 2026-09-13.', downloadAllowed: false, version: '1', displayOrder: 11 + index,
+}));
+
+const symbolSource = [
+  ['morocco-diamond-amazigh', 'Diaomond Amazigh (Berber)', 'Originates from an animistic belief and tradition. The diamond is the symbol of the woman, associated with the snake it represents the union of opposites.', 'country-morocco-edition-one'],
+  ['egypt-eye-of-horus', 'The Eye of Horus', 'Originated in Ancient Egypt and represents healing and knowledge and is a symbol of protection from evil.', 'country-egypt-edition-one'],
+  ['ghana-nkonsonkonson', 'Nkonsonkonson (Chain Link)', 'A symbol of unity, community. A reminder to contribute to the community, that in unity lies strength', 'country-ghana-edition-one'],
+  ['ghana-boa-me', 'Boa me na me mmoa wo', '(“Help me and let me help you”) Symbol of cooperation and interdependence.', 'country-ghana-edition-one'],
+  ['nigeria-northern-knot', 'The Northern knot', 'Symbolizes unity in diversity and is elaborately expressed in the palace art of Northern Nigeria.', 'country-nigeria-edition-one'],
+  ['car-kuba', 'Kuba', 'A traditional fabric pattern graphically distinctive and richly evocative of central Africa.', 'country-central-african-republic-edition-one'],
+  ['cameroon-double-bell', 'Bamilieke Double Bell', 'Denotes palace authorities transmitting information to the public.', 'country-cameroon-edition-one'],
+  ['cameroon-toghu', 'Toghu', 'It’s a symbol from Cameroon African Fabric (Toghu) that removes bad luck in.', 'country-cameroon-edition-one'],
+  ['ethiopia-traditional-pattern', 'Traditional Ethiopian pattern', 'Traditional Ethiopian pattern.', 'country-ethiopia-edition-one'],
+  ['kenya-massai-shuka', 'Massai Shuka', 'A traditional fabric pattern by the people of Kenya.', 'country-kenya-edition-one'],
+  ['south-africa-shwe-shwe', 'Shwe-Shwe Fabric pattern', 'Traditional African pattern inspired from the Shwe-Shwe Fabric from Cape Town in South Africa', 'country-south-africa-edition-one'],
+  ['south-africa-zulu-shield', 'Zulu Shield', "It is the traditional zulu symbol by the Southern part of africa which means to be under somebody's shield.", 'country-south-africa-edition-one'],
+];
+const symbolRecords = symbolSource.map(([slug, approvedName, meaning, country], index) => sourceTruthRecord('Symbols', `symbol-${slug}`, 'Symbols and meanings.jpg and Screenshot 2024-09-25 141914.jpg', {
+  title: approvedName, slug, approvedName, meaning: richText(meaning), acknowledgement: `Supplied project symbol reference artwork; mapped to ${countryRecords.find(item => item.id === country)?.data.countryName}.`, artworkAsset: 'media-source-symbols-and-meanings', displayOrder: index + 1,
+}));
+
+const participationSource = [
+  ['cameroon', 'designer-muks-couture', 'country-cameroon-edition-one', 'Winner of The Pan-African Fabric: Cameroon Designer Competition, Muks’ Couture brings a distinctive Cameroonian interpretation to Edition One.'],
+  ['central-african-republic', 'designer-diana-melissa-ngoumape', 'country-central-african-republic-edition-one', 'Designer, model, and Miss Africa USA 2025 Diana-Melissa Ngoumape represents the Central African Republic through her interpretation of The Pan-African Fabric.'],
+  ['egypt', 'designer-moja-design-studio', 'country-egypt-edition-one', 'MOJA Design Studio represents Egypt, bringing an Egyptian creative perspective to the shared Pan-African textile.'],
+  ['ethiopia', 'designer-yyasmina-star', 'country-ethiopia-edition-one', 'Selected as the winner of The Pan-African Fabric: Ethiopia Designer Competition, YYASMINA STAR represents Ethiopia in the inaugural showcase.'],
+  ['ghana', 'designer-afua-sam', 'country-ghana-edition-one', 'Ghanaian designer Afua Sam of Studio D’Maxsi brings her creative vision and Ghanaian perspective to Edition One.'],
+  ['kenya', 'designer-amos-onyango', 'country-kenya-edition-one', 'Amos Onyango of LAWY Afrik represents Kenya through an original interpretation shaped by his contemporary African design perspective.'],
+  ['morocco', 'designer-naima-el-messaoudi', 'country-morocco-edition-one', 'Naima El Messaoudi of Caftan Joujou represents Morocco, interpreting The Pan-African Fabric through the artistry of Moroccan fashion.'],
+  ['nigeria', 'designer-goodys-stitches', 'country-nigeria-edition-one', 'Goody’s Stitches represents Nigeria with original interpretation celebrating the country’s vibrant fashion creativity.'],
+  ['south-africa', 'designer-fatima-barnes', 'country-south-africa-edition-one', 'Fatima Barnes represents South Africa, bringing a distinctive South African perspective to the shared fabric and its continental story.'],
+];
+const participationRecords = participationSource.map(([slug, designer, country, statement], index) => sourceTruthRecord('Participations', `participation-edition-one-${slug}`, 'Official Press & Media Guide, page 14', {
+  title: `Edition One — ${slug}`, slug: `edition-one-${slug}`, participationRole: 'Edition One designer', participationStatus: 'confirmed', isPrincipal: true, statement: richText(statement), edition: 'edition-one', country, designer, displayOrder: index + 1,
+}));
+
+const additionalEvents = [
+  ['event-pan-african-fabric-cultural-reception', 'The Pan-African Fabric Cultural Reception', 'pan-african-fabric-cultural-reception', 'Saturday, September 26, 2026', '6:00 PM–8:30 PM', 'Embassy of the Republic of Cameroon', 'Washington, D.C.'],
+  ['event-official-launch', 'Official Launch', 'official-launch', '25 April 2025', '', 'Embassy of Cameroon', 'Washington, D.C.'],
+  ['event-africa-with-love', 'Africa, With Love', 'africa-with-love', 'February 13, 2026', '', 'Smithsonian National Museum of African Art', 'Washington, D.C.'],
+  ['event-international-womens-day-workshop', "International Women's Day Workshop", 'international-womens-day-workshop', 'March 2026', '', 'Bukom Café DC', 'Washington, D.C.'],
+  ['event-fashioning-power-fashioning-peace', 'Fashioning Power, Fashioning Peace', 'fashioning-power-fashioning-peace', 'April 27–May 9, 2026', '', 'President Woodrow Wilson House Museum', 'Washington, D.C.'],
+];
+const additionalEventRecords = additionalEvents.map(([id, title, slug, dateLabel, timeLabel, venue, location], index) => sourceTruthRecord('Events', id, 'Official Press & Media Guide and showcase invitation', {
+  title, slug, eventType: 'cultural event', dateLabel, ...(timeLabel ? { timeLabel } : {}), venue, location, eventStatus: 'documented', isConfirmed: false, featured: false, edition: 'edition-one',
+  ...(slug === 'pan-african-fabric-cultural-reception' ? { admission: richText('By Invitation'), programme: richText('Continue the celebration through an evening of cultural exchange and connection with designers, diplomats, cultural leaders, and invited guests, while enjoying The Pan-African Fabric exhibition and celebrating a shared vision of African unity.'), publicPartnerCredits: richText('Hosted by the Embassy of the Republic of Cameroon') } : {}),
+  ...(slug === 'africa-with-love' ? { overview: richText('“Africa, With Love” Workshop; Approximately 1,000 participants.') } : {}),
+  ...(slug === 'international-womens-day-workshop' ? { overview: richText('Nine women representing the participating countries.') } : {}),
+  displayOrder: index + 2,
+}));
+
+const contactRecords = [
+  ['contact-media-email', 'Media contact and reception RSVP', 'media-email', 'email', 'info@shiriachuart.com'],
+  ['contact-media-phone', 'Media contact phone', 'media-phone', 'phone', '+1 240 696 9297'],
+  ['contact-reception-phone', 'Cultural Reception RSVP', 'reception-phone', 'phone', '240 234 1979'],
+].map(([id, title, channelKey, kind, value], index) => sourceTruthRecord('ContactChannels', id, 'Official Press & Media Guide and showcase invitation', {
+  title, slug: channelKey, channelKey, label: title, description: value, ...(kind === 'email' ? { emailAddress: value } : {}), publicUseVerified: true, isEnabled: true, displayOrder: index + 1,
+}));
+
+const storySource = [
+  ['story-africa-to-the-world', 'Africa to the World', 'africa-to-the-world', undefined, 'August 2026', '2026-08-01', 'media-source-africa-to-the-world', 'This inaugural Pan-African Fabric dress, designed by Muks\' Couture, winner of The Pan-African Fabric: Cameroon Designer Competition, was exhibited as part of Fashioning Power, Fashioning Peace at the President Woodrow Wilson House Museum. As one of the first public presentations of The Pan-African Fabric, the exhibition marked an important milestone in the initiative\'s journey, introducing its vision of African unity through contemporary art, fashion, and cultural storytelling.'],
+  ['story-poem-lltaos', 'Long Live the Art of Service (LLTAOS)', 'long-live-the-art-of-service-lltaos', 'Wirndzerem G.B.', '04/2026', '2026-04-01', 'media-source-poem-lltaos'],
+  ['story-poem-inked-concentrations', 'Inked Concentrations.', 'inked-concentrations', 'Wirndzerem GB', '03.2026', '2026-03-01', 'media-source-poem-inked-concentrations'],
+  ['story-poem-frames-of-fabrics', 'Frames of Fabrics.', 'frames-of-fabrics', 'Wirndzerem GB', '03.2026', '2026-03-01', 'media-source-poem-frames-of-fabrics'],
+  ['story-poem-teeming-bazaar', 'Sketching A Teeming Bazaar of Drawings', 'sketching-a-teeming-bazaar-of-drawings', 'Wirndzerem G. Barfee', '04.2026', '2026-04-01', 'media-source-poem-teeming-bazaar'],
+  ['story-poem-same-sight', 'Same Sight / Different Lenses: The Diversity of a United Universe', 'same-sight-different-lenses', 'Wirndzerem G. Barfee', '04.2026', '2026-04-01', 'media-source-poem-same-sight-different-lenses'],
+  ['story-poem-little-hands', 'Of Little hands, soft strokes and silk outlines', 'of-little-hands-soft-strokes-and-silk-outlines', 'Wirndzerem.GB', '03.2026', '2026-03-01', 'media-source-poem-little-hands'],
+  ['story-poem-textile-certificates', 'Textile Certificates: A Proud Bevy of Symbologists.', 'textile-certificates-a-proud-bevy-of-symbologists', 'Wirndzerem G. Barfee', '04.2026', '2026-04-01', 'media-source-poem-textile-certificates'],
+];
+const storyRecords = storySource.map(([id, headline, slug, authorCredit, dateLabel, storyDate, heroAsset, body], index) => sourceTruthRecord('Stories', id, 'Official Press & Media Guide and supplied poem artwork', {
+  title: headline, headline, slug, category: index === 0 ? 'Milestone' : 'Poetry', ...(authorCredit ? { authorCredit } : {}), dateLabel, storyDate, ...(body ? { body: richText(body) } : {}), heroAsset, displayOrder: index + 1,
+}));
+
+const garmentRecord = sourceTruthRecord('Garments', 'garment-inaugural-pan-african-fabric-dress', 'Official Press & Media Guide, page 11', {
+  title: 'This inaugural Pan-African Fabric dress', slug: 'inaugural-pan-african-fabric-dress', itemType: 'dress', collectionLabel: 'This inaugural Pan-African Fabric dress', description: richText("This inaugural Pan-African Fabric dress, designed by Muks' Couture, winner of The Pan-African Fabric: Cameroon Designer Competition, was exhibited as part of Fashioning Power, Fashioning Peace at the President Woodrow Wilson House Museum."), participation: 'participation-edition-one-cameroon', designer: 'designer-muks-couture', country: 'country-cameroon-edition-one', edition: 'edition-one', heroAsset: 'media-source-africa-to-the-world', displayOrder: 1,
+});
+
+const pressRecords = [
+  ['press-showcase-release-august-2026', 'The Inaugural Pan-African Fabric & Fashion Showcase to Debut at the Smithsonian National Museum of African Art', 'showcase-release-august-2026', 'Media Release', 'August 2026'],
+  ['press-official-media-guide', 'THE PAN-AFRICAN FABRIC — OFFICIAL PRESS & MEDIA GUIDE', 'official-press-media-guide', 'Press and media guide', 'August 2026'],
+  ['press-official-press-kit', 'THE PAN-AFRICAN FABRIC — PRESS KIT', 'official-press-kit', 'Press kit', 'July 2026'],
+  ['press-showcase-reception-invitation', 'Showcase and reception invitation', 'showcase-reception-invitation', 'Invitation', 'September 2026'],
+].map(([id, headline, slug, itemType, dateLabel], index) => sourceTruthRecord('PressItems', id, 'Supplied official press PDFs', { title: headline, headline, slug, itemType, dateLabel, version: dateLabel, downloadAllowed: false, relatedEvent: 'event-inaugural-pan-african-fabric-fashion-showcase', displayOrder: index + 1 }));
+
+const partnershipRecords = ['Museums', 'Embassies', 'Universities', 'Sponsors', 'Cultural organisations', 'Designers and future hosts'].map((label, index) => sourceTruthRecord('PartnershipOptions', `partnership-${slugify(label)}`, 'Client-approved navigation guide', { title: label, slug: slugify(label), optionType: 'collaboration', label, enquiryValue: label, description: richText(`Collaborate with The Pan-African Fabric as ${label.toLowerCase()}.`), isEnabled: true, displayOrder: index + 1 }));
+
+const shopRecord = sourceTruthRecord('ShopItems', 'shop-pan-african-fan', 'Client-supplied The Pan-African Fan.jpg', { title: 'The Pan-African Fan', slug: 'the-pan-african-fan', itemType: 'fan', availabilityLabel: 'Details forthcoming', commerceEnabled: false, edition: 'edition-one', heroAsset: 'media-home-hero-pan-african-fan', displayOrder: 1 });
+
 export const seedRecords = Object.freeze([
+  record('MediaAssets', 'media-home-hero-pan-african-fan', 'Client-supplied hero image and publication authorization on 2026-09-13.', {}),
+  record('MediaAssets', 'media-founder-shiri-achu', 'Client-supplied founder portrait and publication authorization on 2026-09-13.', {}),
   sourceTruthRecord('Editions', 'edition-one', 'The_Pan_African_Fabric_Official_Press_ _Media_Guide_1.pdf, pages 12–13', {
     title: 'Edition One',
     slug: 'edition-one',
+    year: 2025,
+    editionStatus: 'current',
+    leadLine: 'ONE FABRIC. MANY AFRICAN STORIES.',
+    fabricDescription: richText('The first Pan-African fabric intentionally created to unite symbols from across all five regions of Africa into one contemporary textile.'),
     colourNarrative: richText("The fabric's distinctive color palette has its origins in Long Live the Art of Service (LLTAOS), a creative initiative developed by Shiri Achu throughout 2023 that explored twelve colors as symbols of service, purpose, and human values. These colors later became the foundation of The Pan-African Fabric, where color, symbolism, and storytelling came together to create a contemporary textile celebrating African unity."),
     creativeProcess: richText("Fashion designers representing each participating country have interpreted The Pan-African Fabric through their own unique cultural perspective, creative vision, and craftsmanship. Together, these original fashion interpretations celebrate the individuality of each nation while revealing the unity woven throughout the continent."),
     displayOrder: 1,
@@ -209,9 +360,18 @@ export const seedRecords = Object.freeze([
   ...regionRecords,
   ...designerRecords,
   ...sourceMediaRecords,
+  ...additionalMediaRecords,
+  ...symbolRecords,
+  ...participationRecords,
+  garmentRecord,
+  ...storyRecords,
+  ...pressRecords,
+  ...partnershipRecords,
+  shopRecord,
   ...pageRecords,
   ...countryRecords,
   ...colourRecords,
+  ...additionalEventRecords,
   record('Events', 'event-inaugural-pan-african-fabric-fashion-showcase', 'Exact event details supplied by the client; timezone subsequently confirmed as US Eastern time.', {
     title: 'The Inaugural Pan-African Fabric & Fashion Showcase',
     slug: 'inaugural-pan-african-fabric-fashion-showcase',
@@ -223,18 +383,25 @@ export const seedRecords = Object.freeze([
     endsAt: '2026-09-26T17:00:00-04:00',
     venue: 'Smithsonian National Museum of African Art',
     location: 'Washington, D.C.',
+    eventStatus: 'upcoming',
+    overview: richText('For the first time, contemporary fashion designers representing nine African countries across all five regions of Africa will present original fashion interpretations created from a single Pan-African textile during The Inaugural Pan-African Fabric & Fashion Showcase at the Smithsonian National Museum of African Art on Saturday, September 26, 2026.'),
+    programme: richText('1:00 PM — Community Day Opens — Smithsonian National Museum of African Art\n\n2:00 PM – 3:00 PM — The Pan-African Fabric & Fashion Showcase — A contemporary runway presentation celebrating a Pan-African vision of unity through original designs by nine designers representing nine African countries.\n\n3:00 PM – 5:00 PM — Meet & Greet with Designers, Diplomats and Fellow Guests — Enjoy photo opportunities and explore the Smithsonian National Museum of African Art, discover its exhibitions, and experience Community Day activities, including the Sounds of Africa Concert.'),
     isConfirmed: true,
     featured: true,
     edition: 'edition-one',
     displayOrder: 1,
   }),
-  record('PageSections', 'section-about-founder', 'Existing approved founder-media relationship; no biography or credit is added.', {
+  record('PageSections', 'section-about-founder', 'Founder relationship and exact biography/quotation from Official Press & Media Guide, pages 2 and 15–16; user authorized publication on 2026-09-13.', {
     title: 'Founder',
     slug: 'about-founder',
     sectionKey: 'founder',
     sectionType: 'media',
     page: 'page-about',
     mediaAsset: 'media-founder-shiri-achu',
+    heading: 'Shiri Achu',
+    quoteText: "The Pan-African Fabric is my visual love letter to Africa—a celebration of the continent's unity, diversity, and creativity, and an invitation to the world to discover the many African stories woven into its fabric.",
+    quoteAttribution: 'Shiri Achu',
+    body: richText(founderBiography),
     isEnabled: true,
     displayOrder: 4,
   }),
@@ -245,8 +412,12 @@ export const seedRecords = Object.freeze([
     headerIdentity: 'The Pan-African Fabric',
     tagline: 'One Fabric. Many African Stories.',
     primaryEdition: 'edition-one',
+    instagramUrl: 'https://www.instagram.com/thepanafricanfabric/',
+    founderSiteUrl: 'https://www.shiriachuart.com/',
+    canonicalOrigin: 'https://www.thepanafricanfabric.com/',
     displayOrder: 1,
   }),
+  ...contactRecords,
 ]);
 
 export const seedCollections = Object.freeze([...new Set(seedRecords.map(item => item.collectionId))]);

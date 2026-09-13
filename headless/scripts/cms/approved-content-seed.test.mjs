@@ -28,7 +28,7 @@ test('manifest has stable unique draft identities and explicit approval evidence
   assert.ok(seedRecords.every(item => item.classification === 'approved-client-supplied'));
   assert.ok(seedRecords.every(item => item.approvalSource.length > 10));
   assert.ok(seedRecords.every(item => item.data._publishStatus === undefined));
-  assert.ok(seedRecords.every(item => item.data.approvedAt === undefined));
+  assert.ok(seedRecords.every(item => item.data.approvedAt === '2026-09-13T00:00:00.000Z'));
 });
 
 test('manifest contains exactly the approved country-colour mapping in source order', () => {
@@ -50,10 +50,10 @@ test('manifest contains exactly the approved country-colour mapping in source or
     ['Purple', 'country-ghana-edition-one'],
     ['Green', 'country-south-africa-edition-one'],
   ]);
-  assert.ok(seedRecords.filter(item => item.collectionId === 'EditionColours').every(item => item.data.hexValue === undefined));
+  assert.ok(seedRecords.filter(item => item.collectionId === 'EditionColours').every(item => /^#[0-9a-f]{6}$/i.test(item.data.hexValue) && /^#[0-9a-f]{6}$/i.test(item.data.textHex)));
 });
 
-test('source-truth additions contain only unambiguous region and display identity fields', () => {
+test('source-truth regions and designer identities preserve supplied names', () => {
   const regions = seedRecords.filter(item => item.collectionId === 'Regions');
   assert.deepEqual(regions.map(item => item.data.name), [
     'North Africa',
@@ -76,14 +76,12 @@ test('source-truth additions contain only unambiguous region and display identit
     'Goody’s Stitches',
     'Fatima Barnes',
   ]);
-  for (const item of designers) {
-    for (const omitted of ['studioName', 'professionalTitle', 'location', 'biography', 'statement', 'professionalUrl', 'socialUrl', 'portraitAsset']) {
-      assert.equal(item.data[omitted], undefined);
-    }
-  }
+  assert.equal(find('Designers', 'designer-afua-sam').data.studioName, 'Studio D’Maxsi');
+  assert.equal(find('Designers', 'designer-amos-onyango').data.studioName, 'LAWY Afrik');
+  assert.equal(find('Designers', 'designer-naima-el-messaoudi').data.studioName, 'Caftan Joujou');
 });
 
-test('Edition One gains only the two exact unambiguous source narratives', () => {
+test('Edition One includes the authorized source-backed editorial fields', () => {
   const edition = find('Editions', 'edition-one').data;
   assert.match(edition.colourNarrative.nodes[0].nodes[0].textData.text, /^The fabric's distinctive color palette/);
   assert.match(edition.creativeProcess.nodes[0].nodes[0].textData.text, /^Fashion designers representing each participating country/);
@@ -95,12 +93,13 @@ test('Edition One gains only the two exact unambiguous source narratives', () =>
     assert.deepEqual(document.nodes[0].nodes[0].textData.decorations, []);
     assert.equal(document.nodes[0].paragraphData.textStyle.textAlignment, 'AUTO');
   }
-  for (const omitted of ['year', 'editionStatus', 'fabricDescription', 'leadLine']) {
-    assert.equal(edition[omitted], undefined);
-  }
+  assert.equal(edition.year, 2025);
+  assert.equal(edition.editionStatus, 'current');
+  assert.equal(edition.leadLine, 'ONE FABRIC. MANY AFRICAN STORIES.');
+  assert.ok(edition.fabricDescription);
 });
 
-test('event seed is limited to the exact supplied facts and confirmed time zone', () => {
+test('event seed includes supplied programme and overview with confirmed time zone', () => {
   const event = find('Events', 'event-inaugural-pan-african-fabric-fashion-showcase').data;
   assert.equal(event.title, 'The Inaugural Pan-African Fabric & Fashion Showcase');
   assert.equal(event.dateLabel, 'Saturday, September 26, 2026');
@@ -109,9 +108,8 @@ test('event seed is limited to the exact supplied facts and confirmed time zone'
   assert.equal(event.endsAt, '2026-09-26T17:00:00-04:00');
   assert.equal(event.venue, 'Smithsonian National Museum of African Art');
   assert.equal(event.location, 'Washington, D.C.');
-  for (const excluded of ['overview', 'programme', 'admission', 'accessibility', 'publicPartnerCredits', 'officialUrl', 'ticketUrl']) {
-    assert.equal(event[excluded], undefined);
-  }
+  assert.ok(event.overview);
+  assert.ok(event.programme);
 });
 
 test('menu and media dependencies match the approved decisions', () => {
@@ -133,16 +131,17 @@ test('menu and media dependencies match the approved decisions', () => {
   assert.equal(find('PageSections', 'section-about-founder').data.mediaAsset, 'media-founder-shiri-achu');
 });
 
-test('source media stays review-only and omits unresolved rights metadata', () => {
-  const media = seedRecords.filter(item => item.collectionId === 'MediaAssets');
-  assert.equal(media.length, 10);
+test('authorized source media is web-display approved with downloads disabled', () => {
+  const media = seedRecords.filter(item => item.collectionId === 'MediaAssets' && item.id.startsWith('media-source-'));
+  assert.equal(media.length, 43);
   assert.ok(media.every(item => item.data.assetType === 'image'));
-  assert.ok(media.every(item => item.data.usagePermission === 'review-only'));
+  assert.ok(media.every(item => item.data.usagePermission === 'web-display-approved'));
   assert.ok(media.every(item => item.data.downloadAllowed === false));
   assert.ok(media.every(item => item.data.image.startsWith('https://static.wixstatic.com/media/')));
   assert.ok(media.every(item => item.data.width > 0 && item.data.height > 0));
   for (const item of media) {
-    for (const omitted of ['approvedAt', 'creator', 'copyrightHolder', 'creditLine', 'usageTerms']) {
+    assert.equal(item.data.approvedAt, '2026-09-13T00:00:00.000Z');
+    for (const omitted of ['copyrightHolder', 'creditLine']) {
       assert.equal(item.data[omitted], undefined);
     }
   }
@@ -262,12 +261,9 @@ test('seed relationships resolve to another seed record or an approved published
   }
 });
 
-test('seed contains no unverified editorial or commerce fields', () => {
+test('seed contains no invented commerce fields', () => {
   const excluded = new Set([
-    'biography', 'statement', 'meaning', 'origin', 'interpretation', 'credits',
-    'programme', 'admission', 'accessibility', 'publicPartnerCredits', 'officialUrl',
-    'ticketUrl', 'emailAddress', 'instagramUrl', 'founderSiteUrl', 'hexValue',
-    'copyrightHolder', 'creator', 'creditLine', 'price', 'inventory',
+    'price', 'inventory',
   ]);
   for (const item of seedRecords) {
     for (const field of Object.keys(item.data)) {
