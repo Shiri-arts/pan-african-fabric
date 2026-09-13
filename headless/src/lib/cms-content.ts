@@ -124,7 +124,7 @@ export interface CmsShopItem extends CmsEntity {
   readonly editionId?: string; readonly countryId?: string; readonly garmentId?: string; readonly heroAssetId?: string;
   readonly galleryAssetIds: readonly string[]; readonly relatedStoryIds: readonly string[];
 }
-/** Wix CMS RICH_TEXT is delivered as an HTML string. */
+/** Rich text is normalized to safe HTML before it reaches page components. */
 export type CmsRichText = string;
 
 const PUBLIC_COLLECTIONS = new Set<string>(PUBLIC_COLLECTION_IDS);
@@ -174,8 +174,32 @@ export function safePublicUrl(value: unknown, options: { allowRelative?: boolean
   if (options.allowMailto && /^mailto:[^\s@]+@[^\s@]+\.[^\s@]+$/i.test(raw)) return raw;
   try { const parsed = new URL(raw); return parsed.protocol === 'https:' ? parsed.toString() : undefined; } catch { return undefined; }
 }
+const escapeHtml = (value: string): string => value.replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]!);
+const ricosHtml = (value: unknown): string | undefined => {
+  if (!value || typeof value !== 'object' || !Array.isArray((value as { nodes?: unknown }).nodes)) return undefined;
+  if (JSON.stringify(value).length > 100000) return undefined;
+  const render = (node: unknown): string => {
+    if (!node || typeof node !== 'object') return '';
+    const item = node as Record<string, unknown>;
+    const type = typeof item.type === 'string' ? item.type.toUpperCase() : '';
+    const children = Array.isArray(item.nodes) ? item.nodes.map(render).join('') : '';
+    if (type === 'TEXT') {
+      const raw = item.textData && typeof item.textData === 'object' ? (item.textData as Record<string, unknown>).text : undefined;
+      return typeof raw === 'string' ? escapeHtml(raw).replace(/\n/g, '<br>') : '';
+    }
+    if (type === 'PARAGRAPH') return children ? `<p>${children}</p>` : '';
+    if (type === 'HEADING') return children ? `<h2>${children}</h2>` : '';
+    if (type === 'BLOCKQUOTE') return children ? `<blockquote>${children}</blockquote>` : '';
+    if (type === 'BULLETED_LIST') return children ? `<ul>${children}</ul>` : '';
+    if (type === 'ORDERED_LIST') return children ? `<ol>${children}</ol>` : '';
+    if (type === 'LIST_ITEM') return children ? `<li>${children}</li>` : '';
+    return children;
+  };
+  const html = (value as { nodes: unknown[] }).nodes.map(render).join('').trim();
+  return html || undefined;
+};
 const rich = (value: unknown): CmsRichText | undefined => {
-  const html = text(value, 100000);
+  const html = text(value, 100000) ?? ricosHtml(value);
   if (!html || /<(?:script|style|iframe|object|embed|svg|math|form|input|button)\b/i.test(html)
     || /(?:javascript|vbscript|data):/i.test(html)) return undefined;
   return html;

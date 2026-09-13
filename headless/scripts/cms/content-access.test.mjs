@@ -63,6 +63,15 @@ test('page, section and media reads use published base collections and preserve 
   assert.ok(calls.filter(call => call.kind === 'query').every(call => call.query.limit >= 1 && call.query.limit <= 100));
 });
 
+test('Wix structured rich text is normalized into safe HTML', async () => {
+  const records = {
+    Pages: [record('page-about', { pageKey: 'about', path: '/about', introduction: { nodes: [{ type: 'PARAGRAPH', nodes: [{ type: 'TEXT', textData: { text: 'One & <two>' } }] }] } })],
+  };
+  const { source } = fixtureSource(records);
+  const cms = createCmsContentAccess(source, value => String(value));
+  assert.equal((await cms.getPageByKey('about'))?.introduction, '<p>One &amp; &lt;two&gt;</p>');
+});
+
 test('media rights, alt text and source validation prevent unsafe images', () => {
   const scale = value => value;
   assert.equal(mapMedia(record('m1', { image: 'https://example.com/a.jpg', usagePermission: 'review-only', alt: 'A' }), scale), undefined);
