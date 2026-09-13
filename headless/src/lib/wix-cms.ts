@@ -17,7 +17,9 @@ const source: PublicCmsSource = {
   },
 };
 
-const cms = createCmsContentAccess(source, (uri, width, height) => wixMedia.getScaledToFillImageUrl(uri, width, height, {}));
+const reviewMode = import.meta.env.PUBLIC_CMS_REVIEW_MODE === 'true';
+const cmsSource = reviewMode ? (await import('./preview-cms-source')).withPreviewSeed(source) : source;
+const cms = createCmsContentAccess(cmsSource, (uri, width, height) => wixMedia.getScaledToFillImageUrl(uri, width, height, {}), { allowReviewMedia: reviewMode });
 
 export const getSiteSettings = cms.getSiteSettings.bind(cms);
 export const getPrimaryNavigation = cms.getPrimaryNavigation.bind(cms);
@@ -46,6 +48,7 @@ export const getContactChannels = cms.getContactChannels.bind(cms);
 export const getShopItems = cms.getShopItems.bind(cms);
 export const getShopItemBySlug = cms.getShopItemBySlug.bind(cms);
 export const getMediaById = cms.getMediaById.bind(cms);
+export const getMediaAssets = cms.getMediaAssets.bind(cms);
 
 // Preserve the initial Phase 1 API while routing it through the same safe access layer.
 export const getPageHeroMedia = cms.getPageHeroMedia.bind(cms);

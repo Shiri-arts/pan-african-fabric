@@ -14,13 +14,14 @@ import { approved, awaiting, draft } from '../../lib/content';
 import { mediaSlot } from '../../lib/media';
 import { loadReviewCopy } from '../../lib/review';
 import {
-  getDesigners, getEditionColours, getEditionCountries, getMediaById, getPageByKey, getPageHeroMedia,
+  getDesigners, getEditionColours, getEditionCountries, getMediaAssets, getMediaById, getPageByKey, getPageHeroMedia,
   getPageSections, getParticipations, getPrimaryEdition, getRegions,
 } from '../../lib/wix-cms';
 
 const [review, cmsPage, cmsEdition, cmsRegions, cmsSections] = await Promise.all([
   loadReviewCopy(), getPageByKey('edition-one'), getPrimaryEdition(), getRegions(), getPageSections('edition-one'),
 ]);
+const cmsPreview = import.meta.env.PUBLIC_CMS_REVIEW_MODE === 'true';
 const [cmsCountries, cmsColours, cmsDesigners, cmsParticipations, cmsPageHero, cmsEditionHero, cmsFabric] = await Promise.all([
   cmsEdition ? getEditionCountries(cmsEdition.id) : Promise.resolve([]),
   getEditionColours(cmsEdition?.id),
@@ -30,6 +31,7 @@ const [cmsCountries, cmsColours, cmsDesigners, cmsParticipations, cmsPageHero, c
   cmsEdition?.heroAssetId ? getMediaById(cmsEdition.heroAssetId) : Promise.resolve(undefined),
   cmsEdition?.fabricAssetId ? getMediaById(cmsEdition.fabricAssetId) : Promise.resolve(undefined),
 ]);
+const previewMedia = cmsPreview ? await getMediaAssets() : [];
 
 const regionById = new Map(cmsRegions.map((region) => [region.id, region]));
 const cmsCountryBySlug = new Map(cmsCountries.filter((country) => country.slug).map((country) => [country.slug!, country]));
@@ -59,7 +61,7 @@ const colours = editionColours.flatMap((fallback) => {
   return safeCmsColour ? [{
     index: record.sourcePosition ?? fallback.index, name: record.colourName, countryName: relatedCountry.countryName,
     countrySlug: relatedCountry.slug!, style: `--panel:${record.hexValue};--panel-on:${record.textHex}`,
-  }] : import.meta.env.DEV ? [{
+  }] : import.meta.env.DEV || cmsPreview ? [{
     index: fallback.index, name: fallback.name, countryName: countries.find((item) => item.slug === fallback.country)?.name ?? fallback.country,
     countrySlug: fallback.country, style: `--panel:var(${fallback.variable});--panel-on:${fallback.textOn}`,
   }] : [];
@@ -259,6 +261,19 @@ const process = [
       ))}
     </ol>
   </Section>
+
+  {cmsPreview && previewMedia.length > 0 && (
+    <Section tone="paper" id="source-media" label="CMS source media review">
+      <SectionHead eyebrow="Draft CMS media" title="Uploaded source assets">
+        <p>These unchanged files are visible in this Wix Preview for review. Their CMS permission remains review-only and downloads remain disabled.</p>
+      </SectionHead>
+      <ul class="card-grid">
+        {previewMedia.map((item) => (
+          <li><figure><Media media={item} /><figcaption>{item.alt}</figcaption></figure></li>
+        ))}
+      </ul>
+    </Section>
+  )}
 
   <Section tone="surface" id="garments" hidden={!sectionEnabled('garments')}>
     <SectionHead eyebrow="07 — Garments and accessories" title="The finished work.">

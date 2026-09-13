@@ -66,6 +66,7 @@ test('page, section and media reads use published base collections and preserve 
 test('media rights, alt text and source validation prevent unsafe images', () => {
   const scale = value => value;
   assert.equal(mapMedia(record('m1', { image: 'https://example.com/a.jpg', usagePermission: 'review-only', alt: 'A' }), scale), undefined);
+  assert.equal(mapMedia(record('m1', { image: 'https://example.com/a.jpg', usagePermission: 'review-only', alt: 'A' }), scale, true)?.permission, 'review-only');
   assert.equal(mapMedia(record('m2', { image: 'https://example.com/a.jpg', usagePermission: 'web-display-approved' }), scale), undefined);
   assert.equal(mapMedia(record('m3', { image: 'javascript:alert(1)', usagePermission: 'web-display-approved', alt: 'A' }), scale), undefined);
   assert.ok(mapMedia(record('m4', { image: 'https://example.com/a.jpg', usagePermission: 'web-display-approved', decorative: true }), scale));

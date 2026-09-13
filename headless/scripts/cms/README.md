@@ -36,6 +36,8 @@ This site currently uses Wix's legacy `PUBLISH` plugin behavior: administrative 
 
 Wix requires reciprocal keys on multi-reference fields. Countries.relatedEvents and Events.countries form one shared relationship. Other multi-references use explicit descriptive reciprocal keys. Wix creates reciprocal fields automatically. The runner re-reads the current schema before adding each field, so it can resume and avoids recreating an automatic reciprocal.
 
+When `PUBLIC_CMS_REVIEW_MODE=true` is supplied to a Wix Preview build, the normal frontend overlays the exact seed manifest on published CMS reads. This makes draft navigation, edition, region, country, colour, designer, event and media records reviewable through the site without publishing them. Review-only media is accepted only in that build mode; production builds retain the published-content and approved-media gates.
+
 Official schemas checked 2026-09-07:
 
 - [Create Data Collection](https://dev.wix.com/docs/api-reference/business-solutions/cms/collection-management/data-collections/create-data-collection): `POST /wix-data/v2/collections`, body `{ collection: { id, fields, permissions } }`.

@@ -195,7 +195,7 @@ function imageSource(value: unknown, width: number, height: number, scaleWixImag
   if (raw.startsWith('wix:image://')) return scaleWixImage(raw, width, height);
   return safePublicUrl(raw);
 }
-export function mapMedia(item: CmsItem | undefined, scaleWixImage: (uri: string, width: number, height: number) => string): Media | undefined {
+export function mapMedia(item: CmsItem | undefined, scaleWixImage: (uri: string, width: number, height: number) => string, allowReviewMedia = false): Media | undefined {
   if (!item) return undefined;
   const width = finiteNumber(item.width) && Number(item.width) > 0 ? Number(item.width) : 1600;
   const height = finiteNumber(item.height) && Number(item.height) > 0 ? Number(item.height) : 900;
@@ -203,7 +203,8 @@ export function mapMedia(item: CmsItem | undefined, scaleWixImage: (uri: string,
   const permission = text(item.usagePermission, 50) as UsagePermission | undefined;
   const decorative = bool(item.decorative);
   const alt = text(item.alt, 500);
-  if (!src || !permission || !PERMISSIONS.has(permission) || (!decorative && !alt)) return undefined;
+  const permissionAllowed = Boolean(permission) && (PERMISSIONS.has(permission!) || (allowReviewMedia && permission === 'review-only'));
+  if (!src || !permission || !permissionAllowed || (!decorative && !alt)) return undefined;
   const mobileWidth = finiteNumber(item.mobileWidth) && Number(item.mobileWidth) > 0 ? Number(item.mobileWidth) : width;
   const mobileHeight = finiteNumber(item.mobileHeight) && Number(item.mobileHeight) > 0 ? Number(item.mobileHeight) : height;
   const mobileSrc = imageSource(item.mobileImage, mobileWidth, mobileHeight, scaleWixImage);
@@ -218,7 +219,7 @@ export function mapMedia(item: CmsItem | undefined, scaleWixImage: (uri: string,
   };
 }
 
-export function createCmsContentAccess(source: PublicCmsSource, scaleWixImage: (uri: string, width: number, height: number) => string) {
+export function createCmsContentAccess(source: PublicCmsSource, scaleWixImage: (uri: string, width: number, height: number) => string, options: { allowReviewMedia?: boolean } = {}) {
   const query = async (collectionId: PublicCollectionId, options: Partial<PublicQuery> = {}): Promise<readonly CmsItem[]> => {
     assertPublicCollection(collectionId);
     const requested = options.limit ?? DEFAULT_LIMIT;
@@ -233,8 +234,8 @@ export function createCmsContentAccess(source: PublicCmsSource, scaleWixImage: (
   const one = async (collectionId: PublicCollectionId, filters: Readonly<Record<string, string | number | boolean>>): Promise<CmsItem | undefined> =>
     (await query(collectionId, { filters, limit: 1, sort: [{ field: '_id', direction: 'asc' }] }))[0];
   const mediaFor = async (value: unknown): Promise<Media | undefined> => {
-    if (value && typeof value === 'object' && ('image' in value || 'usagePermission' in value)) return mapMedia(value as CmsItem, scaleWixImage);
-    const id = ref(value); return id ? mapMedia(await get('MediaAssets', id), scaleWixImage) : undefined;
+    if (value && typeof value === 'object' && ('image' in value || 'usagePermission' in value)) return mapMedia(value as CmsItem, scaleWixImage, options.allowReviewMedia);
+    const id = ref(value); return id ? mapMedia(await get('MediaAssets', id), scaleWixImage, options.allowReviewMedia) : undefined;
   };
 
   const mapPage = (item: CmsItem): CmsPage | undefined => {
@@ -299,6 +300,7 @@ export function createCmsContentAccess(source: PublicCmsSource, scaleWixImage: (
     async getShopItems(): Promise<readonly CmsShopItem[]> { return mapList('ShopItems', undefined, mapShop); },
     async getShopItemBySlug(slug: string): Promise<CmsShopItem | undefined> { return bySlug('ShopItems', slug, mapShop); },
     async getMediaById(id: string): Promise<Media | undefined> { return mediaFor(id); },
+    async getMediaAssets(): Promise<readonly Media[]> { return (await query('MediaAssets')).map(item => mapMedia(item, scaleWixImage, options.allowReviewMedia)).filter((value): value is Media => Boolean(value)); },
     async getPageHeroMedia(pageKey: string): Promise<Media | undefined> { const page = await this.getPageByKey(pageKey); return page?.heroAssetId ? mediaFor(page.heroAssetId) : undefined; },
     async getPageSectionMedia(pageKey: string, sectionKey: string): Promise<Media | undefined> { const section = (await this.getPageSections(pageKey)).find(value => value.sectionKey === sectionKey); return section?.mediaAssetId ? mediaFor(section.mediaAssetId) : undefined; },
   });
