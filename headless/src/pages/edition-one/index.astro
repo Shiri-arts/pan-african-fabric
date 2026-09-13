@@ -105,7 +105,8 @@ const intro = cmsIntro
   : awaiting('Edition One introduction', 'Approve the introduction to the edition, its countries and its designers.');
 
 const heroMedia = cmsEditionHero ?? cmsPageHero ?? mediaSlot('edition-hero', '21/9', 'Approved photograph of the finished fabric, full width.');
-const fabricMedia = cmsFabric ?? mediaSlot('edition-fabric', '3/2', 'Approved close-up of the fabric showing weave, colour transitions and scale.');
+const fabricSectionMedia = sectionByKey.get('the-fabric')?.mediaAssetId ? await getMediaById(sectionByKey.get('the-fabric')!.mediaAssetId!) : undefined;
+const fabricMedia = cmsFabric ?? fabricSectionMedia ?? mediaSlot('edition-fabric', '3/2', 'Approved close-up of the fabric showing weave, colour transitions and scale.');
 const fabricDescription = textOnly(cmsEdition?.fabricDescription) ?? textOnly(sectionByKey.get('the-fabric')?.body);
 const processDescription = textOnly(cmsEdition?.creativeProcess) ?? textOnly(sectionByKey.get('process')?.body);
 
@@ -260,7 +261,7 @@ const process = [
   </Section>
 
   <Section tone="ink" id="process" hidden={!sectionEnabled('process')}>
-    <SectionHead eyebrow="06 — The creative process" title="From cloth to finished garment.">
+    <SectionHead eyebrow={sectionByKey.get('process')?.eyebrow ?? '06 — The creative process'} title={sectionByKey.get('process')?.heading ?? 'From cloth to finished garment.'}>
       <p>{processDescription ?? 'Four stages carry the edition. Each one opens when its approved account is supplied.'}</p>
     </SectionHead>
     <ol class="process">
@@ -268,8 +269,7 @@ const process = [
         <li class="process__item">
           <span class="process__step">{stage.step}</span>
           <span class="process__title">{stage.title}</span>
-          <span class="badge badge--awaiting">Awaiting content</span>
-          {import.meta.env.DEV && <span class="process__need">{stage.need}</span>}
+          {!processDescription && <span class="process__need">{stage.need}</span>}
         </li>
       ))}
     </ol>
@@ -289,8 +289,8 @@ const process = [
   )}
 
   <Section tone="surface" id="garments" hidden={!sectionEnabled('garments')}>
-    <SectionHead eyebrow="07 — Garments and accessories" title="The finished work.">
-      <p>Garment and accessory galleries publish only with approved photography, captions and full credits.</p>
+    <SectionHead eyebrow={sectionByKey.get('garments')?.eyebrow ?? '07 — Garments and accessories'} title={sectionByKey.get('garments')?.heading ?? 'The finished work.'}>
+      <p>{textOnly(sectionByKey.get('garments')?.body) ?? 'Garment and accessory galleries publish only with approved photography, captions and full credits.'}</p>
       <Button href="/shop" variant="text">Visit the shop<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
     </SectionHead>
     <EmptyState

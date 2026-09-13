@@ -115,20 +115,16 @@ const sections = [
         ? <CmsRichText value={milestonesSection.body} />
         : <p>Milestones appear here once each one is verified. Dates, titles and outcomes are never estimated or filled in from a planning document.</p>}
     </SectionHead>
-    <ol class="timeline">
-      {[1, 2, 3].map((position) => (
-        <li class="timeline__item">
-          <span class="timeline__marker" aria-hidden="true"></span>
-          <span class="timeline__slot">
-            <span class="badge badge--awaiting">Awaiting content</span>
-            <span class="timeline__label">Milestone {position} position</span>
-          </span>
-        </li>
-      ))}
-    </ol>
-    <p class="caption" style="margin-top:24px">
-      Three positions are shown to demonstrate the layout. The real number of milestones follows the approved list.
-    </p>
+    {!milestonesSection?.body && (
+      <ol class="timeline">
+        {[1, 2, 3].map((position) => (
+          <li class="timeline__item">
+            <span class="timeline__marker" aria-hidden="true"></span>
+            <span class="timeline__slot"><span class="timeline__label">Milestone {position}</span></span>
+          </li>
+        ))}
+      </ol>
+    )}
   </Section>
 
   <Section tone="ivory" size="tight">
