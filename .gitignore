@@ -12,3 +12,5 @@ jsconfig.json
 !.env.example
 /.playwright-cli/
 /wix-error.log
+# Local CMS extraction and activity reports
+/docs/cms-migration/source-*.md
