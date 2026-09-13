@@ -210,7 +210,7 @@ const process = [
     <SectionHead eyebrow="04 — The countries" title="Nine countries. Nine interpretations.">
       <p>Every country page carries the same structure, so a completed profile and a profile still in review read consistently.</p>
     </SectionHead>
-    {countries.length > 0 ? <ul class="card-grid">
+    {countries.length > 0 ? <ul class="card-grid card-grid--three">
       {countries.map((country, index) => (
         <li data-reveal="rise" style={`--reveal-delay:${Math.min(index, 6) * 45}ms`}>
           <CountryCard country={country} index={index} colourStyles={colourStylesByCountry.get(country.slug)} />
@@ -226,7 +226,7 @@ const process = [
         designer has approved their name, biography, statement and images.
       </p>
     </SectionHead>
-    <ul class="card-grid card-grid--narrow">
+    <ul class="card-grid card-grid--three">
       {designerSlots.map(({ country, cmsDesigner, designer }) => (
         <li>
           <div class="designer-slot">

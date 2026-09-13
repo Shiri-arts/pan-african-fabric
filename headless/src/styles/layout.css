@@ -65,6 +65,10 @@
 }
 .card-grid--wide { grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); }
 .card-grid--narrow { grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); }
+/* Fixed three across, so nine country or designer cards fill three complete rows. */
+.card-grid--three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 899px) { .card-grid--three { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 599px) { .card-grid--three { grid-template-columns: minmax(0, 1fr); } }
 
 .stack { display: flex; flex-direction: column; }
 .stack--sm { gap: var(--space-sm); }
