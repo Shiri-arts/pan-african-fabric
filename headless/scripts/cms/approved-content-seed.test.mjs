@@ -133,6 +133,21 @@ test('menu and media dependencies match the approved decisions', () => {
   assert.equal(find('PageSections', 'section-about-founder').data.mediaAsset, 'media-founder-shiri-achu');
 });
 
+test('source media stays review-only and omits unresolved rights metadata', () => {
+  const media = seedRecords.filter(item => item.collectionId === 'MediaAssets');
+  assert.equal(media.length, 10);
+  assert.ok(media.every(item => item.data.assetType === 'image'));
+  assert.ok(media.every(item => item.data.usagePermission === 'review-only'));
+  assert.ok(media.every(item => item.data.downloadAllowed === false));
+  assert.ok(media.every(item => item.data.image.startsWith('https://static.wixstatic.com/media/')));
+  assert.ok(media.every(item => item.data.width > 0 && item.data.height > 0));
+  for (const item of media) {
+    for (const omitted of ['approvedAt', 'creator', 'copyrightHolder', 'creditLine', 'usageTerms']) {
+      assert.equal(item.data[omitted], undefined);
+    }
+  }
+});
+
 test('draft merge fills blanks, preserves editorial fields and reports conflicts', () => {
   const item = find('Pages', 'page-home');
   const prepared = prepareDraftData(item, { title: 'Home', introduction: 'Editor-owned content', sourceVersion: 'existing' }, [

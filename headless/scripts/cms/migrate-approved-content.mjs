@@ -179,6 +179,7 @@ async function getDraftInclusiveItems(api, collectionId) {
 
 const SEMANTIC_IDENTITY_FIELDS = Object.freeze({
   Designers: ['slug', 'displayName'],
+  MediaAssets: ['slug', 'filename', 'image'],
   Regions: ['slug', 'regionKey', 'name'],
 });
 

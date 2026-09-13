@@ -174,6 +174,30 @@ const designerRecords = designers.map(([id, displayName], index) => sourceTruthR
   },
 ));
 
+const sourceMedia = [
+  ['media-source-colour-chart', 'Colour chart', 'source-colour-chart', 'COLOUR CHAT2.png', 'A chart of twelve colour names arranged in a three-column grid.', '3/4', 1086, 1448, 'https://static.wixstatic.com/media/9b8a9d_6d280db7b36b4450b6d5a4d50d504e35~mv2.png'],
+  ['media-source-symbols-and-meanings', 'Symbols and meanings', 'source-symbols-and-meanings', 'Symbols and meanings.jpg', 'A table of African symbols and their supplied meanings.', '4/5', 7200, 8821, 'https://static.wixstatic.com/media/9b8a9d_a519e45ee0a54b698ff9b149aadaf4a52~mv2.jpg'],
+  ['media-source-africa-to-the-world', 'Africa to the World', 'source-africa-to-the-world', '67329f2b-6d3a-4a7b-a34c-8f68e30d4183.jpg', 'Africa to the World promotional artwork featuring Muks\u2019 Couture and The Pan-African Fabric.', '5/4', 571, 800, 'https://static.wixstatic.com/media/9b8a9d_f80cd134100f4270ad34c03b9f82e994~mv2.jpg'],
+  ['media-source-poem-lltaos', 'Long Live the Art of Service (LLTAOS)', 'source-poem-lltaos', 'POEM10 GB..jpg', 'Poem artwork titled \u201cLong Live the Art of Service (LLTAOS)\u201d.', '1/1', 4000, 4000, 'https://static.wixstatic.com/media/9b8a9d_aba8cf9a77704fc28ed4f40aa459bf79~mv2.jpg'],
+  ['media-source-poem-inked-concentrations', 'Inked Concentrations.', 'source-poem-inked-concentrations', 'POEM3_GB.jpg', 'Poem artwork titled \u201cInked Concentrations.\u201d', '1/1', 4000, 4000, 'https://static.wixstatic.com/media/9b8a9d_4c65958581c04c868790e0f952ed9b76~mv2.jpg'],
+  ['media-source-poem-frames-of-fabrics', 'Frames of Fabrics.', 'source-poem-frames-of-fabrics', 'POEM4_GB.jpg', 'Poem artwork titled \u201cFrames of Fabrics.\u201d', '1/1', 4000, 4000, 'https://static.wixstatic.com/media/9b8a9d_19bca1ee27b34349a3aa1f2023850b9c~mv2.jpg'],
+  ['media-source-poem-teeming-bazaar', 'Sketching A Teeming Bazaar of Drawings', 'source-poem-teeming-bazaar', 'POEM5_GB.jpg', 'Poem artwork titled \u201cSketching A Teeming Bazaar of Drawings\u201d.', '1/1', 4000, 4000, 'https://static.wixstatic.com/media/9b8a9d_ad5e60ea64b74208a57adc7920cf3d07~mv2.jpg'],
+  ['media-source-poem-same-sight-different-lenses', 'Same Sight / Different Lenses: The Diversity of a United Universe', 'source-poem-same-sight-different-lenses', 'POEM6_GB.jpg', 'Poem artwork titled \u201cSame Sight / Different Lenses: The Diversity of a United Universe\u201d.', '1/1', 4000, 4000, 'https://static.wixstatic.com/media/9b8a9d_fcaf2741789547f5852a6371c4b88f99~mv2.jpg'],
+  ['media-source-poem-little-hands', 'Of Little hands, soft strokes and silk outlines', 'source-poem-little-hands', 'POEM7_GB.jpg', 'Poem artwork titled \u201cOf Little hands, soft strokes and silk outlines\u201d.', '1/1', 4000, 4000, 'https://static.wixstatic.com/media/9b8a9d_db59103a0b244344a734e74f7720a7bd~mv2.jpg'],
+  ['media-source-poem-textile-certificates', 'Textile Certificates: A Proud Bevy of Symbologists.', 'source-poem-textile-certificates', 'POEM9_GB5.jpg', 'Poem artwork titled \u201cTextile Certificates: A Proud Bevy of Symbologists.\u201d', '1/1', 4000, 4000, 'https://static.wixstatic.com/media/9b8a9d_b5d3363c624e4453a44bb0cb65957bcb~mv2.jpg'],
+];
+
+const sourceMediaRecords = sourceMedia.map(([id, title, slug, filename, alt, ratio, width, height, image], index) => sourceTruthRecord(
+  'MediaAssets',
+  id,
+  `Source asset ${filename}`,
+  {
+    title, slug, filename, assetType: 'image', alt, ratio, focalPosition: '50% 50%',
+    image, width, height, decorative: false, usagePermission: 'review-only',
+    downloadAllowed: false, version: '1', displayOrder: index + 1,
+  },
+));
+
 export const seedRecords = Object.freeze([
   sourceTruthRecord('Editions', 'edition-one', 'The_Pan_African_Fabric_Official_Press_ _Media_Guide_1.pdf, pages 12–13', {
     title: 'Edition One',
@@ -184,6 +208,7 @@ export const seedRecords = Object.freeze([
   }),
   ...regionRecords,
   ...designerRecords,
+  ...sourceMediaRecords,
   ...pageRecords,
   ...countryRecords,
   ...colourRecords,

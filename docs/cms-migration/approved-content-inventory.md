@@ -100,3 +100,8 @@ The repeat-safe preflight found no semantic duplicates, treated all previously s
 records as no-ops, and performed zero publication operations. Content with unresolved
 classification, wording, relationships, dates, contact permission or media rights was
 not added.
+
+A subsequent guarded pass created ten `MediaAssets` drafts for source files uploaded
+unchanged to Wix Media Manager. Each record is marked `review-only`, has downloads
+disabled, and omits unresolved rights and credit fields. The pass performed zero
+publication operations and left all existing records unchanged.
