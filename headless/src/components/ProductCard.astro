@@ -10,7 +10,7 @@ const { product } = Astro.props;
 const cover = product.gallery[0];
 ---
 <a class="card card--link" href={productPath(product.slug)}>
-  {cover && <Media media={cover} showCaption={false} fit="contain" class="product-card__media" />}
+  {cover && <Media media={cover} showCaption={false} fit="contain" class="product-media product-card__media" />}
   <span class="card__body">
     <span class="card__meta">
       <span>{product.kind}</span>
