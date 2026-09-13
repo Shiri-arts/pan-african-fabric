@@ -9,7 +9,7 @@ const previewValue = (value: unknown): unknown => {
   if (!value || typeof value !== 'object' || !('nodes' in value)) return value;
   const text = (value as any).nodes.flatMap((node: any) => node.nodes ?? [])
     .map((node: any) => node.textData?.text ?? '').join('\n');
-  return `<p>${escapeHtml(text)}</p>`;
+  return escapeHtml(text);
 };
 
 const records = seedRecords.map(record => Object.freeze({

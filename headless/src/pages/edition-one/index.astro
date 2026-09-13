@@ -32,6 +32,9 @@ const [cmsCountries, cmsColours, cmsDesigners, cmsParticipations, cmsPageHero, c
   cmsEdition?.fabricAssetId ? getMediaById(cmsEdition.fabricAssetId) : Promise.resolve(undefined),
 ]);
 const previewMedia = cmsPreview ? await getMediaAssets() : [];
+const unassignedPreviewDesigners = cmsPreview
+  ? cmsDesigners.filter(designer => !cmsParticipations.some(participation => participation.designerId === designer.id))
+  : [];
 
 const regionById = new Map(cmsRegions.map((region) => [region.id, region]));
 const cmsCountryBySlug = new Map(cmsCountries.filter((country) => country.slug).map((country) => [country.slug!, country]));
@@ -240,6 +243,16 @@ const process = [
         </li>
       ))}
     </ul>
+    {unassignedPreviewDesigners.length > 0 && (
+      <div style="margin-top:var(--space-lg)">
+        <p class="eyebrow"><span>CMS draft roster · country relationships pending</span></p>
+        <ul class="card-grid card-grid--narrow">
+          {unassignedPreviewDesigners.map(designer => (
+            <li><div class="designer-slot"><p class="designer-slot__name">{designer.displayName}</p></div></li>
+          ))}
+        </ul>
+      </div>
+    )}
     <p class="caption" style="margin-top:32px;color:var(--on-ink-muted);max-width:70ch">
       No biography, creative statement, garment image or credit is published here. Those are content dependencies, not
       design gaps.
