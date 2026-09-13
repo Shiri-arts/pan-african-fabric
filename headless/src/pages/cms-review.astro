@@ -5,7 +5,13 @@ if (import.meta.env.PUBLIC_CMS_REVIEW_MODE !== 'true') {
   return new Response('Not found', { status: 404 });
 }
 
-const groups = Object.entries(Object.groupBy(seedRecords, record => record.collectionId));
+const groupedRecords = new Map();
+for (const record of seedRecords) {
+  const records = groupedRecords.get(record.collectionId) ?? [];
+  records.push(record);
+  groupedRecords.set(record.collectionId, records);
+}
+const groups = [...groupedRecords.entries()];
 const textFromRichText = (value: any) => value?.nodes
   ?.flatMap((node: any) => node.nodes ?? [])
   .map((node: any) => node.textData?.text ?? '')
@@ -40,7 +46,7 @@ const displayValue = (value: any) => {
             <span>{records?.length ?? 0} records</span>
           </div>
           <div class="grid">
-            {records?.map(record => (
+            {records?.map((record: any) => (
               <article>
                 {record.collectionId === 'MediaAssets' && record.data.image && (
                   <img src={record.data.image} alt={record.data.alt ?? ''} loading="lazy" />
