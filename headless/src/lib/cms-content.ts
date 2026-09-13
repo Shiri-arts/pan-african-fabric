@@ -188,7 +188,10 @@ const ricosHtml = (value: unknown): string | undefined => {
       const raw = item.textData && typeof item.textData === 'object' ? (item.textData as Record<string, unknown>).text : undefined;
       return typeof raw === 'string' ? escapeHtml(raw).replace(/\n/g, '<br>') : '';
     }
-    if (type === 'PARAGRAPH') return children ? `<p>${children}</p>` : '';
+    if (type === 'PARAGRAPH') {
+      const paragraphs = children.split(/(?:<br>\s*){2,}/).map(value => value.trim()).filter(Boolean);
+      return paragraphs.map(value => `<p>${value}</p>`).join('');
+    }
     if (type === 'HEADING') return children ? `<h2>${children}</h2>` : '';
     if (type === 'BLOCKQUOTE') return children ? `<blockquote>${children}</blockquote>` : '';
     if (type === 'BULLETED_LIST') return children ? `<ul>${children}</ul>` : '';

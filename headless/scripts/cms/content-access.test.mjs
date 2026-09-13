@@ -72,6 +72,12 @@ test('Wix structured rich text is normalized into safe HTML', async () => {
   assert.equal((await cms.getPageByKey('about'))?.introduction, '<p>One &amp; &lt;two&gt;</p>');
 });
 
+test('paragraph breaks embedded in Wix text nodes become semantic paragraphs', async () => {
+  const { source } = fixtureSource({ Pages: [record('page-about', { pageKey: 'about', path: '/about', introduction: { nodes: [{ type: 'PARAGRAPH', nodes: [{ type: 'TEXT', textData: { text: 'Opening paragraph.\n\nSupporting paragraph.' } }] }] } })] });
+  const cms = createCmsContentAccess(source, value => String(value));
+  assert.equal((await cms.getPageByKey('about'))?.introduction, '<p>Opening paragraph.</p><p>Supporting paragraph.</p>');
+});
+
 test('the project name remains an unbroken typographic unit', async () => {
   const { source } = fixtureSource({ Pages: [record('page-home', { pageKey: 'home', path: '/', heroTitle: 'The Pan-African Fabric' })] });
   const cms = createCmsContentAccess(source, value => String(value));

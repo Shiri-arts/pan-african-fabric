@@ -61,7 +61,7 @@ const sections = [
     meta={cmsPage?.heroMetaLabels.length ? cmsPage.heroMetaLabels : [`${COLOUR_COUNT} colours`, `${COUNTRY_COUNT} countries`, `${REGION_COUNT} regions`]}
   >
     {cmsPage?.introduction
-      ? <CmsRichText value={cmsPage.introduction} class="page-hero__intro lead" />
+      ? <CmsRichText value={cmsPage.introduction} class="page-hero__intro about-introduction" />
       : <Copy copy={opening} class="page-hero__intro lead" fallbackTitle="Origin story" emptyTone="ink" />}
     {cmsPage?.primaryCtaHref && cmsPage.primaryCtaLabel && (
       <p class="actions"><Button href={cmsPage.primaryCtaHref} size="large">{cmsPage.primaryCtaLabel}<span class="button__arrow" aria-hidden="true">&#8594;</span></Button></p>
@@ -99,7 +99,7 @@ const sections = [
         ) : (
           <p class="founder__quote-note">No quotation has been supplied. Nothing is quoted until it is approved and attributed.</p>
         )}
-        {founderSection?.body ? <CmsRichText value={founderSection.body} class="lead" /> : <EmptyState
+        {founderSection?.body ? <CmsRichText value={founderSection.body} class="founder-biography" /> : <EmptyState
           title="Founder biography is not approved yet."
           text="The portrait, quote and biography positions are all reserved above and beside this note."
           tone="ink"
@@ -151,6 +151,13 @@ const sections = [
     margin: 0 0 var(--space-2xs);
   }
   .founder__quote-note { font-size: 0.75rem; line-height: 1.5; color: var(--on-ink-muted); }
+  .about-introduction :global(p:first-child) { font-size: var(--step-lead); line-height: 1.5; }
+  .about-introduction :global(p:not(:first-child)) { font-size: 1rem; line-height: 1.65; color: var(--on-ink-muted); }
+  .about-introduction :global(p + p) { margin-top: var(--space-sm); }
+  .founder-biography { padding-top: var(--space-sm); border-top: 1px solid var(--on-ink-rule); }
+  .founder-biography :global(p) { font-size: 0.9875rem; line-height: 1.75; color: var(--on-ink-muted); }
+  .founder-biography :global(p:first-child) { font-size: 1.125rem; line-height: 1.65; color: var(--on-ink); }
+  .founder-biography :global(p + p) { margin-top: var(--space-md); }
   @media (max-width: 899px) {
     .founder { grid-template-columns: minmax(0, 1fr); }
     .founder__media { max-width: 360px; }
