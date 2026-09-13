@@ -10,6 +10,7 @@
     "test": "node --test scripts/cms/*.test.mjs",
     "cms:apply-foundation": "node scripts/cms/apply-foundation.mjs",
     "cms:migrate-approved": "node scripts/cms/migrate-approved-content.mjs",
+    "cms:publish-seed": "node scripts/cms/publish-seed.mjs",
     "cms:validate": "node scripts/cms/validate-content.mjs",
     "cms:publish-approved-media": "node scripts/cms/publish-approved-media.mjs",
     "cms:verify-published-media": "node scripts/cms/verify-published-media.mjs",
