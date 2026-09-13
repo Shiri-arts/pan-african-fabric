@@ -149,10 +149,10 @@ test('authorized source media is web-display approved with downloads disabled', 
 
 test('draft merge fills blanks, preserves editorial fields and reports conflicts', () => {
   const item = find('Pages', 'page-home');
-  const prepared = prepareDraftData(item, { title: 'Home', introduction: 'Editor-owned content', sourceVersion: 'existing' }, [
-    ...Object.keys(item.data), 'introduction',
+  const prepared = prepareDraftData(item, { title: 'Home', robots: 'Editor-owned content', sourceVersion: 'existing' }, [
+    ...Object.keys(item.data), 'robots',
   ]);
-  assert.equal(prepared.data.introduction, 'Editor-owned content');
+  assert.equal(prepared.data.robots, 'Editor-owned content');
   assert.equal(prepared.data.sourceVersion, 'existing');
   assert.equal(prepared.data._publishStatus, undefined);
   assert.deepEqual(prepared.conflicts, []);

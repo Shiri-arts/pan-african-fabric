@@ -55,6 +55,17 @@ const pages = [
   ['page-partner-with-us', 'Partner With Us', 'partner-with-us', '/partner-with-us', 'Partner With Us', 7],
 ];
 
+const pageContent = {
+  home: { eyebrow: 'An international cultural initiative', heroTitle: 'The Pan-African Fabric', heroTagline: 'One Fabric. Many African Stories.', introduction: 'Created by artist and architect Shiri Achu, The Pan-African Fabric is a contemporary cultural initiative that brings African symbols, textile, fashion, education and cultural exchange into one shared story.', primaryCtaLabel: 'Explore Edition One', primaryCtaHref: '/edition-one', secondaryCtaLabel: 'The inaugural showcase', secondaryCtaHref: '/events/inaugural-pan-african-fabric-fashion-showcase', heroAsset: 'media-home-hero-pan-african-fan', heroMetaLabels: ['12 colours', '9 countries', '5 regions'] },
+  about: { eyebrow: 'About', heroTitle: 'The why behind the fabric.', introduction: aboutIntroduction, heroAsset: 'media-source-shiri-achu-with-colour-block-2', heroMetaLabels: ['12 colours', '9 countries', '5 regions'] },
+  'edition-one': { eyebrow: 'Edition One', heroTitle: 'One fabric. Nine countries.', heroTagline: 'Nine countries. Five regions. One shared visual language.', introduction: 'Edition One brings together creative voices from Cameroon, the Central African Republic, Egypt, Ethiopia, Ghana, Kenya, Morocco, Nigeria and South Africa. Explore the designers, cultural symbols and fashion interpretations behind each contribution.', heroAsset: 'media-source-symbols-and-meanings', heroMetaLabels: ['12 colours', '9 countries', '5 regions'] },
+  events: { eyebrow: 'Events', heroTitle: 'Where the fabric comes alive.', introduction: 'From exhibitions and workshops to runway presentations and cultural receptions, each event creates a place for the fabric, its makers and its stories to meet the public.', heroAsset: 'media-source-obp05905', primaryCtaLabel: 'See the inaugural showcase', primaryCtaHref: '/events/inaugural-pan-african-fabric-fashion-showcase' },
+  stories: { eyebrow: 'Stories', heroTitle: 'The living voice of the initiative.', introduction: 'Read reflections, poems and records from the people, places and creative moments shaping The Pan-African Fabric.', heroAsset: 'media-source-img-6999' },
+  shop: { eyebrow: 'Shop', heroTitle: 'Own a piece of the story.', introduction: 'Explore the Pan-African Fan and future approved products connected directly to the initiative, its fabric and its cultural story.', heroAsset: 'media-home-hero-pan-african-fan' },
+  'press-contact': { eyebrow: 'Press & Contact', heroTitle: 'Professional access to the initiative.', introduction: 'Find verified facts, official releases, approved media materials and the right contact route for press, interviews and general enquiries.', heroAsset: 'media-source-obp05746' },
+  'partner-with-us': { eyebrow: 'Partner with us', heroTitle: 'Bring the fabric to your city.', introduction: 'Museums, embassies, universities, sponsors, cultural organisations, designers and future hosts can help shape where this initiative goes next.', heroAsset: 'media-source-obp06356', primaryCtaLabel: 'Start an enquiry', primaryCtaHref: '#enquiry', secondaryCtaLabel: 'Explore Edition One', secondaryCtaHref: '/edition-one' },
+};
+
 const pageRecords = pages.map(([id, title, pageKey, path, navigationLabel, displayOrder]) => record(
   'Pages',
   id,
@@ -71,12 +82,9 @@ const pageRecords = pages.map(([id, title, pageKey, path, navigationLabel, displ
     footerNavigationOrder: displayOrder,
     footerNavigationLabel: navigationLabel,
     navigationHighlighted: path === '/partner-with-us',
-    heroTitle: path === '/' ? 'The Pan-African Fabric' : title,
-    ...(path === '/' ? {
-      heroTagline: 'One Fabric. Many African Stories.',
-      heroAsset: 'media-home-hero-pan-african-fan',
-    } : {}),
-    ...(path === '/about' ? { introduction: richText(aboutIntroduction) } : {}),
+    heroTitle: pageContent[pageKey]?.heroTitle ?? title,
+    ...(pageContent[pageKey] ?? {}),
+    ...(pageContent[pageKey]?.introduction ? { introduction: richText(pageContent[pageKey].introduction) } : {}),
     displayOrder,
   },
 ));
@@ -339,7 +347,68 @@ const pressRecords = [
   ['press-showcase-reception-invitation', 'Showcase and reception invitation', 'showcase-reception-invitation', 'Invitation', 'September 2026'],
 ].map(([id, headline, slug, itemType, dateLabel], index) => sourceTruthRecord('PressItems', id, 'Supplied official press PDFs', { title: headline, headline, slug, itemType, dateLabel, version: dateLabel, downloadAllowed: false, relatedEvent: 'event-inaugural-pan-african-fabric-fashion-showcase', displayOrder: index + 1 }));
 
-const partnershipRecords = ['Museums', 'Embassies', 'Universities', 'Sponsors', 'Cultural organisations', 'Designers and future hosts'].map((label, index) => sourceTruthRecord('PartnershipOptions', `partnership-${slugify(label)}`, 'Client-approved navigation guide', { title: label, slug: slugify(label), optionType: 'collaboration', label, enquiryValue: label, description: richText(`Collaborate with The Pan-African Fabric as ${label.toLowerCase()}.`), isEnabled: true, displayOrder: index + 1 }));
+const collaboratorDescriptions = {
+  Museums: 'Host exhibitions, public programmes and educational experiences that connect audiences with contemporary African textile, symbolism and fashion.',
+  Embassies: 'Support cultural diplomacy, national participation and cross-cultural exchange through programmes built around the shared fabric.',
+  Universities: 'Create learning, research, workshop and student engagement opportunities across art, fashion, design, history and cultural studies.',
+  Sponsors: 'Help extend the reach, access and production of exhibitions, education programmes and public events.',
+  'Cultural organisations': 'Develop programmes that connect communities, creative practice and African cultural storytelling.',
+  Designers: 'Contribute new interpretations, craftsmanship and creative perspectives to future editions and programmes.',
+  'Future hosts': 'Bring the initiative to new cities, institutions and audiences through exhibitions, showcases and public engagement.',
+};
+const collaboratorRecordId = label => ({
+  Museums: 'partnership-museums', Embassies: 'partnership-embassies', Universities: 'partnership-universities',
+  Sponsors: 'partnership-sponsors', 'Cultural organisations': 'partnership-cultural-organisations',
+  Designers: 'partnership-designers-and-future-hosts',
+}[label] ?? `partnership-collaborator-${slugify(label)}`);
+const partnershipRecords = [
+  ...Object.entries(collaboratorDescriptions).map(([label, description], index) => sourceTruthRecord('PartnershipOptions', collaboratorRecordId(label), 'Validated page-by-page content and media proposal', { title: label, slug: `collaborator-${slugify(label)}`, optionType: 'collaborator', label, enquiryValue: label, description: richText(description), isEnabled: true, displayOrder: index + 1 })),
+  ...[
+    ['Exhibitions', 'Present the fabric, its symbols, designers and stories through an institution-led exhibition.'],
+    ['Fashion showcases', 'Stage a runway or presentation featuring approved interpretations of The Pan-African Fabric.'],
+    ['Workshops', 'Invite participants to explore colour, symbolism, storytelling and creative practice through guided activity.'],
+    ['Educational programmes', 'Build curriculum-linked talks, demonstrations and learning experiences for students and communities.'],
+    ['Cultural receptions', 'Create space for cultural exchange among artists, designers, diplomats, partners and invited guests.'],
+    ['Talks and presentations', 'Introduce the initiative, its creative process and its cultural purpose to a live audience.'],
+  ].map(([label, description], index) => sourceTruthRecord('PartnershipOptions', `partnership-format-${slugify(label)}`, 'Validated page-by-page content and media proposal', { title: label, slug: `format-${slugify(label)}`, optionType: 'format', label, enquiryValue: label, description: richText(description), isEnabled: true, displayOrder: index + 1 })),
+  ...['Hosting an exhibition', 'Workshop or education programme', 'Sponsorship', 'Cultural partnership', 'Designer collaboration', 'Something else'].map((label, index) => sourceTruthRecord('PartnershipOptions', `partnership-enquiry-${slugify(label)}`, 'Validated page-by-page content and media proposal', { title: label, slug: `enquiry-${slugify(label)}`, optionType: 'enquiry', label, enquiryValue: label, description: richText(label), isEnabled: true, displayOrder: index + 1 })),
+];
+
+const section = (page, key, order, heading, body, extra = {}) => record('PageSections', `section-${page}-${key}`, 'Validated page-by-page content and media proposal; implementation authorized on 2026-09-13.', { title: heading, slug: `${page}-${key}`, page: `page-${page}`, sectionKey: key, sectionType: extra.mediaAsset ? 'media' : 'editorial', eyebrow: `${String(order).padStart(2, '0')} — ${key.replaceAll('-', ' ')}`, heading, body: richText(body), isEnabled: true, displayOrder: order, ...extra });
+
+const pageSectionRecords = [
+  section('home', 'edition-one', 1, 'One fabric. Nine countries.', 'Edition One brings together designers representing Cameroon, the Central African Republic, Egypt, Ethiopia, Ghana, Kenya, Morocco, Nigeria and South Africa. Each designer interprets the same Pan-African textile through a distinct cultural and creative perspective.'),
+  section('home', 'designers', 2, 'One fabric, interpreted nine ways.', 'Meet the designers shaping Edition One and discover how a shared textile becomes nine individual fashion interpretations.', { ctaLabel: 'Meet the designers', ctaHref: '/edition-one#designers', mediaAsset: 'media-source-africa-to-the-world' }),
+  section('home', 'stories', 3, 'The living voice of the initiative.', 'Read reflections, poems and records from the people and moments shaping The Pan-African Fabric.', { ctaLabel: 'Go to Stories', ctaHref: '/stories' }),
+  section('home', 'partner', 4, 'Bring the fabric to your city.', 'Museums, embassies, universities, sponsors, cultural organisations, designers and future hosts can help shape where this initiative goes next.', { ctaLabel: 'Partner With Us', ctaHref: '/partner-with-us', mediaAsset: 'media-source-obp05905' }),
+  section('about', 'origin', 1, 'Why this initiative exists.', 'The Pan-African Fabric began with a desire to create a shared contemporary textile that could hold distinct African cultural stories together. Its colour palette grew from Long Live the Art of Service (LLTAOS), Shiri Achu’s 2023 creative initiative exploring twelve colours as symbols of service, purpose and human values. Those colours became the foundation of a fabric where symbolism and storytelling meet.', { mediaAsset: 'media-source-colour-board' }),
+  section('about', 'mission', 2, 'What it sets out to do.', 'The initiative uses art and fashion to celebrate the richness and diversity of African cultures, strengthen connections across the continent and its global diaspora, and create opportunities for cultural dialogue, education and international collaboration.'),
+  section('about', 'model', 3, 'How the initiative is made.', 'The platform brings together artists, fashion designers, museums, embassies, educational institutions, cultural organisations and communities through exhibitions, workshops, designer competitions, educational programmes, public engagement and creative collaboration. For Edition One, designers representing nine countries interpret one shared textile through their own cultural perspectives, creative visions and craftsmanship.', { mediaAsset: 'media-source-bukum-workshop' }),
+  section('about', 'milestones', 5, 'A growing cultural movement.', '2023 — Long Live the Art of Service (LLTAOS): twelve colours explored as symbols of service, purpose and human values.\n\nApril 2025 — Official launch: The Pan-African Fabric Initiative officially launched at the Embassy of the Republic of Cameroon in Washington, D.C.\n\n2025–2026 — Creative programmes: workshops, designer competitions, exhibitions and public programmes expanded the initiative across Africa and the United States.\n\n26 September 2026 — Inaugural showcase: nine designers representing nine African countries present Edition One at the Smithsonian National Museum of African Art.', { mediaAsset: 'media-source-photo-feb-13-2026-9-52-41-am' }),
+  section('edition-one', 'the-fabric', 1, 'A single cloth, carrying twelve colours.', 'The first Pan-African fabric intentionally created to unite symbols from across all five regions of Africa into one contemporary textile. The fabric’s colours, symbolism and storytelling come together to celebrate African unity.', { mediaAsset: 'media-source-fan' }),
+  section('edition-one', 'colours', 2, 'Twelve colours. Twelve values.', 'The Edition One palette connects twelve colours with participating countries and the values first explored through Long Live the Art of Service.', { mediaAsset: 'media-source-colour-chart' }),
+  section('edition-one', 'regions', 3, 'Five regions, held in one composition.', 'North, East, West, Central and Southern Africa meet within a single contemporary textile.'),
+  section('edition-one', 'countries', 4, 'Nine countries. Nine perspectives.', 'Explore each participating country, its colour, cultural symbol, designer and interpretation.'),
+  section('edition-one', 'designers', 5, 'The designers of Edition One.', 'Nine designers bring their own cultural perspectives, creative visions and craftsmanship to one shared fabric.'),
+  section('edition-one', 'process', 6, 'From symbol to silhouette.', 'The creative process moves from cultural research and symbol selection through textile development, designer interpretation, making and presentation.', { mediaAsset: 'media-source-styling-the-tie' }),
+  section('edition-one', 'garments', 7, 'The fabric in form.', 'See how The Pan-African Fabric becomes fashion, beginning with the inaugural dress created by Muks’ Couture.', { mediaAsset: 'media-source-africa-to-the-world' }),
+  section('events', 'upcoming', 1, 'The inaugural showcase.', 'The next confirmed public presentation brings nine designers and nine country interpretations together at the Smithsonian National Museum of African Art.', { mediaAsset: 'media-source-fan' }),
+  section('events', 'formats', 2, 'Many ways to encounter the fabric.', 'The initiative comes to life through exhibitions, fashion showcases, workshops, educational programmes, cultural receptions, talks and presentations.'),
+  section('events', 'archive', 3, 'The story so far.', 'Explore documented launches, workshops, exhibitions and cultural programmes that have shaped the initiative.', { mediaAsset: 'media-source-obp05927' }),
+  section('stories', 'index', 1, 'Stories from across the initiative.', 'Browse published reflections, poetry and records from the people and programmes shaping The Pan-African Fabric.'),
+  section('stories', 'categories', 2, 'Explore by voice and form.', 'Discover stories across reflections, poetry, events, designers and behind-the-scenes practice.'),
+  section('shop', 'collection', 1, 'The Pan-African Fan.', 'A functional object made from The Pan-African Fabric, connecting the Edition One textile with the initiative’s wider story.', { mediaAsset: 'media-home-hero-pan-african-fan' }),
+  section('shop', 'positions', 2, 'More pieces will follow.', 'Future digital and special-edition products will appear only when their stories, images, availability and fulfilment details are approved.'),
+  section('press-contact', 'fast-facts', 1, 'The initiative at a glance.', 'A concise set of verified facts for journalists, institutions and partners.'),
+  section('press-contact', 'releases', 2, 'Official releases.', 'Read official announcements and media releases issued by The Pan-African Fabric.'),
+  section('press-contact', 'assets', 3, 'Approved images and files.', 'Access approved press materials with their version, usage notes and download permissions.'),
+  section('press-contact', 'coverage', 4, 'Selected coverage.', 'Verified media coverage will be listed with its publication, date and source link.'),
+  section('press-contact', 'contact', 5, 'How to reach the initiative.', 'Use the relevant public channel for press, interviews, partnerships and general enquiries.'),
+  section('partner-with-us', 'why-partner', 1, 'What a partnership makes possible.', 'Partnerships create opportunities for cultural exchange, public learning, creative collaboration and new encounters with contemporary African stories.'),
+  section('partner-with-us', 'collaborators', 2, 'Seven kinds of collaborator.', 'The initiative works with museums, embassies, universities, sponsors, cultural organisations, designers and future hosts.'),
+  section('partner-with-us', 'ways', 3, 'How collaboration can take shape.', 'A partnership can begin with an exhibition, showcase, workshop, educational programme, cultural reception, talk or presentation.'),
+  section('partner-with-us', 'enquiry', 4, 'Tell us what you have in mind.', 'Choose the enquiry type that best fits your idea and share the city, organisation, dates and format you are considering.'),
+];
 
 const shopRecord = sourceTruthRecord('ShopItems', 'shop-pan-african-fan', 'Client-supplied The Pan-African Fan.jpg', { title: 'The Pan-African Fan', slug: 'the-pan-african-fan', itemType: 'fan', availabilityLabel: 'Details forthcoming', commerceEnabled: false, edition: 'edition-one', heroAsset: 'media-home-hero-pan-african-fan', displayOrder: 1 });
 
@@ -405,16 +474,21 @@ export const seedRecords = Object.freeze([
     isEnabled: true,
     displayOrder: 4,
   }),
+  ...pageSectionRecords,
   record('SiteSettings', 'site-settings-primary', 'Approved project identity and tagline.', {
     title: 'Primary site settings',
     slug: 'primary',
     siteName: 'The Pan-African Fabric',
     headerIdentity: 'The Pan-African Fabric',
     tagline: 'One Fabric. Many African Stories.',
+    footerStatement: 'A contemporary cultural initiative connecting African stories through textile, art, fashion, education and exchange.',
+    copyrightText: 'Created by Shiri Achu.',
     primaryEdition: 'edition-one',
     instagramUrl: 'https://www.instagram.com/thepanafricanfabric/',
     founderSiteUrl: 'https://www.shiriachuart.com/',
     canonicalOrigin: 'https://www.thepanafricanfabric.com/',
+    defaultSeoAsset: 'media-home-hero-pan-african-fan',
+    socialShareAsset: 'media-home-hero-pan-african-fan',
     displayOrder: 1,
   }),
   ...contactRecords,
