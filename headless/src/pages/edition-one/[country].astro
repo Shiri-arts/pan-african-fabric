@@ -12,6 +12,7 @@ import type { Media as MediaRecord } from '../../lib/media';
 import { adjacentCountries, countryPath, findCountry, regionName } from '../../data/countries';
 import { events } from '../../data/events';
 import { mediaSlot } from '../../lib/media';
+import { cmsPlainText } from '../../lib/cms-presentation';
 import { loadReviewCopy } from '../../lib/review';
 import {
   getDesigners, getEditionColours, getGarments, getMediaById, getParticipations, getPrimaryEdition,
@@ -49,7 +50,7 @@ const [editionCountries, cmsColours, participations, designers, cmsGarments, sym
   cmsCountry?.heroAssetId ? getMediaById(cmsCountry.heroAssetId) : Promise.resolve(undefined),
 ]) : [[], [], [], [], [], [], [], undefined];
 
-const textOnly = (value: unknown): string | undefined => typeof value === 'string' && value.trim() ? value.trim() : undefined;
+const textOnly = (value: unknown): string | undefined => typeof value === 'string' ? cmsPlainText(value) : undefined;
 const fallbackColours = country ? coloursForCountry(country.slug) : [];
 const cmsCountryById = new Map(editionCountries.map((item) => [item.id, item]));
 const colours = fallbackColours.flatMap((fallback) => {

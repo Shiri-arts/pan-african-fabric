@@ -151,10 +151,11 @@ export function assertPublicCollection(collectionId: string): asserts collection
   if (!PUBLIC_COLLECTIONS.has(collectionId) || collectionId.endsWith('__drafts')) throw new Error(`Unsupported public CMS collection: ${collectionId}`);
 }
 
+const keepBrandTogether = (value: string): string => value.replaceAll('The Pan-African Fabric', 'The\u00a0Pan-African\u00a0Fabric');
 const text = (value: unknown, max = 10000): string | undefined => {
   if (typeof value !== 'string') return undefined;
   const result = value.trim();
-  return result && result.length <= max ? result : undefined;
+  return result && result.length <= max ? keepBrandTogether(result) : undefined;
 };
 const finiteNumber = (value: unknown): number | undefined => typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 const order = (value: unknown): number => finiteNumber(value) ?? Number.MAX_SAFE_INTEGER;
@@ -196,7 +197,7 @@ const ricosHtml = (value: unknown): string | undefined => {
     return children;
   };
   const html = (value as { nodes: unknown[] }).nodes.map(render).join('').trim();
-  return html || undefined;
+  return html ? keepBrandTogether(html) : undefined;
 };
 const rich = (value: unknown): CmsRichText | undefined => {
   const html = text(value, 100000) ?? ricosHtml(value);

@@ -12,6 +12,7 @@ import { COLOUR_COUNT, editionColours } from '../../data/colours';
 import { COUNTRY_COUNT, REGION_COUNT, countries as staticCountries, regions as staticRegions, countryPath, regionName, type Country, type RegionSlug } from '../../data/countries';
 import { approved, awaiting, draft } from '../../lib/content';
 import { mediaSlot } from '../../lib/media';
+import { cmsPlainText } from '../../lib/cms-presentation';
 import { loadReviewCopy } from '../../lib/review';
 import {
   getDesigners, getEditionColours, getEditionCountries, getGarments, getMediaAssets, getMediaById, getPageByKey, getPageHeroMedia,
@@ -100,7 +101,7 @@ const lead = cmsLead
   ? draft(review.editionOne.lead, 'Founder / content lead')
   : awaiting('Edition One lead line');
 
-const cmsIntro = textOnly(cmsPage?.introduction) ?? textOnly(cmsEdition?.statement);
+const cmsIntro = cmsPlainText(cmsPage?.introduction) ?? cmsPlainText(cmsEdition?.statement);
 const intro = cmsIntro
   ? approved(cmsIntro)
   : review
@@ -110,8 +111,8 @@ const intro = cmsIntro
 const heroMedia = cmsEditionHero ?? cmsPageHero ?? mediaSlot('edition-hero', '21/9', 'Approved photograph of the finished fabric, full width.');
 const fabricSectionMedia = sectionByKey.get('the-fabric')?.mediaAssetId ? await getMediaById(sectionByKey.get('the-fabric')!.mediaAssetId!) : undefined;
 const fabricMedia = cmsFabric ?? fabricSectionMedia ?? mediaSlot('edition-fabric', '3/2', 'Approved close-up of the fabric showing weave, colour transitions and scale.');
-const fabricDescription = textOnly(cmsEdition?.fabricDescription) ?? textOnly(sectionByKey.get('the-fabric')?.body);
-const processDescription = textOnly(cmsEdition?.creativeProcess) ?? textOnly(sectionByKey.get('process')?.body);
+const fabricDescription = cmsPlainText(cmsEdition?.fabricDescription) ?? cmsPlainText(sectionByKey.get('the-fabric')?.body);
+const processDescription = cmsPlainText(cmsEdition?.creativeProcess) ?? cmsPlainText(sectionByKey.get('process')?.body);
 
 const pageTitle = cmsPage?.seoTitle ?? cmsPage?.title ?? 'Edition One';
 const pageDescription = cmsPage?.seoDescription ?? 'Edition One: one fabric, twelve colours and nine countries across five African regions, interpreted by designers into finished garments and accessories.';
@@ -136,6 +137,7 @@ const process = [
     title={heroTitle}
     size="tall"
     media={heroMedia}
+    mediaFit="contain"
     meta={[`${COLOUR_COUNT} colours`, `${COUNTRY_COUNT} countries`, `${REGION_COUNT} regions`]}
   >
     <Copy copy={lead} class="page-hero__tagline" fallbackTitle="Edition One lead line" emptyTone="ink" />
@@ -293,7 +295,7 @@ const process = [
 
   <Section tone="surface" id="garments" hidden={!sectionEnabled('garments')}>
     <SectionHead eyebrow={sectionByKey.get('garments')?.eyebrow ?? '07 — Garments and accessories'} title={sectionByKey.get('garments')?.heading ?? 'The finished work.'}>
-      <p>{textOnly(sectionByKey.get('garments')?.body) ?? 'Garment and accessory galleries publish only with approved photography, captions and full credits.'}</p>
+      <p>{cmsPlainText(sectionByKey.get('garments')?.body) ?? 'Garment and accessory galleries publish only with approved photography, captions and full credits.'}</p>
       <Button href="/shop" variant="text">Visit the shop<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
     </SectionHead>
     {garmentMedia.length > 0 ? (

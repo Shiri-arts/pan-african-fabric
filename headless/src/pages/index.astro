@@ -108,8 +108,9 @@ const partnerMedia = (partnerSection?.mediaAssetId ? await getMediaById(partnerS
   cmsSettings={cmsSettings}
 >
   <PageHero
+    class="page-hero--home"
     eyebrow={cmsPage?.eyebrow ?? 'An international cultural initiative'}
-    title={escapedHeroTitle(cmsPage?.heroTitle, 'The Pan-African<span>Fabric</span>', true)}
+    title={escapedHeroTitle(cmsPage?.heroTitle, 'The Pan-African Fabric')}
     tagline={cmsPage?.heroTagline ?? cmsSettings?.tagline ?? TAGLINE}
     size="full"
     media={heroMedia}

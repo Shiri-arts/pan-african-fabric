@@ -72,6 +72,12 @@ test('Wix structured rich text is normalized into safe HTML', async () => {
   assert.equal((await cms.getPageByKey('about'))?.introduction, '<p>One &amp; &lt;two&gt;</p>');
 });
 
+test('the project name remains an unbroken typographic unit', async () => {
+  const { source } = fixtureSource({ Pages: [record('page-home', { pageKey: 'home', path: '/', heroTitle: 'The Pan-African Fabric' })] });
+  const cms = createCmsContentAccess(source, value => String(value));
+  assert.equal((await cms.getPageByKey('home'))?.heroTitle, 'The\u00a0Pan-African\u00a0Fabric');
+});
+
 test('media rights, alt text and source validation prevent unsafe images', () => {
   const scale = value => value;
   assert.equal(mapMedia(record('m1', { image: 'https://example.com/a.jpg', usagePermission: 'review-only', alt: 'A' }), scale), undefined);
