@@ -7,23 +7,21 @@ import PageHero from '../../components/PageHero.astro';
 import EventPoster from '../../components/EventPoster.astro';
 import EventCard from '../../components/EventCard.astro';
 import EmptyState from '../../components/EmptyState.astro';
-import { eventPhase, eventStructuredData, events, inauguralShowcase } from '../../data/events';
+import { eventPhase, eventStructuredData, events } from '../../data/events';
 import { awaiting, draft } from '../../lib/content';
 import { mediaSlot } from '../../lib/media';
 import { cmsPlainText, escapeCmsHeading, presentCmsEvent, sectionsByKey } from '../../lib/cms-route-presenters';
 import { loadReviewCopy } from '../../lib/review';
-import { getEventBySlug, getMediaById, getPageByKey, getPageHeroMedia, getPageSections, getUpcomingEvents } from '../../lib/wix-cms';
+import { getEvents, getMediaById, getPageByKey, getPageHeroMedia, getPageSections } from '../../lib/wix-cms';
 
 const review = await loadReviewCopy();
-const [cmsPage, cmsSections, cmsHeroMedia, upcomingCms, knownCmsEvent] = await Promise.all([
+const [cmsPage, cmsSections, cmsHeroMedia, cmsSources] = await Promise.all([
   getPageByKey('events'),
   getPageSections('events'),
   getPageHeroMedia('events'),
-  getUpcomingEvents(),
-  getEventBySlug(inauguralShowcase.slug),
+  getEvents(),
 ]);
 const sectionContent = sectionsByKey(cmsSections);
-const cmsSources = [...upcomingCms, ...(knownCmsEvent && !upcomingCms.some(event => event.id === knownCmsEvent.id) ? [knownCmsEvent] : [])];
 const cmsPairs = (await Promise.all(cmsSources.map(async source => ({ source, event: await presentCmsEvent(source, getMediaById) }))))
   .filter((pair): pair is { source: typeof cmsSources[number]; event: NonNullable<Awaited<ReturnType<typeof presentCmsEvent>>> } => Boolean(pair.event));
 const eventRecords = [

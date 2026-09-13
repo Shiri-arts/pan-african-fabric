@@ -14,7 +14,7 @@ import { approved, awaiting, draft } from '../../lib/content';
 import { mediaSlot } from '../../lib/media';
 import { loadReviewCopy } from '../../lib/review';
 import {
-  getDesigners, getEditionColours, getEditionCountries, getMediaAssets, getMediaById, getPageByKey, getPageHeroMedia,
+  getDesigners, getEditionColours, getEditionCountries, getGarments, getMediaAssets, getMediaById, getPageByKey, getPageHeroMedia,
   getPageSections, getParticipations, getPrimaryEdition, getRegions,
 } from '../../lib/wix-cms';
 
@@ -32,6 +32,9 @@ const [cmsCountries, cmsColours, cmsDesigners, cmsParticipations, cmsPageHero, c
   cmsEdition?.fabricAssetId ? getMediaById(cmsEdition.fabricAssetId) : Promise.resolve(undefined),
 ]);
 const previewMedia = cmsPreview ? await getMediaAssets() : [];
+const cmsGarments = cmsEdition ? await getGarments({ editionId: cmsEdition.id }) : [];
+const garmentMedia = (await Promise.all(cmsGarments.map(item => item.heroAssetId ? getMediaById(item.heroAssetId) : undefined)))
+  .filter((item): item is NonNullable<typeof item> => Boolean(item));
 const unassignedPreviewDesigners = cmsPreview
   ? cmsDesigners.filter(designer => !cmsParticipations.some(participation => participation.designerId === designer.id))
   : [];
@@ -293,11 +296,11 @@ const process = [
       <p>{textOnly(sectionByKey.get('garments')?.body) ?? 'Garment and accessory galleries publish only with approved photography, captions and full credits.'}</p>
       <Button href="/shop" variant="text">Visit the shop<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
     </SectionHead>
-    <EmptyState
-      title="No approved garment or accessory imagery has been supplied."
-      text="The gallery layout, controlled crops, caption positions and credit lines are built and waiting for approved files."
-      layout="centred"
-    />
+    {garmentMedia.length > 0 ? (
+      <ul class="card-grid">
+        {garmentMedia.map((item) => <li><Media media={item} /></li>)}
+      </ul>
+    ) : <EmptyState title="No approved garment or accessory imagery has been supplied." text="Approved garment photography appears here after it is connected in the CMS." layout="centred" />}
   </Section>
 </Layout>
 

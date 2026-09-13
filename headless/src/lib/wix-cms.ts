@@ -38,6 +38,7 @@ export const getDesigners = cms.getDesigners.bind(cms);
 export const getDesignerBySlug = cms.getDesignerBySlug.bind(cms);
 export const getParticipations = cms.getParticipations.bind(cms);
 export const getGarments = cms.getGarments.bind(cms);
+export const getEvents = cms.getEvents.bind(cms);
 export const getUpcomingEvents = cms.getUpcomingEvents.bind(cms);
 export const getEventBySlug = cms.getEventBySlug.bind(cms);
 export const getPublishedStories = cms.getPublishedStories.bind(cms);
