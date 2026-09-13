@@ -11,7 +11,7 @@ import {
   seedRecords,
   validateSeedManifest,
 } from './approved-content-seed.mjs';
-import { dryRunReport, parseArguments, prepareDraftData } from './migrate-approved-content.mjs';
+import { dryRunReport, findSemanticDuplicate, parseArguments, prepareDraftData } from './migrate-approved-content.mjs';
 
 const identity = item => `${item.collectionId}/${item.id}`;
 const find = (collectionId, id) => seedRecords.find(item => item.collectionId === collectionId && item.id === id);
@@ -51,6 +51,53 @@ test('manifest contains exactly the approved country-colour mapping in source or
     ['Green', 'country-south-africa-edition-one'],
   ]);
   assert.ok(seedRecords.filter(item => item.collectionId === 'EditionColours').every(item => item.data.hexValue === undefined));
+});
+
+test('source-truth additions contain only unambiguous region and display identity fields', () => {
+  const regions = seedRecords.filter(item => item.collectionId === 'Regions');
+  assert.deepEqual(regions.map(item => item.data.name), [
+    'North Africa',
+    'East Africa',
+    'Southern Africa',
+    'West Africa',
+    'Central Africa',
+  ]);
+  assert.ok(regions.every(item => item.data.description === undefined));
+
+  const designers = seedRecords.filter(item => item.collectionId === 'Designers');
+  assert.deepEqual(designers.map(item => item.data.displayName), [
+    'Muks’ Couture',
+    'Diana-Melissa Ngoumape',
+    'MOJA Design Studio',
+    'YYASMINA STAR',
+    'Afua Sam',
+    'Amos Onyango',
+    'Naima El Messaoudi',
+    'Goody’s Stitches',
+    'Fatima Barnes',
+  ]);
+  for (const item of designers) {
+    for (const omitted of ['studioName', 'professionalTitle', 'location', 'biography', 'statement', 'professionalUrl', 'socialUrl', 'portraitAsset']) {
+      assert.equal(item.data[omitted], undefined);
+    }
+  }
+});
+
+test('Edition One gains only the two exact unambiguous source narratives', () => {
+  const edition = find('Editions', 'edition-one').data;
+  assert.match(edition.colourNarrative.nodes[0].nodes[0].textData.text, /^The fabric's distinctive color palette/);
+  assert.match(edition.creativeProcess.nodes[0].nodes[0].textData.text, /^Fashion designers representing each participating country/);
+  for (const field of ['colourNarrative', 'creativeProcess']) {
+    const document = edition[field];
+    assert.equal(document.nodes.length, 1);
+    assert.equal(document.nodes[0].type, 'PARAGRAPH');
+    assert.equal(document.nodes[0].nodes[0].type, 'TEXT');
+    assert.deepEqual(document.nodes[0].nodes[0].textData.decorations, []);
+    assert.equal(document.nodes[0].paragraphData.textStyle.textAlignment, 'AUTO');
+  }
+  for (const omitted of ['year', 'editionStatus', 'fabricDescription', 'leadLine']) {
+    assert.equal(edition[omitted], undefined);
+  }
 });
 
 test('event seed is limited to the exact supplied facts and confirmed time zone', () => {
@@ -109,6 +156,39 @@ test('draft merge treats normalized Wix datetimes as the same instant', () => {
   }, Object.keys(item.data));
   assert.deepEqual(prepared.conflicts, []);
   assert.equal(prepared.data._publishStatus, undefined);
+});
+
+test('draft merge accepts Wix rich-text key normalization', () => {
+  const item = find('Editions', 'edition-one');
+  const normalized = {
+    ...item.data,
+    colourNarrative: {
+      nodes: item.data.colourNarrative.nodes.map(node => ({
+        nodes: node.nodes.map(child => ({ textData: child.textData, type: child.type })),
+        paragraphData: node.paragraphData,
+        type: node.type,
+      })),
+    },
+  };
+  assert.deepEqual(prepareDraftData(item, normalized, Object.keys(item.data)).conflicts, []);
+});
+
+test('duplicate preflight detects different IDs with the same CMS identity', () => {
+  const designer = find('Designers', 'designer-afua-sam');
+  assert.equal(findSemanticDuplicate(designer, [{
+    id: 'existing-afua',
+    data: { slug: 'different-slug', displayName: 'Afua Sam' },
+  }]).id, 'existing-afua');
+  assert.equal(findSemanticDuplicate(designer, [{
+    id: designer.id,
+    data: { slug: designer.data.slug, displayName: designer.data.displayName },
+  }]), undefined);
+
+  const page = find('Pages', 'page-events');
+  assert.equal(findSemanticDuplicate(page, [{
+    id: 'another-events-page',
+    data: { slug: 'events' },
+  }]).id, 'another-events-page');
 });
 
 test('apply requires explicit draft-write confirmation', () => {

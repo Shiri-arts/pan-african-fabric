@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { isDeepStrictEqual } from 'node:util';
 import { readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -58,7 +59,13 @@ function sameValue(left, right) {
     const rightInstant = Date.parse(right);
     if (Number.isFinite(leftInstant) && Number.isFinite(rightInstant)) return leftInstant === rightInstant;
   }
-  return JSON.stringify(left) === JSON.stringify(right);
+  return isDeepStrictEqual(left, right);
+}
+
+function seedFieldsAlreadyPresent(item, currentData = {}) {
+  return Object.entries(item.data).every(([key, value]) => (
+    MUTABLE_TECHNICAL_FIELDS.has(key) && !isBlank(currentData[key])
+  ) || sameValue(currentData[key], value));
 }
 
 /**
@@ -148,6 +155,40 @@ async function getDraftInclusiveItem(api, collectionId, id) {
   return result.dataItems?.[0];
 }
 
+async function getDraftInclusiveItems(api, collectionId) {
+  const items = [];
+  let offset = 0;
+  for (;;) {
+    const result = await api('/wix-data/v2/items/query', {
+      method: 'POST',
+      body: {
+        dataCollectionId: collectionId,
+        query: { paging: { limit: 100, offset } },
+        consistentRead: true,
+        publishPluginOptions: { includeDraftItems: true },
+        returnTotalCount: true,
+      },
+    });
+    const page = result.dataItems ?? [];
+    items.push(...page);
+    if (page.length < 100 || items.length >= (result.pagingMetadata?.total ?? items.length)) break;
+    offset += page.length;
+  }
+  return items;
+}
+
+const SEMANTIC_IDENTITY_FIELDS = Object.freeze({
+  Designers: ['slug', 'displayName'],
+  Regions: ['slug', 'regionKey', 'name'],
+});
+
+export function findSemanticDuplicate(item, existingItems = []) {
+  const fields = SEMANTIC_IDENTITY_FIELDS[item.collectionId] ?? ['slug'];
+  return existingItems.find(existing => existing.id !== item.id && fields.some(field => (
+    !isBlank(item.data[field]) && sameValue(existing.data?.[field], item.data[field])
+  )));
+}
+
 function collectionFromResponse(response) {
   return response.collection ?? response.dataCollection;
 }
@@ -188,12 +229,14 @@ async function applyDraftSeed(siteId) {
   const token = siteToken(siteId);
   const api = createApi(token, siteId);
   const schemas = new Map();
+  const collectionItems = new Map();
 
   for (const collectionId of seedCollections) {
     const response = await api(`/wix-data/v2/collections/${encodeURIComponent(collectionId)}?consistentRead=true`);
     const collection = collectionFromResponse(response);
     assertDraftCollection(collection, collectionId);
     schemas.set(collectionId, new Set(collection.fields?.map(field => field.key)));
+    collectionItems.set(collectionId, await getDraftInclusiveItems(api, collectionId));
   }
 
   for (const dependency of existingPublishedDependencies) {
@@ -204,7 +247,19 @@ async function applyDraftSeed(siteId) {
   // Complete the entire conflict and schema preflight before the first mutation.
   const operations = [];
   const skippedPublished = [];
+  const skippedDuplicates = [];
+  const skippedNoops = [];
   for (const item of seedRecords) {
+    const duplicate = findSemanticDuplicate(item, collectionItems.get(item.collectionId));
+    if (duplicate) {
+      skippedDuplicates.push({
+        collectionId: item.collectionId,
+        proposedId: item.id,
+        existingId: duplicate.id,
+        reason: 'Existing record has the same semantic identity; no duplicate was created.',
+      });
+      continue;
+    }
     const published = await getItem(api, item.collectionId, item.id);
     const inclusive = await getDraftInclusiveItem(api, item.collectionId, item.id);
     const draft = inclusive?.data?._publishStatus === DRAFT_STATUS ? inclusive : undefined;
@@ -213,6 +268,10 @@ async function applyDraftSeed(siteId) {
     const prepared = prepareDraftData(item, current?.data, allowedFields);
     if (prepared.conflicts.length) {
       throw new Error(`Seed conflict for ${item.collectionId}/${item.id}: ${JSON.stringify(prepared.conflicts)}. Resolve it in Wix instead of overwriting editorial content.`);
+    }
+    if (current && seedFieldsAlreadyPresent(item, current.data)) {
+      skippedNoops.push({ collectionId: item.collectionId, id: item.id, reason: 'All proposed fields already exist; no write was performed.' });
+      continue;
     }
     if (published && !draft) {
       skippedPublished.push({
@@ -258,6 +317,8 @@ async function applyDraftSeed(siteId) {
     publicationOperations: 0,
     records: results,
     skippedPublished,
+    skippedDuplicates,
+    skippedNoops,
   };
 }
 
