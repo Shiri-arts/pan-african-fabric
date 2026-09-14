@@ -146,7 +146,8 @@ const sections = [
     margin: 0 clamp(32px, 5vw, 80px) var(--space-lg) 0;
   }
   .founder__title { font-size: clamp(2rem, 4.4vw, 3.5rem); line-height: 1; letter-spacing: -0.035em; margin: 0 0 var(--space-lg); }
-  .founder__quote { margin: 0 0 var(--space-lg); padding-left: var(--space-md); border-left: 2px solid var(--gold); }
+  /* flow-root keeps the quote's box, and its gold rule, beside the portrait rather than under it. */
+  .founder__quote { display: flow-root; margin: 0 0 var(--space-lg); padding-left: var(--space-md); border-left: 2px solid var(--gold); }
   .founder__quote-text {
     font-family: var(--font-display);
     font-style: italic;
@@ -163,6 +164,12 @@ const sections = [
   .founder-biography :global(p) { font-size: 0.9875rem; line-height: 1.75; color: var(--on-ink-muted); }
   .founder-biography :global(p:first-child) { font-size: 1.125rem; line-height: 1.65; color: var(--on-ink); }
   .founder-biography :global(p + p) { margin-top: var(--space-md); }
+  /*
+    CmsRichText caps paragraphs at 68ch, narrower than the space beside the portrait,
+    so no paragraph could wrap around it. The biography renders inside that component,
+    which does not carry this page's scope, so the override reaches it through :global.
+  */
+  .founder :global(.founder-biography p) { max-width: none; }
   @media (max-width: 699px) {
     .founder__media { float: none; width: min(100%, 30rem); margin: 0 0 var(--space-lg); }
   }
