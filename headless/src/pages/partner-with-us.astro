@@ -154,38 +154,39 @@ const enquiryTypes = enquiryOptions.length > 0 ? enquiryOptions.map(option => op
 
   <Section tone="surface" id="enquiry" hidden={!sectionEnabled('enquiry')}>
     <SectionHead eyebrow={enquirySection?.eyebrow ?? '04 — Enquiry'} title={enquirySection?.heading ?? 'Tell us what you have in mind.'}>
-      <p>{cmsPlainText(enquirySection?.body) ?? 'This form is a design preview. It does not send, store or transmit anything, and every control is disabled until a recipient, privacy notice, consent wording and spam protection are approved.'}</p>
+      <p>{cmsPlainText(enquirySection?.body) ?? 'Share the organisation, location, timeline and collaboration you have in mind. Enquiries are stored securely in Wix CMS for the initiative team to review.'}</p>
     </SectionHead>
 
     <div class="enquiry">
       <div class="enquiry__notice" role="note">
-        <p class="badge badge--review">Design preview · not active</p>
+        <p class="badge">Enquiries open</p>
         <p class="enquiry__notice-text">
-          Nothing typed here is captured or sent. Labels, help text and error messages are already wired to their
-          controls so the form is correct the moment it is switched on.
+          Your details are used only to review and respond to this enquiry. Submissions are stored in the private
+          Enquiries collection in Wix CMS and are not exposed through the public content API.
         </p>
       </div>
 
-      <form class="form-preview" novalidate aria-describedby="enquiry-status">
-        <p class="visually-hidden" id="enquiry-status">
-          This form is a design preview. Submission is disabled and no information is transmitted.
-        </p>
+      <form class="form-preview" id="partner-enquiry-form" aria-describedby="enquiry-status">
+        <p id="enquiry-status" class="form-status" role="status" aria-live="polite"></p>
+        <input type="hidden" id="partner-started-at" name="startedAt" value="" />
+        <div class="form-trap" aria-hidden="true"><label for="partner-website">Website</label><input id="partner-website" name="website" tabindex="-1" autocomplete="off" /></div>
         <div class="form-preview__row">
-          <Field id="partner-name" label="Your name" required autocomplete="name" />
-          <Field id="partner-organisation" label="Organisation" required autocomplete="organization" />
+          <Field id="partner-name" label="Your name" required autocomplete="name" disabled={false} />
+          <Field id="partner-organisation" label="Organisation" required autocomplete="organization" disabled={false} />
         </div>
         <div class="form-preview__row">
           <Field id="partner-email" label="Email" type="email" required autocomplete="email"
-            help="Used only to reply to this enquiry." />
-          <Field id="partner-country" label="Country or city" autocomplete="country-name" />
+            help="Used only to reply to this enquiry." disabled={false} />
+          <Field id="partner-country" label="Country or city" autocomplete="country-name" disabled={false} />
         </div>
-        <Field id="partner-type" label="Type of enquiry" type="select" required options={enquiryTypes} />
+        <Field id="partner-type" label="Type of enquiry" type="select" required options={enquiryTypes} disabled={false} />
         <Field id="partner-message" label="Your enquiry" type="textarea" required
-          help="What you have in mind, and any dates or venues you are working towards." />
-        <Field id="partner-timeline" label="Timeline" error="Example error state. Errors are announced through the control they belong to." />
+          help="What you have in mind, and any dates or venues you are working towards." disabled={false} />
+        <Field id="partner-timeline" label="Timeline" disabled={false} />
+        <Field id="partner-consent" label="I agree that the information submitted may be used to respond to this enquiry." type="checkbox" required disabled={false} />
         <div class="enquiry__actions">
-          <Button type="submit" disabled describedBy="enquiry-status" size="large">Send enquiry</Button>
-          <p class="enquiry__actions-note">Disabled until the backend and privacy wording are approved.</p>
+          <Button id="partner-submit" type="submit" describedBy="enquiry-status" size="large">Send enquiry</Button>
+          <p class="enquiry__actions-note">You can also email <a href="mailto:info@shiriachuart.com">info@shiriachuart.com</a>.</p>
         </div>
       </form>
     </div>
@@ -223,8 +224,49 @@ const enquiryTypes = enquiryOptions.length > 0 ? enquiryOptions.map(option => op
   .enquiry__notice-text { font-size: 0.8125rem; line-height: 1.55; color: var(--muted); margin: 0; }
   .enquiry__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-md); padding-top: var(--space-sm); border-top: 1px solid var(--border); }
   .enquiry__actions-note { font-size: 0.75rem; line-height: 1.5; color: var(--muted); margin: 0; max-width: 30ch; }
+  .form-status { min-height: 1.5em; margin: 0 0 var(--space-sm); font-weight: 600; }
+  .form-status[data-state='error'] { color: var(--rust); }
+  .form-status[data-state='success'] { color: #1f6b45; }
+  .form-trap { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   @media (max-width: 899px) {
     .enquiry { grid-template-columns: minmax(0, 1fr); }
     .enquiry__notice { position: static; }
   }
 </style>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('#partner-enquiry-form');
+  const status = document.querySelector<HTMLElement>('#enquiry-status');
+  const submit = document.querySelector<HTMLButtonElement>('#partner-submit');
+  const started = document.querySelector<HTMLInputElement>('#partner-started-at');
+  if (started) started.value = String(Date.now());
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!form.reportValidity() || !status || !submit) return;
+    const values = new FormData(form);
+    const payload = {
+      name: values.get('partner-name'), organisation: values.get('partner-organisation'),
+      email: values.get('partner-email'), location: values.get('partner-country'),
+      enquiryType: values.get('partner-type'), message: values.get('partner-message'),
+      timeline: values.get('partner-timeline'), consent: values.get('partner-consent') === 'on',
+      website: values.get('website'), startedAt: Number(values.get('startedAt')),
+    };
+    submit.disabled = true;
+    submit.setAttribute('aria-busy', 'true');
+    status.textContent = 'Sending your enquiry…';
+    status.dataset.state = '';
+    try {
+      const response = await fetch('/api/enquiries', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const result = await response.json() as { message?: string };
+      status.textContent = result.message ?? 'The enquiry could not be submitted.';
+      status.dataset.state = response.ok ? 'success' : 'error';
+      if (response.ok) { form.reset(); if (started) started.value = String(Date.now()); }
+    } catch {
+      status.textContent = 'The enquiry could not be submitted. Please email info@shiriachuart.com.';
+      status.dataset.state = 'error';
+    } finally {
+      submit.disabled = false;
+      submit.removeAttribute('aria-busy');
+    }
+  });
+</script>

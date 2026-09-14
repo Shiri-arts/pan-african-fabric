@@ -646,6 +646,9 @@
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field__label { font-size: 0.8125rem; font-weight: 500; letter-spacing: 0.02em; }
 .field__required { color: var(--accent); }
+.field--checkbox { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 10px; }
+.field--checkbox .field__label { grid-column: 2; cursor: pointer; line-height: 1.5; }
+.field__checkbox { grid-column: 1; grid-row: 1; width: 20px; height: 20px; margin: 1px 0 0; accent-color: var(--rust); }
 .field__control {
   min-height: var(--control-min);
   padding: 12px 14px;

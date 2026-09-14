@@ -13,7 +13,7 @@ export const onRequest = defineMiddleware(async (_context, next) => {
     `connect-src 'self'${import.meta.env.DEV ? ' ws://127.0.0.1:4321' : ''}`,
     "object-src 'none'",
     "base-uri 'self'",
-    "form-action 'none'",
+    "form-action 'self'",
     "frame-ancestors 'none'",
   ].join('; '));
   return response;

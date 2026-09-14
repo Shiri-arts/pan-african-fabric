@@ -9,7 +9,7 @@
 interface Props {
   id: string;
   label: string;
-  type?: 'text' | 'email' | 'tel' | 'url' | 'textarea' | 'select';
+  type?: 'text' | 'email' | 'tel' | 'url' | 'textarea' | 'select' | 'checkbox';
   required?: boolean;
   help?: string;
   error?: string;
@@ -27,12 +27,14 @@ const helpId = help ? `${id}-help` : undefined;
 const errorId = error ? `${id}-error` : undefined;
 const describedBy = [helpId, errorId].filter(Boolean).join(' ') || undefined;
 ---
-<div class:list={['field', error && 'field--error', className]}>
+<div class:list={['field', type === 'checkbox' && 'field--checkbox', error && 'field--error', className]}>
   <label class="field__label" for={id}>
     {label}{required && <span class="field__required" aria-hidden="true"> *</span>}
     {required && <span class="visually-hidden"> (required)</span>}
   </label>
-  {type === 'textarea' ? (
+  {type === 'checkbox' ? (
+    <input class="field__checkbox" id={id} name={id} type="checkbox" required={required} disabled={disabled} aria-describedby={describedBy} />
+  ) : type === 'textarea' ? (
     <textarea
       class="field__control" id={id} name={id} required={required} disabled={disabled}
       aria-describedby={describedBy} aria-invalid={error ? 'true' : undefined}
