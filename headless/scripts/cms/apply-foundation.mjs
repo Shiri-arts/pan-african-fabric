@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { assertNewSite, assertEditorialCollection, collections, creationPlan } from './manifest.mjs';
+import { assertNewSite, assertEditorialCollection, foundationCollections, creationPlan } from './manifest.mjs';
 import { createPrivateCmsClient } from './content.server.mjs';
 
 function siteToken(siteId) {
@@ -23,7 +23,7 @@ function siteToken(siteId) {
 export async function applyFoundation(client) {
   const read = id => client.request(`/wix-data/v2/collections/${id}?consistentRead=true`);
   const existing = new Map();
-  for (const expected of collections) {
+  for (const expected of foundationCollections) {
     try {
       const result = await read(expected.id);
       // For an existing shell, validate every known field before adding missing references.
@@ -44,9 +44,9 @@ export async function applyFoundation(client) {
     await client.request(operation.path, operation);
   }
   const verified = [];
-  for (const expected of collections) {
+  for (const expected of foundationCollections) {
     const result = await read(expected.id);
-    assertEditorialCollection(result.collection, expected);
+    assertEditorialCollection(result.collection, expected, { requirePublish: expected.plugins.length > 0 });
     const items = await client.queryPrivate(expected.id);
     verified.push({ id: expected.id, fields: expected.fields.length, permissions: result.collection.permissions, hasPublishedItems: items.length > 0 });
   }

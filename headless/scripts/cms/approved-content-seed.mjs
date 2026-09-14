@@ -326,7 +326,7 @@ const contactRecords = [
   ['contact-media-phone', 'Media contact phone', 'media-phone', 'phone', '+1 240 696 9297'],
   ['contact-reception-phone', 'Cultural Reception RSVP', 'reception-phone', 'phone', '240 234 1979'],
 ].map(([id, title, channelKey, kind, value], index) => sourceTruthRecord('ContactChannels', id, 'Official Press & Media Guide and showcase invitation', {
-  title, slug: channelKey, channelKey, label: title, description: value, ...(kind === 'email' ? { emailAddress: value } : {}), publicUseVerified: true, isEnabled: true, displayOrder: index + 1,
+  title, slug: channelKey, channelKey, label: title, ...(kind === 'email' ? { emailAddress: value } : { phoneNumber: value }), publicUseVerified: true, isEnabled: true, displayOrder: index + 1,
 }));
 
 const storySource = [

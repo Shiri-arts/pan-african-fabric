@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { EXISTING_EDITOR_SITE_ID, HEADLESS_SITE_ID, assertEditorialCollection, collections, creationPlan } from './manifest.mjs';
+import { EXISTING_EDITOR_SITE_ID, HEADLESS_SITE_ID, assertEditorialCollection, collections, foundationCollections, creationPlan } from './manifest.mjs';
 import { createPrivateCmsClient, publicCollection } from './content.server.mjs';
 import { applyFoundation } from './apply-foundation.mjs';
 import { validateContent } from './validate-content.mjs';
@@ -92,14 +92,14 @@ test('foundation creates shells before references, verifies schemas and resumes 
     },
     async queryPrivate() { return []; },
   };
-  assert.equal((await applyFoundation(client)).collections.length, collections.length);
+  assert.equal((await applyFoundation(client)).collections.length, foundationCollections.length);
   const firstCount = mutations.length;
   await applyFoundation(client);
   assert.equal(mutations.length, firstCount);
 });
 
 test('foundation adds a new scalar field to an existing collection', async () => {
-  const stored = new Map(collections.map(value => [value.id, structuredClone(value)]));
+  const stored = new Map(foundationCollections.map(value => [value.id, structuredClone(value)]));
   stored.get('Editions').fields = stored.get('Editions').fields.filter(value => value.key !== 'leadLine');
   const created = [];
   const client = {
@@ -118,7 +118,7 @@ test('foundation adds a new scalar field to an existing collection', async () =>
 });
 
 test('foundation preserves existing content while applying additive schema fields', async () => {
-  const stored = new Map(collections.map(value => [value.id, structuredClone(value)]));
+  const stored = new Map(foundationCollections.map(value => [value.id, structuredClone(value)]));
   stored.get('Pages').fields = stored.get('Pages').fields.filter(value => value.key !== 'heroTagline');
   const created = [];
   const client = {

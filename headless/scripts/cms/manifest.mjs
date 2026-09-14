@@ -2,6 +2,7 @@
 export const EXISTING_EDITOR_SITE_ID = 'cf6dc8aa-2320-4c66-b52e-44252adf69f3';
 export const HEADLESS_SITE_ID = '6dabfd00-04c6-4f6f-8282-fb56b240c160';
 export const editorialPermissions = Object.freeze({ insert: 'ADMIN', update: 'ADMIN', remove: 'ADMIN', read: 'ANYONE' });
+export const enquiryPermissions = Object.freeze({ insert: 'ANYONE', update: 'ADMIN', remove: 'ADMIN', read: 'ADMIN' });
 export const publishPlugin = Object.freeze({ type: 'PUBLISH', publishOptions: { defaultStatus: 'DRAFT' } });
 
 const label = key => key.replace(/([A-Z])/g, ' $1').replace(/^./, value => value.toUpperCase())
@@ -21,9 +22,9 @@ const collectionNames = {
   Stories: 'Stories', PressItems: 'Press items', PartnershipOptions: 'Partnership options', ContactChannels: 'Contact channels',
   ShopItems: 'Shop editorial items',
 };
-const collection = (id, ownFields) => ({
+const collection = (id, ownFields, options = {}) => ({
   id, displayName: collectionNames[id] ?? id, displayField: 'title', fields: [...shared, ...ownFields],
-  permissions: { ...editorialPermissions }, plugins: [structuredClone(publishPlugin)],
+  permissions: { ...(options.permissions ?? editorialPermissions) }, plugins: options.publish === false ? [] : [structuredClone(publishPlugin)],
 });
 
 export const collections = [
@@ -111,7 +112,7 @@ export const collections = [
     reference('mediaAsset', 'MediaAssets'),
   ]),
   collection('ContactChannels', [
-    ...fields('TEXT', 'channelKey label description emailAddress responseNote'), field('publicUseVerified', 'BOOLEAN'),
+    ...fields('TEXT', 'channelKey label description emailAddress phoneNumber responseNote'), field('publicUseVerified', 'BOOLEAN'),
     field('isEnabled', 'BOOLEAN'),
   ]),
   collection('ShopItems', [
@@ -121,6 +122,15 @@ export const collections = [
     reference('galleryAssets', 'MediaAssets', true, 'shopGalleryAssets'), reference('relatedStories', 'Stories', true, 'shopItems'),
   ]),
 ];
+
+export const operationalCollections = [
+  collection('Enquiries', [
+    ...fields('TEXT', 'name organisation email location enquiryType message timeline status sourcePath'),
+    field('consent', 'BOOLEAN'), field('submittedAt', 'DATETIME'),
+  ], { permissions: enquiryPermissions, publish: false }),
+];
+
+export const foundationCollections = [...collections, ...operationalCollections];
 
 export function assertNewSite(siteId) {
   if (siteId === EXISTING_EDITOR_SITE_ID || siteId !== HEADLESS_SITE_ID) {
@@ -132,7 +142,7 @@ const referenceTarget = value => value?.typeMetadata?.reference?.referencedColle
   ?? value?.typeMetadata?.multiReference?.referencedCollectionId;
 
 export function assertEditorialCollection(actual, expected, { requirePublish = true } = {}) {
-  if (actual?.id !== expected.id || Object.keys(editorialPermissions).some(key => actual.permissions?.[key] !== editorialPermissions[key])) {
+  if (actual?.id !== expected.id || Object.keys(expected.permissions).some(key => actual.permissions?.[key] !== expected.permissions[key])) {
     throw new Error(`Editorial permissions could not be verified for ${expected.id}.`);
   }
   for (const wanted of expected.fields) {
@@ -150,11 +160,11 @@ export function assertEditorialCollection(actual, expected, { requirePublish = t
 /** Create shells first, then references, then draft plugins. */
 export function creationPlan() {
   return [
-    ...collections.map(item => ({ method: 'POST', path: '/wix-data/v2/collections', body: { collection: { ...item, plugins: undefined, fields: item.fields.filter(value => !value.typeMetadata) } } })),
+    ...foundationCollections.map(item => ({ method: 'POST', path: '/wix-data/v2/collections', body: { collection: { ...item, plugins: undefined, fields: item.fields.filter(value => !value.typeMetadata) } } })),
     // Include every field in the additive pass. Newly-created shells already have
     // scalar fields, so the runner skips them; older shells receive any new scalar
     // fields as well as references.
-    ...collections.flatMap(item => item.fields.map(value => ({ method: 'POST', path: '/wix-data/v2/collections/create-field', body: { dataCollectionId: item.id, field: value } }))),
-    ...collections.map(item => ({ method: 'POST', path: '/wix-data/v2/collections/add-plugin', body: { dataCollectionId: item.id, plugin: structuredClone(publishPlugin) } })),
+    ...foundationCollections.flatMap(item => item.fields.map(value => ({ method: 'POST', path: '/wix-data/v2/collections/create-field', body: { dataCollectionId: item.id, field: value } }))),
+    ...foundationCollections.filter(item => item.plugins.length > 0).map(item => ({ method: 'POST', path: '/wix-data/v2/collections/add-plugin', body: { dataCollectionId: item.id, plugin: structuredClone(publishPlugin) } })),
   ];
 }

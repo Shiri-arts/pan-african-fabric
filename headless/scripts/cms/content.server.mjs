@@ -1,9 +1,9 @@
 // Node-only imports make accidental browser bundling fail; never import this from a React island.
 import { isMainThread } from 'node:worker_threads';
-import { assertNewSite, collections } from './manifest.mjs';
+import { assertNewSite, foundationCollections } from './manifest.mjs';
 
 export { PUBLICATION_STATE, publicCollection } from '../../src/lib/public-content.mjs';
-const knownIds = new Set(collections.map(value => value.id));
+const knownIds = new Set(foundationCollections.map(value => value.id));
 const assertCollection = id => { if (!knownIds.has(id)) throw new Error('Unknown editorial collection.'); };
 
 /** The Phase 1 public contract intentionally performs no private CMS query. */
