@@ -7,6 +7,11 @@ const json = (body: object, status: number) => new Response(JSON.stringify(body)
 
 export const POST: APIRoute = async ({ request }) => {
  try {
+  const origin = request.headers.get('origin');
+  const publicHost = request.headers.get('x-forwarded-host')?.split(',')[0]?.trim() || request.headers.get('host');
+  let originHost: string | undefined;
+  try { originHost = origin ? new URL(origin).host : undefined; } catch { originHost = undefined; }
+  if (!originHost || !publicHost || originHost.toLowerCase() !== publicHost.toLowerCase()) return json({ message: 'Invalid request origin.' }, 403);
   if (!request.headers.get('content-type')?.toLowerCase().includes('application/json')) return json({ message: 'Unsupported request.' }, 415);
   const key = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
   const now = Date.now();
