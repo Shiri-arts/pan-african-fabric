@@ -10,7 +10,7 @@ export const onRequest = defineMiddleware(async (_context, next) => {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https://static.wixstatic.com",
     "font-src 'self'",
-    `connect-src 'self'${import.meta.env.DEV ? ' ws://127.0.0.1:4321' : ''}`,
+    `connect-src 'self' https://www.wixapis.com${import.meta.env.DEV ? ' ws://127.0.0.1:4321' : ''}`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
