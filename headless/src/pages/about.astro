@@ -139,7 +139,12 @@ const sections = [
 </Layout>
 
 <style>
-  .founder { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(24px, 5vw, 80px); align-items: start; }
+  .founder { display: flow-root; }
+  .founder__media {
+    float: left;
+    width: min(42%, 40rem);
+    margin: 0 clamp(32px, 5vw, 80px) var(--space-lg) 0;
+  }
   .founder__title { font-size: clamp(2rem, 4.4vw, 3.5rem); line-height: 1; letter-spacing: -0.035em; margin: 0 0 var(--space-lg); }
   .founder__quote { margin: 0 0 var(--space-lg); padding-left: var(--space-md); border-left: 2px solid var(--gold); }
   .founder__quote-text {
@@ -158,9 +163,8 @@ const sections = [
   .founder-biography :global(p) { font-size: 0.9875rem; line-height: 1.75; color: var(--on-ink-muted); }
   .founder-biography :global(p:first-child) { font-size: 1.125rem; line-height: 1.65; color: var(--on-ink); }
   .founder-biography :global(p + p) { margin-top: var(--space-md); }
-  @media (max-width: 899px) {
-    .founder { grid-template-columns: minmax(0, 1fr); }
-    .founder__media { max-width: 360px; }
+  @media (max-width: 699px) {
+    .founder__media { float: none; width: min(100%, 30rem); margin: 0 0 var(--space-lg); }
   }
 
   .timeline { display: grid; gap: 0; }
