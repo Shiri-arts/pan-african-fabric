@@ -14,7 +14,6 @@ import { approved, awaiting, draft } from '../lib/content';
 import { mediaSlot } from '../lib/media';
 import { getMediaById, getPageByKey, getPageSections, getSiteSettings } from '../lib/wix-cms';
 import { cmsPlainText, escapedHeroTitle } from '../lib/cms-presentation';
-import { splitCmsRichTextLead } from '../lib/safe-rich-text';
 import { loadReviewCopy } from '../lib/review';
 
 const review = await loadReviewCopy();
@@ -31,8 +30,6 @@ const opening = cmsOpening ? approved(cmsOpening) : review
   ? draft(review.about.opening, 'Founder / content lead')
   : awaiting('Origin story', 'Approve the 120-180 word introduction explaining why the initiative was created.');
 
-// The opening paragraph sits beside the portrait; the rest runs full width beneath it.
-const founderBiography = splitCmsRichTextLead(founderSection?.body);
 const founderPortrait = (founderSection?.mediaAssetId ? await getMediaById(founderSection.mediaAssetId) : undefined)
   ?? mediaSlot('about-founder', '4/5', 'Approved founder portrait with alt text, focal point, photographer credit and reuse permission.');
 const heroMedia = (cmsPage?.heroAssetId ? await getMediaById(cmsPage.heroAssetId) : undefined)
@@ -102,18 +99,13 @@ const sections = [
         ) : (
           <p class="founder__quote-note">No quotation has been supplied. Nothing is quoted until it is approved and attributed.</p>
         )}
-        {founderBiography.lead ? <CmsRichText value={founderBiography.lead} class="founder-biography founder-biography--lead" /> : <EmptyState
+        {founderSection?.body ? <CmsRichText value={founderSection.body} class="founder-biography" /> : <EmptyState
           title="Founder biography is not approved yet."
           text="The portrait, quote and biography positions are all reserved above and beside this note."
           tone="ink"
           note={import.meta.env.DEV ? 'Supply approved portrait with photographer credit, a 120-180 word biography and one attributable quote.' : undefined}
         />}
       </div>
-      {founderBiography.rest && (
-        <div class="founder__rest" data-reveal="rise">
-          <CmsRichText value={founderBiography.rest} class="founder-biography founder-biography--rest" />
-        </div>
-      )}
     </div>
   </Section>
 
@@ -147,17 +139,12 @@ const sections = [
 </Layout>
 
 <style>
-  .founder {
-    display: grid;
-    grid-template-columns: min(42%, 40rem) minmax(0, 1fr);
-    grid-template-areas: 'media copy' 'rest rest';
-    column-gap: clamp(32px, 5vw, 80px);
-    row-gap: var(--space-lg);
-    align-items: start;
+  .founder { display: flow-root; }
+  .founder__media {
+    float: left;
+    width: min(42%, 40rem);
+    margin: 0 clamp(32px, 5vw, 80px) var(--space-lg) 0;
   }
-  .founder__media { grid-area: media; }
-  .founder__copy { grid-area: copy; min-width: 0; }
-  .founder__rest { grid-area: rest; min-width: 0; }
   .founder__title { font-size: clamp(2rem, 4.4vw, 3.5rem); line-height: 1; letter-spacing: -0.035em; margin: 0 0 var(--space-lg); }
   .founder__quote { margin: 0 0 var(--space-lg); padding-left: var(--space-md); border-left: 2px solid var(--gold); }
   .founder__quote-text {
@@ -176,15 +163,8 @@ const sections = [
   .founder-biography :global(p) { font-size: 0.9875rem; line-height: 1.75; color: var(--on-ink-muted); }
   .founder-biography :global(p:first-child) { font-size: 1.125rem; line-height: 1.65; color: var(--on-ink); }
   .founder-biography :global(p + p) { margin-top: var(--space-md); }
-  /*
-    The biography renders inside CmsRichText, which does not carry this page's scope,
-    so the rule reaches it through :global. It lifts the component's 68ch cap: the
-    opening paragraph fills its column and the rest run the full section width.
-  */
-  .founder :global(.founder-biography p) { max-width: none; }
   @media (max-width: 699px) {
-    .founder { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'media' 'copy' 'rest'; }
-    .founder__media { width: min(100%, 30rem); }
+    .founder__media { float: none; width: min(100%, 30rem); margin: 0 0 var(--space-lg); }
   }
 
   .timeline { display: grid; gap: 0; }

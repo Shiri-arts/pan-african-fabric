@@ -1,4 +1,4 @@
-import { parseFragment, serialize, serializeOuter } from 'parse5';
+import { parseFragment, serialize } from 'parse5';
 import type { DefaultTreeAdapterMap } from 'parse5';
 import type { CmsRichText } from './cms-content.ts';
 import { safePublicUrl } from './cms-content.ts';
@@ -67,20 +67,6 @@ export function sanitizeCmsRichText(value: CmsRichText | undefined): string | un
   sanitizeChildren(fragment);
   const html = serialize(fragment).trim();
   return html || undefined;
-}
-
-/**
- * Splits rich text after its first block so a layout can set the opening paragraph
- * apart from the rest. Both halves are sanitised; either may be undefined.
- */
-export function splitCmsRichTextLead(value: CmsRichText | undefined): { lead?: string; rest?: string } {
-  const html = sanitizeCmsRichText(value);
-  if (!html) return {};
-  const nodes = parseFragment(html).childNodes;
-  const first = nodes.findIndex((node) => 'tagName' in node);
-  if (first === -1) return { lead: html };
-  const outer = (list: ChildNode[]) => list.map((node) => serializeOuter(node)).join('').trim() || undefined;
-  return { lead: outer(nodes.slice(0, first + 1)), rest: outer(nodes.slice(first + 1)) };
 }
 
 export function cmsRichTextPlainText(value: CmsRichText | undefined): string | undefined {
