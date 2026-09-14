@@ -13,6 +13,8 @@
     "cms:publish-seed": "node scripts/cms/publish-seed.mjs",
     "cms:validate": "node scripts/cms/validate-content.mjs",
     "cms:publish-approved-media": "node scripts/cms/publish-approved-media.mjs",
+    "cms:publish-approved-press-documents": "node scripts/cms/publish-approved-press-documents.mjs",
+    "cms:publish-approved-contacts": "node scripts/cms/publish-approved-contacts.mjs",
     "cms:verify-published-media": "node scripts/cms/verify-published-media.mjs",
     "build:wix": "wix build"
   },

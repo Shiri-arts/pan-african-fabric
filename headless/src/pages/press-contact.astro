@@ -48,11 +48,12 @@ const channels = cmsChannels.length > 0
       id: channel.id,
       label: channel.label,
       description: channel.description ?? '',
-      address: channel.emailAddress ?? null,
+      address: channel.emailAddress ?? channel.phoneNumber ?? null,
+      href: channel.emailAddress ? `mailto:${channel.emailAddress}` : channel.phoneNumber ? `tel:${channel.phoneNumber.replace(/[^+\d]/g, '')}` : null,
       pending: undefined,
       responseNote: channel.responseNote,
     }))
-  : contactChannels.map(channel => ({ ...channel, responseNote: undefined }));
+  : contactChannels.map(channel => ({ ...channel, href: channel.address ? `mailto:${channel.address}` : null, responseNote: undefined }));
 
 /**
  * Facts that are stated in the implementation brief. Structural counts and the
@@ -170,7 +171,7 @@ const verifiedFacts = [
           <span class="channel__label">{channel.label}</span>
           <span class="channel__description">{channel.description}</span>
           {channel.address ? (
-            <a class="channel__address" href={`mailto:${channel.address}`}>{channel.address}</a>
+            <a class="channel__address" href={channel.href ?? undefined}>{channel.address}</a>
           ) : (
             <span class="badge badge--awaiting">Address not confirmed</span>
           )}
@@ -180,8 +181,7 @@ const verifiedFacts = [
       ))}
     </ul>
     <p class="caption" style="margin-top:32px;color:var(--on-ink-muted);max-width:74ch">
-      Interview and partnership requests route through the same channels. A working contact form is introduced once a
-      recipient, privacy notice, consent wording and spam protection are approved.
+      Interview, media, reception and partnership enquiries can use the approved channels above or the enquiry form.
     </p>
     <p class="actions">
       <Button href="/partner-with-us" variant="secondary">Partner With Us<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
