@@ -157,19 +157,47 @@ const sections = [
     margin: 0 0 var(--space-2xs);
   }
   .founder__quote-note { font-size: 0.75rem; line-height: 1.5; color: var(--on-ink-muted); }
-  .about-introduction :global(p:first-child) { font-size: var(--step-lead); line-height: 1.5; }
-  .about-introduction :global(p:not(:first-child)) { font-size: 1rem; line-height: 1.65; color: var(--on-ink-muted); }
-  .about-introduction :global(p + p) { margin-top: var(--space-sm); }
-  .founder-biography { padding-top: var(--space-sm); border-top: 1px solid var(--on-ink-rule); }
-  .founder-biography :global(p) { font-size: 0.9875rem; line-height: 1.75; color: var(--on-ink-muted); }
-  .founder-biography :global(p:first-child) { font-size: 1.125rem; line-height: 1.65; color: var(--on-ink); }
-  .founder-biography :global(p + p) { margin-top: var(--space-md); }
   /*
-    CmsRichText caps paragraphs at 68ch, narrower than the space beside the portrait,
-    so no paragraph could wrap around it. The biography renders inside that component,
-    which does not carry this page's scope, so the override reaches it through :global.
+    Both texts render inside CmsRichText, which does not carry this page's scope, so
+    these rules reach them through :global. The class names are unique to this page.
   */
-  .founder :global(.founder-biography p) { max-width: none; }
+
+  /* Introduction: a lead paragraph, then two supporting paragraphs. Full ivory throughout, because it sits over the photograph. */
+  :global(.page-hero__intro.about-introduction) { max-width: 32rem; }
+  :global(.about-introduction p) {
+    max-width: none;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--on-ink);
+    /* Where the copy crosses a bright part of the photograph (the yellow jacket on narrow screens), a soft shadow keeps each letter legible. */
+    text-shadow: 0 1px 2px rgb(12 10 9 / 70%), 0 0 16px rgb(12 10 9 / 55%);
+  }
+  :global(.about-introduction p:first-child) {
+    font-size: clamp(1.125rem, 1rem + 0.45vw, 1.375rem);
+    line-height: 1.5;
+    letter-spacing: -0.005em;
+  }
+  :global(.about-introduction p + p) { margin-top: 0.9em; }
+
+  /*
+    Biography: the opening paragraph leads beside the portrait; the rest is set for
+    long reading, in a slightly softened ivory (about 12:1) to reduce glare on the
+    dark ground. Paragraphs run the full width once they clear the portrait, which
+    also lifts CmsRichText's 68ch cap so the text can wrap around the float.
+  */
+  .founder :global(.founder-biography p) {
+    max-width: none;
+    font-size: clamp(1rem, 0.9rem + 0.35vw, 1.125rem);
+    line-height: 1.75;
+    color: rgb(247 243 232 / 86%);
+  }
+  .founder :global(.founder-biography p:first-child) {
+    font-size: clamp(1.125rem, 1rem + 0.45vw, 1.3125rem);
+    line-height: 1.6;
+    letter-spacing: -0.005em;
+    color: var(--on-ink);
+  }
+  .founder :global(.founder-biography p + p) { margin-top: 1.1em; }
   @media (max-width: 699px) {
     .founder__media { float: none; width: min(100%, 30rem); margin: 0 0 var(--space-lg); }
   }
