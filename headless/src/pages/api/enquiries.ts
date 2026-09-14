@@ -6,6 +6,7 @@ const attempts = new Map<string, number[]>();
 const json = (body: object, status: number) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
 
 export const POST: APIRoute = async ({ request }) => {
+ try {
   if (!request.headers.get('content-type')?.toLowerCase().includes('application/json')) return json({ message: 'Unsupported request.' }, 415);
   const key = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
   const now = Date.now();
@@ -28,4 +29,7 @@ export const POST: APIRoute = async ({ request }) => {
   } catch {
     return json({ message: 'Your enquiry could not be submitted right now. Please email info@shiriachuart.com.' }, 503);
   }
+ } catch {
+   return json({ message: 'The enquiry service could not process this request. Please email info@shiriachuart.com.' }, 500);
+ }
 };
