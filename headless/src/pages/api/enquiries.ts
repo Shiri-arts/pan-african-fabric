@@ -5,9 +5,9 @@ import { ENQUIRY_COLLECTION_ID, validateEnquiry } from '../../lib/enquiry';
 const attempts = new Map<string, number[]>();
 const json = (body: object, status: number) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
 
-export const POST: APIRoute = async ({ request, clientAddress }) => {
+export const POST: APIRoute = async ({ request }) => {
   if (!request.headers.get('content-type')?.toLowerCase().includes('application/json')) return json({ message: 'Unsupported request.' }, 415);
-  const key = clientAddress || request.headers.get('cf-connecting-ip') || 'unknown';
+  const key = request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
   const now = Date.now();
   const recent = (attempts.get(key) ?? []).filter(time => now - time < 15 * 60_000);
   if (recent.length >= 5) return json({ message: 'Too many attempts. Please wait before trying again.' }, 429);
