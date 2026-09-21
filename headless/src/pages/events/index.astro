@@ -11,6 +11,7 @@ import { eventPhase, eventStructuredData, events } from '../../data/events';
 import { awaiting, draft } from '../../lib/content';
 import { mediaSlot } from '../../lib/media';
 import { cmsPlainText, escapeCmsHeading, presentCmsEvent, sectionsByKey } from '../../lib/cms-route-presenters';
+import { resolveSectionLabel, sectionLabel } from '../../lib/section-labels';
 import { loadReviewCopy } from '../../lib/review';
 import { getEvents, getMediaById, getPageByKey, getPageHeroMedia, getPageSections } from '../../lib/wix-cms';
 
@@ -45,6 +46,19 @@ const upcomingSection = sectionContent.get('upcoming');
 const formatsSection = sectionContent.get('formats');
 const archiveSection = sectionContent.get('archive');
 const sectionEnabled = (key: string) => cmsSections.find(section => section.sectionKey === key)?.isEnabled ?? true;
+
+/*
+  Approved presentation wording for the first numbered section. The CMS record still
+  reads "upcoming"; the approved public wording is "Featured Event". A stored eyebrow
+  that already carries the approved wording is used as it stands, so moving the
+  wording into the CMS later needs no change here beyond deleting this constant.
+*/
+const FEATURED_LABEL = 'Featured Event';
+const storedFeaturedLabel = resolveSectionLabel(upcomingSection?.eyebrow, FEATURED_LABEL, { position: 1 });
+const featuredLabel = sectionLabel(upcomingSection?.eyebrow, FEATURED_LABEL, {
+  position: 1,
+  label: /featured/i.test(storedFeaturedLabel.label) ? storedFeaturedLabel.label : FEATURED_LABEL,
+});
 
 /** Formats the initiative presents. Layouts exist for each; none is populated with invented events. */
 const formats = [
@@ -84,7 +98,7 @@ const formats = [
   )}
 
   <Section tone="ivory" id="upcoming" hidden={!sectionEnabled('upcoming')}>
-    <SectionHead eyebrow={upcomingSection?.eyebrow ?? 'Upcoming'} title={upcomingSection?.heading ?? 'What is coming next.'}>
+    <SectionHead eyebrow={featuredLabel} title={upcomingSection?.heading ?? 'What is coming next.'}>
       <p>{cmsPlainText(upcomingSection?.body) ?? 'Only confirmed events are listed. Nothing provisional is shown as if it were scheduled.'}</p>
     </SectionHead>
     {upcoming.length > 0 ? (
@@ -101,7 +115,7 @@ const formats = [
   </Section>
 
   <Section tone="surface" id="formats" hidden={!sectionEnabled('formats')}>
-    <SectionHead eyebrow={formatsSection?.eyebrow ?? 'Formats'} title={formatsSection?.heading ?? 'The shapes this initiative takes.'}>
+    <SectionHead eyebrow={sectionLabel(formatsSection?.eyebrow, 'Formats', { position: 2 })} title={formatsSection?.heading ?? 'The shapes this initiative takes.'}>
       <p>{cmsPlainText(formatsSection?.body) ?? 'Each format has a layout ready. A format appears in the listings above only when a real event is confirmed.'}</p>
     </SectionHead>
     <ul class="format-grid">
@@ -115,7 +129,7 @@ const formats = [
   </Section>
 
   <Section tone="ink" id="archive" hidden={!sectionEnabled('archive')}>
-    <SectionHead eyebrow={archiveSection?.eyebrow ?? 'Archive'} title={archiveSection?.heading ?? 'Past events.'}>
+    <SectionHead eyebrow={sectionLabel(archiveSection?.eyebrow, 'Archive', { position: 3 })} title={archiveSection?.heading ?? 'Past events.'}>
       <p>{cmsPlainText(archiveSection?.body) ?? 'After an event has taken place, it moves here. The archive records what was scheduled; it never claims attendance, outcomes or press response that has not been supplied.'}</p>
     </SectionHead>
     {archive.length > 0 ? (
