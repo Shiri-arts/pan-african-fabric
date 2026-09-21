@@ -6,9 +6,12 @@ import Button from '../../components/Button.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import EmptyState from '../../components/EmptyState.astro';
 import Media from '../../components/Media.astro';
+import GarmentGallery from '../../components/GarmentGallery';
+import type { GarmentGalleryImage } from '../../components/GarmentGallery';
 import NotFound from '../../components/NotFound.astro';
 import { coloursForCountry } from '../../data/colours';
 import type { Media as MediaRecord } from '../../lib/media';
+import { hasApprovedSource } from '../../lib/media';
 import { adjacentCountries, countryPath, findCountry, regionName } from '../../data/countries';
 import { events } from '../../data/events';
 import { mediaSlot } from '../../lib/media';
@@ -82,7 +85,7 @@ const lead = colours[0];
 const heroMedia = country
   ? heroMediaFromCms ?? mediaSlot(`country-${country.slug}-hero`, '21/9', `Approved hero image for ${country.name}, with focal point, alt text, caption, credit and reuse permission.`)
   : undefined;
-const cmsGarmentMediaIds = [...new Set(cmsGarments.flatMap((item) => [item.heroAssetId, ...item.galleryAssetIds]).filter((id): id is string => Boolean(id)))].slice(0, 3);
+const cmsGarmentMediaIds = [...new Set(cmsGarments.flatMap((item) => [item.heroAssetId, ...item.galleryAssetIds]).filter((id): id is string => Boolean(id)))].slice(0, 8);
 const cmsGarmentMedia = await Promise.all(cmsGarmentMediaIds.map((id) => getMediaById(id)));
 const garments = country && cmsGarmentMedia.some(Boolean)
   ? cmsGarmentMedia.filter((item): item is MediaRecord => Boolean(item))
@@ -93,6 +96,22 @@ const garments = country && cmsGarmentMedia.some(Boolean)
       mediaSlot(`country-${country.slug}-garment-3`, '4/5', 'Approved supporting garment or detail photograph.'),
     ]
   : [];
+// The gallery only ever shows real, approved photographs — placeholder slots
+// render as the usual review card instead of a fake gallery entry.
+const garmentGalleryImages: GarmentGalleryImage[] = garments
+  .filter(hasApprovedSource)
+  .map((garment) => {
+    const primary = garment.desktop ?? garment.mobile!;
+    return {
+      src: primary.src,
+      srcset: primary.srcset,
+      width: primary.width,
+      height: primary.height,
+      alt: garment.decorative ? '' : garment.alt ?? `${country?.name ?? ''} garment photograph`,
+      caption: garment.caption,
+      creditLine: garment.credit?.creditLine,
+    };
+  });
 
 const relatedCmsEvents = cmsCountry
   ? upcomingEvents.filter((event) => event.countryIds.includes(cmsCountry.id) && event.slug && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(event.slug) && event.title && event.dateLabel)
@@ -234,11 +253,16 @@ const slots = [
 
     <Section tone="paper" id="garments">
       <SectionHead eyebrow="Garments" title="The finished garments.">
-        <p>A controlled hero crop and two supporting images, each with its own caption and full credit line.</p>
+        <p>Browse the full look with the previous/next controls, swipe, or the left and right arrow keys.</p>
       </SectionHead>
-      <ul class="card-grid">
-        {garments.map((garment) => <li><Media media={garment} /></li>)}
-      </ul>
+      {garmentGalleryImages.length > 0 ? (
+        <GarmentGallery images={garmentGalleryImages} client:visible />
+      ) : (
+        <EmptyState
+          title="Garment photography is not approved yet."
+          text="This gallery is ready. Approved garment images drop straight in without a layout change."
+        />
+      )}
     </Section>
 
     <Section tone="ivory" id="related-events">
