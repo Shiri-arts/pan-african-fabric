@@ -71,7 +71,7 @@ const homepageCountryEntries = cmsCountries.flatMap(record => {
     .map(colour => ({ hex: colour.hexValue, textOn: colour.textHex! }));
   return [{
     country: { ...known, name: record.countryName, region: regionKey, regionNote: record.regionNote ?? known.regionNote,
-      hasApprovedProfile: Boolean(record.introduction || record.interpretation || record.participationSummary || record.heroAssetId) },
+      hasApprovedProfile: Boolean(record.introduction || record.interpretation || record.heroAssetId) },
     regionLabel: region?.name ?? record.regionLabel,
     colours,
     status: record.profileStatus,

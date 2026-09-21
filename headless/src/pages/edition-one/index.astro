@@ -51,7 +51,8 @@ const countries: readonly Country[] = (import.meta.env.DEV ? staticCountries : s
     name: record?.countryName ?? fallback.name,
     region,
     regionNote: record?.regionNote ?? fallback.regionNote,
-    hasApprovedProfile: Boolean(record && (record.introduction || record.interpretation || record.participationSummary || record.heroAssetId)),
+    // Matches what a country profile publishes, so a card cannot promise more than its page shows.
+    hasApprovedProfile: Boolean(record && (record.introduction || record.interpretation || record.heroAssetId)),
   };
 });
 const regionLabel = (slug: RegionSlug) => cmsRegions.find((region) => region.regionKey === slug)?.name ?? regionName(slug);
