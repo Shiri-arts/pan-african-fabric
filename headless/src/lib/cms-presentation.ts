@@ -26,6 +26,38 @@ export function mergeNavigation(cms: readonly CmsNavigationItem[], fallback: rea
   return merged;
 }
 
+/*
+  A credit line names who made the site; a copyright line names who holds the
+  rights. The Site Settings copyright field currently holds a credit, and "©
+  2026 Created by Shiri Achu." would read as neither, so wording that opens with
+  a credit verb falls back to the site name instead of being reused here.
+*/
+const CREDIT_WORDING = /^(?:created|designed|developed|built|made|written|produced)\b/i;
+
+/**
+ * Builds the footer copyright line.
+ *
+ * The year is always the current one, so the line cannot go stale. Owner wording
+ * comes from the Site Settings copyright field when it holds owner wording; a
+ * stored line that already carries the symbol, the word "copyright" or a year has
+ * those stripped first, so no symbol or year is ever duplicated. The site name is
+ * the fallback, and no rights wording is invented.
+ */
+export function copyrightLine(
+  storedText: string | undefined,
+  siteName: string,
+  year: number = new Date().getFullYear(),
+): string {
+  const stored = (storedText ?? '')
+    .trim()
+    .replace(/^(?:©|\(c\)|copyright)\s*/i, '')
+    .replace(/^(?:©|\(c\)|copyright)\s*/i, '')
+    .replace(/^\d{4}(?:\s*[-–—]\s*\d{4})?[\s,]*/, '')
+    .trim();
+  const owner = stored && !CREDIT_WORDING.test(stored) ? stored : '';
+  return `© ${year} ${owner || siteName.trim()}`;
+}
+
 export function safeRobots(value: string | undefined, fallback: string): string {
   if (!value) return fallback;
   const tokens = value.toLowerCase().split(',').map(token => token.trim()).filter(Boolean);

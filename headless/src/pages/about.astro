@@ -14,6 +14,7 @@ import { approved, awaiting, draft } from '../lib/content';
 import { mediaSlot } from '../lib/media';
 import { getMediaById, getPageByKey, getPageSections, getSiteSettings } from '../lib/wix-cms';
 import { cmsPlainText, escapedHeroTitle } from '../lib/cms-presentation';
+import { sectionLabel } from '../lib/section-labels';
 import { loadReviewCopy } from '../lib/review';
 
 const review = await loadReviewCopy();
@@ -72,7 +73,16 @@ const sections = [
     const content = cmsSection(section.id);
     return (
     <Section tone={index % 2 === 0 ? 'ivory' : 'surface'} id={section.id} hidden={!sectionEnabled(section.id)}>
-      <SectionHead eyebrow={content?.eyebrow ?? `${String(index + 1).padStart(2, '0')} — ${section.label}`} title={content?.heading ?? section.title}>
+      {/*
+        The numbered label is the section heading here, so each section carries one
+        heading rather than a label and a second title. The stored heading is still
+        read and passed through, ready for a template that shows it again.
+      */}
+      <SectionHead
+        heading="label"
+        eyebrow={sectionLabel(content?.eyebrow, section.label, { position: index + 1 })}
+        title={content?.heading ?? section.title}
+      >
         {content?.body ? <CmsRichText value={content.body} class="lead" /> : <EmptyState
           title={`${section.label} copy is not approved yet.`}
           text="This section is designed and ready. Approved copy drops straight in without a layout change."
