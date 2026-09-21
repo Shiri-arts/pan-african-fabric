@@ -35,6 +35,31 @@
 }
 .section-head__title { margin: 0; max-width: 16ch; }
 .section-head--wide .section-head__title { max-width: 22ch; }
+/*
+  Label heads carry the numbered label as the section heading, set in the display
+  face at editorial size with the gold rule the eyebrow would have carried. They
+  read as a heading rather than as an enlarged metadata label.
+*/
+.section-head--label { align-items: start; }
+.section-head__label {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 1.4vw, 20px);
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.625rem, 1.1rem + 1.6vw, 2.75rem);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.section-head__label::before {
+  content: '';
+  flex: none;
+  width: clamp(28px, 4vw, 64px);
+  height: 2px;
+  background: var(--gold);
+}
 .section-head__aside { display: flex; flex-direction: column; gap: var(--space-md); align-items: flex-start; }
 .section-head__aside p { color: var(--muted); max-width: 42ch; }
 .section-head--stack { grid-template-columns: minmax(0, 1fr); align-items: start; }

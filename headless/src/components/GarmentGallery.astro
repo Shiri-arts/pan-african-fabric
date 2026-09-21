@@ -1,0 +1,112 @@
+---
+/**
+ * Garment gallery.
+ *
+ * One large image with a thumbnail strip beneath it. Every image is rendered by
+ * the server, so with no client-side JavaScript the section reads as a stacked
+ * gallery with every caption and credit visible and the thumbnails act as
+ * in-page links. The script then shows one image at a time and turns the
+ * thumbnails into a selectable strip.
+ *
+ * Captions, alt text and credits come from the approved media record. Nothing is
+ * invented here, and no image is made downloadable.
+ */
+import Media from './Media.astro';
+import type { Media as MediaRecord } from '../lib/media';
+interface Props {
+  items: readonly MediaRecord[];
+  /** Names the gallery for assistive technology. */
+  label: string;
+  /** Prefix for slide ids, so several galleries can share a page. */
+  idPrefix?: string;
+}
+const { items, label, idPrefix = 'garment' } = Astro.props;
+const slideId = (index: number) => `${idPrefix}-${index + 1}`;
+---
+{items.length > 0 && (
+  <div
+    class="gallery"
+    data-gallery
+    data-gallery-multi={items.length > 1 ? 'true' : undefined}
+    role="group"
+    aria-roledescription="gallery"
+    aria-label={label}
+  >
+    <ul class="gallery__stage" data-gallery-stage>
+      {items.map((item, index) => (
+        <li class="gallery__slide" id={slideId(index)} data-slide>
+          <Media media={item} priority={index === 0} sizes="(max-width: 899px) 100vw, 60vw" />
+        </li>
+      ))}
+    </ul>
+
+    {items.length > 1 && (
+      <Fragment>
+        <p class="visually-hidden" role="status" data-gallery-status>Image 1 of {items.length}</p>
+        <ul class="gallery__thumbs" data-gallery-thumbs>
+          {items.map((item, index) => (
+            <li>
+              <a
+                class="gallery__thumb"
+                href={`#${slideId(index)}`}
+                data-thumb={index}
+                aria-current={index === 0 ? 'true' : undefined}
+              >
+                <Media media={{ ...item, ratio: '1/1', decorative: true }} showCaption={false} sizes="96px" />
+                <span class="visually-hidden">Image {index + 1} of {items.length}{item.alt ? `: ${item.alt}` : ''}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </Fragment>
+    )}
+  </div>
+)}
+
+<script>
+  /*
+    Upgrades every server-rendered gallery to one-at-a-time viewing. Thumbnails
+    stay links, so they keep native keyboard and focus behaviour and still jump to
+    a slide if this never runs; the arrow keys move along the strip.
+  */
+  for (const gallery of document.querySelectorAll<HTMLElement>('[data-gallery]')) {
+    const slides = [...gallery.querySelectorAll<HTMLElement>('[data-slide]')];
+    const thumbs = [...gallery.querySelectorAll<HTMLAnchorElement>('[data-thumb]')];
+    const status = gallery.querySelector<HTMLElement>('[data-gallery-status]');
+    if (slides.length < 2 || thumbs.length !== slides.length) continue;
+
+    gallery.dataset.galleryReady = 'true';
+
+    const show = (index: number, moveFocus = false) => {
+      slides.forEach((slide, position) => { slide.hidden = position !== index; });
+      thumbs.forEach((thumb, position) => {
+        if (position === index) thumb.setAttribute('aria-current', 'true');
+        else thumb.removeAttribute('aria-current');
+      });
+      if (status) status.textContent = `Image ${index + 1} of ${slides.length}`;
+      if (moveFocus) thumbs[index].focus();
+    };
+
+    thumbs.forEach((thumb, index) => {
+      thumb.addEventListener('click', (event) => {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+        event.preventDefault();
+        show(index);
+      });
+      thumb.addEventListener('keydown', (event) => {
+        const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+        if (step) {
+          event.preventDefault();
+          show((index + step + slides.length) % slides.length, true);
+          return;
+        }
+        if (event.key === 'Home' || event.key === 'End') {
+          event.preventDefault();
+          show(event.key === 'Home' ? 0 : slides.length - 1, true);
+        }
+      });
+    });
+
+    show(0);
+  }
+</script>

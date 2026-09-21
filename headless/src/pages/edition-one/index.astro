@@ -13,6 +13,7 @@ import { COUNTRY_COUNT, REGION_COUNT, countries as staticCountries, regions as s
 import { approved, awaiting, draft } from '../../lib/content';
 import { mediaSlot } from '../../lib/media';
 import { cmsPlainText } from '../../lib/cms-presentation';
+import { sectionLabel } from '../../lib/section-labels';
 import { loadReviewCopy } from '../../lib/review';
 import {
   getDesigners, getEditionColours, getEditionCountries, getGarments, getMediaAssets, getMediaById, getPageByKey, getPageHeroMedia,
@@ -51,7 +52,8 @@ const countries: readonly Country[] = (import.meta.env.DEV ? staticCountries : s
     name: record?.countryName ?? fallback.name,
     region,
     regionNote: record?.regionNote ?? fallback.regionNote,
-    hasApprovedProfile: Boolean(record && (record.introduction || record.interpretation || record.participationSummary || record.heroAssetId)),
+    // Matches what a country profile publishes, so a card cannot promise more than its page shows.
+    hasApprovedProfile: Boolean(record && (record.introduction || record.interpretation || record.heroAssetId)),
   };
 });
 const regionLabel = (slug: RegionSlug) => cmsRegions.find((region) => region.regionKey === slug)?.name ?? regionName(slug);
@@ -112,18 +114,11 @@ const heroMedia = cmsEditionHero ?? cmsPageHero ?? mediaSlot('edition-hero', '21
 const fabricSectionMedia = sectionByKey.get('the-fabric')?.mediaAssetId ? await getMediaById(sectionByKey.get('the-fabric')!.mediaAssetId!) : undefined;
 const fabricMedia = cmsFabric ?? fabricSectionMedia ?? mediaSlot('edition-fabric', '3/2', 'Approved close-up of the fabric showing weave, colour transitions and scale.');
 const fabricDescription = cmsPlainText(cmsEdition?.fabricDescription) ?? cmsPlainText(sectionByKey.get('the-fabric')?.body);
-const processDescription = cmsPlainText(cmsEdition?.creativeProcess) ?? cmsPlainText(sectionByKey.get('process')?.body);
 
 const pageTitle = cmsPage?.seoTitle ?? cmsPage?.title ?? 'Edition One';
 const pageDescription = cmsPage?.seoDescription ?? 'Edition One: one fabric, twelve colours and nine countries across five African regions, interpreted by designers into finished garments and accessories.';
 const heroTitle = cmsPage?.heroTitle ? safeHeroTitle(cmsPage.heroTitle) : 'One fabric.<span>Twelve colours.</span>';
 
-const process = [
-  { step: 'One', title: 'The fabric', need: 'Approve how the fabric itself was designed and produced.' },
-  { step: 'Two', title: 'The colours', need: 'Approve the account of how the twelve colours were chosen and developed.' },
-  { step: 'Three', title: 'The designers', need: 'Approve how designers were selected and briefed.' },
-  { step: 'Four', title: 'The garments', need: 'Approve how the finished garments and accessories were made.' },
-];
 ---
 <Layout
   title={pageTitle}
@@ -265,21 +260,6 @@ const process = [
     </p>
   </Section>
 
-  <Section tone="ink" id="process" hidden={!sectionEnabled('process')}>
-    <SectionHead eyebrow={sectionByKey.get('process')?.eyebrow ?? '06 — The creative process'} title={sectionByKey.get('process')?.heading ?? 'From cloth to finished garment.'}>
-      <p>{processDescription ?? 'Four stages carry the edition. Each one opens when its approved account is supplied.'}</p>
-    </SectionHead>
-    <ol class="process">
-      {process.map((stage) => (
-        <li class="process__item">
-          <span class="process__step">{stage.step}</span>
-          <span class="process__title">{stage.title}</span>
-          {!processDescription && <span class="process__need">{stage.need}</span>}
-        </li>
-      ))}
-    </ol>
-  </Section>
-
   {cmsPreview && previewMedia.length > 0 && (
     <Section tone="paper" id="source-media" label="CMS source media review">
       <SectionHead eyebrow="Draft CMS media" title="Uploaded source assets">
@@ -294,7 +274,10 @@ const process = [
   )}
 
   <Section tone="surface" id="garments" hidden={!sectionEnabled('garments')}>
-    <SectionHead eyebrow={sectionByKey.get('garments')?.eyebrow ?? '07 — Garments and accessories'} title={sectionByKey.get('garments')?.heading ?? 'The finished work.'}>
+    <SectionHead
+      eyebrow={sectionLabel(sectionByKey.get('garments')?.eyebrow, 'Garments and accessories', { position: 6 })}
+      title={sectionByKey.get('garments')?.heading ?? 'The finished work.'}
+    >
       <p>{cmsPlainText(sectionByKey.get('garments')?.body) ?? 'Garment and accessory galleries publish only with approved photography, captions and full credits.'}</p>
       <Button href="/shop" variant="text">Visit the shop<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
     </SectionHead>
@@ -356,16 +339,4 @@ const process = [
   }
   .designer-slot__link:hover { text-decoration: underline; text-underline-offset: 5px; }
 
-  .process { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 0; }
-  .process__item {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-2xs);
-    padding: var(--space-md) var(--space-md) var(--space-lg) 0;
-    border-top: 1px solid var(--on-ink-rule);
-  }
-  .process__step { font-size: 0.625rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
-  .process__title { font-family: var(--font-display); font-size: 1.5rem; line-height: 1.1; }
-  .process__need { font-size: 0.75rem; line-height: 1.5; color: var(--on-ink-muted); padding-left: var(--space-sm); border-left: 2px solid var(--gold); }
 </style>

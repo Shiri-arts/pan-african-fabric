@@ -6,6 +6,7 @@ import Button from '../../components/Button.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import EmptyState from '../../components/EmptyState.astro';
 import Media from '../../components/Media.astro';
+import GarmentGallery from '../../components/GarmentGallery.astro';
 import NotFound from '../../components/NotFound.astro';
 import { coloursForCountry } from '../../data/colours';
 import type { Media as MediaRecord } from '../../lib/media';
@@ -82,9 +83,17 @@ const lead = colours[0];
 const heroMedia = country
   ? heroMediaFromCms ?? mediaSlot(`country-${country.slug}-hero`, '21/9', `Approved hero image for ${country.name}, with focal point, alt text, caption, credit and reuse permission.`)
   : undefined;
-const cmsGarmentMediaIds = [...new Set(cmsGarments.flatMap((item) => [item.heroAssetId, ...item.galleryAssetIds]).filter((id): id is string => Boolean(id)))].slice(0, 3);
+// Every approved garment image for this country, hero first, gallery after, in
+// CMS order with duplicates removed. The gallery shows them all.
+const cmsGarmentMediaIds = [...new Set(cmsGarments.flatMap((item) => [item.heroAssetId, ...item.galleryAssetIds]).filter((id): id is string => Boolean(id)))];
 const cmsGarmentMedia = await Promise.all(cmsGarmentMediaIds.map((id) => getMediaById(id)));
-const garments = country && cmsGarmentMedia.some(Boolean)
+/*
+  The gallery is for approved photography. Until a country has any, the three
+  reserved positions render as before, so an empty section still shows where the
+  images will sit rather than a gallery of placeholders.
+*/
+const garmentsApproved = Boolean(country) && cmsGarmentMedia.some(Boolean);
+const garments = country && garmentsApproved
   ? cmsGarmentMedia.filter((item): item is MediaRecord => Boolean(item))
   : country
   ? [
@@ -105,9 +114,10 @@ const relatedEvents = relatedCmsEvents.length ? relatedCmsEvents.map((event) => 
   slug: event.slug, title: event.title, dateLabel: event.dateLabel, timeLabel: event.timeLabel,
   timezoneLabel: event.timezoneLabel, venue: event.venue, location: event.location, eventType: event.kind,
 })) : [];
+// Readiness follows what the profile actually publishes, so the badge cannot read
+// "available" on the strength of material this page no longer renders.
 const profileReady = Boolean(cmsCountry && (
-  heroMediaFromCms || textOnly(cmsCountry.introduction) || textOnly(cmsCountry.interpretation)
-  || textOnly(cmsCountry.participationSummary) || textOnly(cmsCountry.credits) || cmsDesigner
+  heroMediaFromCms || textOnly(cmsCountry.introduction) || textOnly(cmsCountry.interpretation) || cmsDesigner
 ));
 const profileStatus = profileReady ? (cmsCountry?.profileStatus ?? 'Profile available') : 'Profile in review';
 const regionLabel = cmsRegion?.name ?? cmsCountry?.regionLabel ?? (country ? regionName(country.region) : '');
@@ -117,18 +127,18 @@ const slotContent = {
   symbol: textOnly(featuredSymbol?.meaning),
   designer: textOnly(cmsDesigner?.biography),
   interpretation: textOnly(cmsCountry?.interpretation) ?? textOnly(principalParticipation?.statement),
-  participation: textOnly(cmsCountry?.participationSummary) ?? principalParticipation?.selectionContext,
-  credits: textOnly(cmsCountry?.credits),
 } as const;
 
-/** Every slot on this template, so an incomplete profile reads as in-review rather than as a finished page. */
+/**
+ * Every slot on this template, so an incomplete profile reads as in-review rather
+ * than as a finished page. Participation and credits are held in the CMS but are
+ * not published on the profile, so they are not slots here.
+ */
 const slots = [
   { id: 'introduction', label: 'Introduction', title: 'About this contribution', need: 'Approve a 60-100 word introduction.' },
   { id: 'symbol', label: 'Featured symbol', title: 'The symbol', need: 'Supply verified symbol name, artwork, cultural meaning, source and acknowledgement. Meaning is never inferred from artwork.' },
   { id: 'designer', label: 'The designer', title: 'The designer', need: 'Approve display name, studio, role, a 120-180 word biography, portrait and links.' },
   { id: 'interpretation', label: 'Creative interpretation', title: 'The interpretation', need: 'Approve a 100-150 word designer-approved statement. No invented first-person copy.' },
-  { id: 'participation', label: 'Participation', title: 'Participation', need: 'Confirm the selection and event context for this contribution.' },
-  { id: 'credits', label: 'Credits', title: 'Credits', need: 'Supply full model, photography, makeup, production and partner attribution as applicable.' },
 ];
 ---
 {!country ? (
@@ -177,31 +187,6 @@ const slots = [
       </Section>
     )}
 
-    <Section tone="ivory" id="colours">
-      <SectionHead
-        eyebrow="Colours"
-        title={colours.length === 1
-          ? `One colour in the twelve-colour system.`
-          : `${colours.length} colours in the twelve-colour system.`}
-      >
-        <p>Colour is shown with its name and country as text. It is never the only signal of which country a panel belongs to.</p>
-      </SectionHead>
-      <ul class="country-colours">
-        {colours.map((colour) => (
-          <li class="country-colour" style={colour.style}>
-            <span class="country-colour__field">
-              <span class="country-colour__index">{String(colour.index).padStart(2, '0')}</span>
-              <span class="country-colour__name">{colour.name}</span>
-            </span>
-            <span class="country-colour__meta">
-              <span>Position {colour.index} of 12</span>
-              <span class="badge badge--awaiting">Symbol link pending</span>
-            </span>
-          </li>
-        ))}
-      </ul>
-    </Section>
-
     {slots.map((slot, index) => (
       <Section tone={index % 2 === 0 ? 'surface' : 'ivory'} id={slot.id}>
         <SectionHead eyebrow={slot.label} title={slot.title}>
@@ -234,11 +219,17 @@ const slots = [
 
     <Section tone="paper" id="garments">
       <SectionHead eyebrow="Garments" title="The finished garments.">
-        <p>A controlled hero crop and two supporting images, each with its own caption and full credit line.</p>
+        <p>{garmentsApproved
+          ? 'Every approved garment image for this country, each with its own caption and full credit line.'
+          : 'A controlled hero crop and two supporting images, each with its own caption and full credit line.'}</p>
       </SectionHead>
-      <ul class="card-grid">
-        {garments.map((garment) => <li><Media media={garment} /></li>)}
-      </ul>
+      {garmentsApproved ? (
+        <GarmentGallery items={garments} label={`Garments from ${country.name}`} idPrefix={`garment-${country.slug}`} />
+      ) : (
+        <ul class="card-grid">
+          {garments.map((garment) => <li><Media media={garment} /></li>)}
+        </ul>
+      )}
     </Section>
 
     <Section tone="ivory" id="related-events">
@@ -322,22 +313,6 @@ const slots = [
   .country-hero__title { font-size: clamp(2.5rem, 8vw, 6rem); line-height: 0.92; letter-spacing: -0.04em; margin: var(--space-sm) 0 var(--space-md); }
   .country-hero__status { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); margin: var(--space-md) 0 0; font-size: 0.875rem; color: var(--on-ink-muted); }
   .country-hero .colour-chip { background: rgb(247 243 232 / 10%); border-color: rgb(247 243 232 / 30%); color: var(--on-ink); }
-
-  .country-colours { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: var(--space-md); }
-  .country-colour { display: flex; flex-direction: column; border: 1px solid var(--border); }
-  .country-colour__field {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: var(--space-lg);
-    min-height: 180px;
-    padding: var(--space-md);
-    background: var(--panel);
-    color: var(--panel-on);
-  }
-  .country-colour__index { font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.12em; }
-  .country-colour__name { font-family: var(--font-display); font-size: clamp(1.75rem, 3vw, 2.5rem); line-height: 1; letter-spacing: -0.02em; }
-  .country-colour__meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2xs); padding: var(--space-sm) var(--space-md); font-size: 0.75rem; color: var(--muted); }
 
   .designer-name { font-family: var(--font-display); font-size: 1.5rem; line-height: 1.2; margin: 0; }
 

@@ -13,11 +13,13 @@ import { menuItems } from '../data/navigation';
 import { externalLinks, SITE_NAME } from '../data/site';
 import type { ReviewCopy } from '../data/review-copy.server';
 import type { CmsNavigationItem, CmsSiteSettings } from '../lib/wix-cms';
-import { mergeNavigation } from '../lib/cms-presentation';
+import { copyrightLine, mergeNavigation } from '../lib/cms-presentation';
 interface Props { review?: ReviewCopy | undefined; settings?: CmsSiteSettings; cmsNavigation?: readonly CmsNavigationItem[]; cmsNavigationConfigured?: boolean; }
 const { review, settings, cmsNavigation = [], cmsNavigationConfigured = false } = Astro.props;
 const siteName = settings?.siteName ?? SITE_NAME;
 const footerStatement = settings?.footerStatement;
+// Current year, with owner wording from Site Settings when it holds any.
+const copyright = copyrightLine(settings?.copyrightText, siteName);
 const resolvedMenu = cmsNavigationConfigured ? mergeNavigation(cmsNavigation, menuItems, false) : menuItems;
 const cmsLinks = [
   settings?.instagramUrl ? { label: 'Instagram', href: settings.instagramUrl, verified: true } : undefined,
@@ -86,7 +88,7 @@ const pending = externalLinks.filter((link) => !link.verified);
     </div>
 
     <div class="footer-bottom">
-      <span>{settings?.copyrightText ?? siteName}</span>
+      <span class="footer-bottom__copyright">{copyright}</span>
       <a href="#main">Back to top<span aria-hidden="true">&#8593;</span></a>
     </div>
   </Container>

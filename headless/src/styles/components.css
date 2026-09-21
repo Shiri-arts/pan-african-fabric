@@ -392,6 +392,20 @@
   border-radius: var(--radius-media);
   aspect-ratio: var(--media-ratio, 3 / 2);
 }
+/*
+  Art direction lives on the img, but it sits inside a <picture> that has no
+  intrinsic height, so `height: 100%` resolved to auto and both object-fit and the
+  focal point were ignored: a portrait image grew past its frame and was clipped
+  at the bottom edge. Sizing the picture to the frame restores containment, the
+  focal point and the contain variant.
+*/
+.media__frame picture { display: block; width: 100%; height: 100%; }
+/*
+  Route heroes are excluded: they are composed full bleed against the hero scrim,
+  and sizing the picture there would letterbox a contained hero image instead.
+  Their composition is left exactly as approved.
+*/
+.page-hero__media .media__frame picture { height: auto; }
 .media__frame img { width: 100%; height: 100%; object-fit: cover; object-position: var(--media-focal, 50% 50%); }
 .media--contain .media__frame img { object-fit: contain; }
 .product-media .media__frame { aspect-ratio: auto; background: #fff; }
@@ -581,6 +595,86 @@
   .event-poster__date { flex-direction: row; align-items: flex-end; flex-wrap: wrap; row-gap: var(--space-sm); }
   .event-poster__facts > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
 }
+
+/* ------------------------------------------------------------ Image gallery */
+/*
+  Large view with a thumbnail strip. Before the script runs, every slide is in the
+  flow as a stacked gallery, which is also what a visitor without JavaScript sees;
+  once it runs, the stage holds one slide at a time.
+*/
+.gallery { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(16px, 2vw, 32px); align-items: start; }
+.gallery__stage { display: grid; gap: clamp(20px, 3vw, 40px); min-width: 0; }
+.gallery[data-gallery-ready] .gallery__stage { gap: 0; }
+/*
+  The stage is height-led rather than ratio-led: a portrait garment shot would
+  otherwise stand over a thousand pixels tall on a desktop. The image is contained
+  rather than cropped, because a garment should be seen whole.
+*/
+.gallery__stage .media__frame { aspect-ratio: auto; height: min(70svh, 660px); background: var(--paper); }
+.gallery__stage .media__frame img { object-fit: contain; }
+.gallery__thumbs { display: flex; flex-wrap: wrap; gap: clamp(8px, 1vw, 14px) clamp(8px, 1vw, 14px); list-style: none; margin: 0; padding: 0; }
+/* Thumbnails sit beside the image on desktop; a single image keeps the full width. */
+@media (min-width: 900px) {
+  .gallery[data-gallery-multi] { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); }
+  .gallery__thumbs { padding-top: 4px; }
+}
+.gallery__thumb {
+  display: block;
+  position: relative;
+  width: clamp(64px, 8vw, 96px);
+  border: 1px solid var(--border);
+  transition: border-color var(--duration-base) var(--ease-out);
+}
+/* <picture> carries no intrinsic height, so the square thumbnail is sized here. */
+.gallery__thumb picture { display: block; width: 100%; height: 100%; }
+.gallery__thumb:hover { border-color: var(--text); }
+.gallery__thumb[aria-current] { border-color: var(--text); box-shadow: inset 0 0 0 2px var(--canvas), 0 0 0 1px var(--text); }
+.gallery__thumb[aria-current]::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: -7px;
+  height: 2px;
+  background: var(--gold);
+}
+@media (prefers-reduced-motion: reduce) { .gallery__thumb { transition: none; } }
+
+/* --------------------------------------------------------- Compact event row */
+/*
+  The archive is a scanning list, not a second poster: one hairline-separated row
+  per event, so a long archive stays short and never competes with the featured
+  event above it. Rows stack into date, title, then place on narrow screens.
+*/
+.event-list { display: grid; gap: 0; }
+.event-row {
+  display: grid;
+  grid-template-columns: auto minmax(11rem, 14rem) minmax(0, 1fr) minmax(0, auto) auto;
+  align-items: center;
+  column-gap: clamp(16px, 2vw, 32px);
+  row-gap: 4px;
+  padding-block: var(--space-sm);
+  border-top: 1px solid var(--border);
+  color: var(--text);
+  text-decoration: none;
+  transition: background-color var(--duration-base) var(--ease-out);
+}
+.event-list > li:last-child .event-row { border-bottom: 1px solid var(--border); }
+.event-row:hover { background: rgb(247 243 232 / 6%); text-decoration: none; }
+.event-row:hover .event-row__title { text-decoration: underline; text-underline-offset: 4px; }
+.event-row__thumb { display: block; width: clamp(48px, 5vw, 72px); flex: none; }
+/* <picture> has no intrinsic height, so the square thumbnail needs the block sized here for object-fit to apply. */
+.event-row__thumb picture { display: block; width: 100%; height: 100%; }
+.event-row__date { font-size: 0.8125rem; line-height: 1.4; color: var(--muted); }
+.event-row__title { font-family: var(--font-display); font-size: clamp(1.0625rem, 1.4vw, 1.25rem); line-height: 1.2; letter-spacing: -0.01em; }
+.event-row__place { font-size: 0.8125rem; line-height: 1.4; color: var(--muted); }
+.event-row__cue { font-size: 0.6875rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--accent); white-space: nowrap; }
+@media (max-width: 899px) {
+  .event-row { grid-template-columns: auto minmax(0, 1fr); column-gap: var(--space-sm); padding-block: var(--space-md); }
+  .event-row__thumb { grid-row: span 3; align-self: start; }
+  .event-row__date, .event-row__title, .event-row__place, .event-row__cue { grid-column: 2; }
+  .event-row__cue { margin-top: 4px; }
+}
+@media (prefers-reduced-motion: reduce) { .event-row { transition: none; } }
 
 /* ---------------------------------------------------------- Empty and states */
 .state {
