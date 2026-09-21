@@ -266,6 +266,12 @@
   .header-nav__list { flex-direction: column; align-items: stretch; gap: 0; }
   .header-nav__link {
     justify-content: space-between;
+    /*
+      inline-flex shrinks to fit its own text by default, which left no room
+      for space-between to push the purpose label anywhere — "About" and
+      "THE WHY" ended up jammed together instead of at opposite edges.
+    */
+    width: 100%;
     padding-block: 6px;
     font-size: 1.0625rem;
     border-bottom: 1px solid var(--border);
@@ -321,8 +327,14 @@
   inset: 0;
   z-index: -1;
   background:
-    linear-gradient(to top, rgb(12 10 9 / 80%) 0%, rgb(12 10 9 / 54%) 32%, rgb(12 10 9 / 15%) 62%, rgb(12 10 9 / 5%) 100%),
+    linear-gradient(to top, rgb(12 10 9 / 80%) 0%, rgb(12 10 9 / 54%) 32%, rgb(12 10 9 / 26%) 62%, rgb(12 10 9 / 30%) 100%),
     linear-gradient(105deg, rgb(12 10 9 / 64%) 0%, rgb(12 10 9 / 14%) 58%, transparent 75%);
+}
+/* Homepage only: a warm brown wash instead of the neutral scrim every other hero uses. */
+.page-hero--home .page-hero__scrim {
+  background:
+    linear-gradient(to top, rgb(40 20 14 / 80%) 0%, rgb(40 20 14 / 54%) 32%, rgb(40 20 14 / 26%) 62%, rgb(40 20 14 / 30%) 100%),
+    linear-gradient(105deg, rgb(40 20 14 / 64%) 0%, rgb(40 20 14 / 14%) 58%, transparent 75%);
 }
 .page-hero__inner { position: relative; padding-block: clamp(40px, 6vw, 96px); width: 100%; }
 /*
@@ -373,13 +385,25 @@
   .page-hero__copy { max-width: none; }
   .page-hero--full { min-height: min(88svh, 760px); }
   .page-hero__title { max-width: none; }
+  /*
+    The nowrap/no-max-width treatment above is a desktop-only flourish for the
+    big single-line display title. On a narrow screen there is no room for that
+    line, so it must be allowed to wrap again here rather than run off-screen.
+  */
+  .page-hero--home .page-hero__title,
+  .page-hero--home .page-hero__tagline { white-space: normal; text-wrap: balance; }
   .page-hero--home .page-hero__title { font-size: clamp(1.85rem, 9.4vw, 3.5rem); }
   .page-hero--home .page-hero__tagline { font-size: clamp(1rem, 5vw, 1.5rem); }
   /* Text covers most of the photograph here, so the overlay keeps its original strength. */
   .page-hero__scrim {
     background:
-      linear-gradient(to top, rgb(12 10 9 / 88%) 0%, rgb(12 10 9 / 62%) 32%, rgb(12 10 9 / 18%) 62%, rgb(12 10 9 / 6%) 100%),
+      linear-gradient(to top, rgb(12 10 9 / 88%) 0%, rgb(12 10 9 / 62%) 32%, rgb(12 10 9 / 30%) 62%, rgb(12 10 9 / 34%) 100%),
       linear-gradient(105deg, rgb(12 10 9 / 55%) 0%, rgb(12 10 9 / 10%) 58%, transparent 100%);
+  }
+  .page-hero--home .page-hero__scrim {
+    background:
+      linear-gradient(to top, rgb(40 20 14 / 88%) 0%, rgb(40 20 14 / 62%) 32%, rgb(40 20 14 / 30%) 62%, rgb(40 20 14 / 34%) 100%),
+      linear-gradient(105deg, rgb(40 20 14 / 55%) 0%, rgb(40 20 14 / 10%) 58%, transparent 100%);
   }
 }
 
@@ -486,6 +510,31 @@
 .colour-grid--tall .colour-panel { min-height: clamp(170px, 23vw, 320px); }
 
 @media (max-width: 639px) { .colour-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/*
+  Gallery treatment: pure colour, no printed labels (the name and country move
+  to visually-hidden text instead). Motion is layered on top of the existing
+  staggered entrance (data-reveal): the hovered or tapped swatch lifts and
+  expands slightly, and its neighbours settle back a touch so the grid's
+  composition visibly shifts around whichever colour has attention. Kept out of
+  reach of prefers-reduced-motion entirely.
+*/
+@media (prefers-reduced-motion: no-preference) {
+  .colour-panel--gallery {
+    position: relative;
+    transition: transform var(--duration-base) var(--ease-out),
+                box-shadow var(--duration-base) var(--ease-out),
+                filter var(--duration-base) var(--ease-out);
+  }
+  .colour-grid--gallery:hover .colour-panel--gallery { filter: saturate(0.9) brightness(0.97); }
+  .colour-panel--gallery:hover,
+  .colour-panel--gallery:active {
+    transform: scale(1.07);
+    z-index: 2;
+    filter: none;
+    box-shadow: 0 18px 40px rgb(12 10 9 / 28%);
+  }
+}
 
 /* Compact chips reused on country pages and cards. */
 .colour-chips { display: flex; flex-wrap: wrap; gap: var(--space-2xs); }
@@ -882,3 +931,91 @@ textarea.field__control { min-height: 140px; resize: vertical; }
 .tile:hover .tile__go { text-decoration: underline; text-underline-offset: 4px; }
 @media (max-width: 1023px) { .tile-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 599px) { .tile-grid { grid-template-columns: minmax(0, 1fr); } .tile { min-height: 168px; } }
+
+/*
+  Garment gallery: one large active image with previous/next, swipe, arrow-key
+  navigation, position ("1 of 4") and thumbnails. Contain-fit inside a fixed
+  aspect-ratio frame so the complete garment stays visible and the layout
+  never reflows as the active image changes.
+*/
+.garment-gallery { max-width: 640px; margin-inline: auto; }
+.garment-gallery__frame {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  background: var(--canvas);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.garment-gallery__frame img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.garment-gallery__control {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--touch-min);
+  height: var(--touch-min);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: rgb(255 255 255 / 88%);
+  color: var(--ink);
+  font-size: 1.125rem;
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+.garment-gallery__control:hover { background: var(--surface); }
+.garment-gallery__control--prev { left: var(--space-sm); }
+.garment-gallery__control--next { right: var(--space-sm); }
+.garment-gallery__position {
+  position: absolute;
+  bottom: var(--space-sm);
+  right: var(--space-sm);
+  margin: 0;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgb(12 10 9 / 62%);
+  color: var(--on-ink);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+}
+.garment-gallery__caption {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: var(--space-sm);
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+.garment-gallery__title { font-weight: 600; color: var(--ink); }
+.garment-gallery__credit { font-size: 0.8125rem; }
+.garment-gallery__thumbs {
+  display: flex;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+}
+.garment-gallery__thumbs button {
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  overflow: hidden;
+  width: 56px;
+  height: 70px;
+  flex-shrink: 0;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
+}
+.garment-gallery__thumbs button img { width: 100%; height: 100%; object-fit: cover; }
+.garment-gallery__thumbs button:hover { opacity: 0.85; }
+.garment-gallery__thumbs button.is-active { opacity: 1; border-color: var(--accent); }
+.garment-gallery:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.garment-gallery--single .garment-gallery__frame { border-color: var(--border); }
