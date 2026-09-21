@@ -237,8 +237,8 @@ const heroTitle = cmsPage?.heroTitle ? safeHeroTitle(cmsPage.heroTitle) : 'One f
             ) : (
               <p class="designer-slot__name designer-slot__name--empty">Designer to be announced</p>
             )}
-            <a class="designer-slot__link" href={countryPath(country.slug)}>
-              Country page<span aria-hidden="true">&#8594;</span>
+            <a class="designer-slot__link" href={`${countryPath(country.slug)}#designer`}>
+              Meet the designer<span aria-hidden="true">&#8594;</span>
             </a>
           </div>
         </li>

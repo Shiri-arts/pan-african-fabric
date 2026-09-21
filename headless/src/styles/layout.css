@@ -13,6 +13,8 @@
 .section {
   position: relative;
   padding-block: var(--section-block);
+  /* So a deep link like #designer lands below the sticky header, not behind it. */
+  scroll-margin-top: calc(var(--header-h) + 16px);
 }
 .section--tight { padding-block: clamp(40px, 5vw, 72px); }
 .section--flush-top { padding-top: 0; }
