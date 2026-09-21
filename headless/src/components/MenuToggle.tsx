@@ -9,13 +9,19 @@ const DESKTOP = '(min-width: 1100px)';
  */
 export default function MenuToggle() {
   const button = useRef<HTMLButtonElement>(null);
-  const [enhanced, setEnhanced] = useState(false);
+  // The header marks the enhancement before paint, so the button starts visible
+  // here too and hydration does not hide it again for a frame.
+  const [enhanced, setEnhanced] = useState(() =>
+    typeof document !== 'undefined' && document.documentElement.classList.contains('menu-enhanced'));
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const nav = document.getElementById('primary-navigation');
     if (!nav) return;
     document.documentElement.classList.add('menu-enhanced');
+    // Stands the header's pre-hydration fallback down; this component owns the
+    // button from here.
+    document.documentElement.classList.add('menu-hydrated');
     setEnhanced(true);
     const wide = matchMedia(DESKTOP);
     const onChange = () => {
@@ -26,6 +32,7 @@ export default function MenuToggle() {
     return () => {
       wide.removeEventListener('change', onChange);
       document.documentElement.classList.remove('menu-enhanced');
+      document.documentElement.classList.remove('menu-hydrated');
     };
   }, []);
 

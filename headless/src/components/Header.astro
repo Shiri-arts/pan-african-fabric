@@ -70,6 +70,36 @@ const resolvedAction = actionCms && actionCms.href === primaryAction.href
     </nav>
   </Container>
 </header>
+{/*
+  Marks the enhancement before the page paints, rather than waiting for the menu
+  island to hydrate. Below 1100px the navigation is in normal flow and therefore
+  open, so collapsing it at hydration moved everything below the header up by
+  around 1700px: enough to strand a deep link like /edition-one/cameroon#designer
+  a screen and a half from its target, because a smooth scroll was already running
+  toward the pre-collapse offset.
+
+  It runs inline and un-deferred, immediately after the header markup, so the
+  class and the visible toggle are in place for the first paint. Both depend on
+  scripting, which is exactly what the class asserts: with no JavaScript neither
+  happens and the navigation stays open with no toggle, as before.
+*/}
+<script is:inline>
+  document.documentElement.classList.add('menu-enhanced');
+  var menuToggle = document.getElementById('menu-toggle');
+  var menuNav = document.getElementById('primary-navigation');
+  if (menuToggle && menuNav) {
+    menuToggle.removeAttribute('hidden');
+    /*
+      Collapsing the menu here means the button must work here too, even if the
+      island never arrives. It stands down as soon as the island mounts and marks
+      the document hydrated, so the two never both handle a tap.
+    */
+    menuToggle.addEventListener('click', function () {
+      if (document.documentElement.classList.contains('menu-hydrated')) return;
+      menuToggle.setAttribute('aria-expanded', String(menuNav.classList.toggle('is-open')));
+    });
+  }
+</script>
 <style>
   /*
     Depth marker for the header's scroll state. Absolutely positioned so it never
