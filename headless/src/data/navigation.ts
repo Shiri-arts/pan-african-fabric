@@ -44,7 +44,6 @@ export const navigation: readonly NavigationItem[] = [
       { href: '/edition-one#regions', label: 'Five regions' },
       { href: '/edition-one#countries', label: 'The countries' },
       { href: '/edition-one#designers', label: 'The designers' },
-      { href: '/edition-one#process', label: 'The creative process' },
       { href: '/edition-one#garments', label: 'Garments and accessories' },
     ],
   },
