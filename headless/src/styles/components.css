@@ -392,6 +392,20 @@
   border-radius: var(--radius-media);
   aspect-ratio: var(--media-ratio, 3 / 2);
 }
+/*
+  Art direction lives on the img, but it sits inside a <picture> that has no
+  intrinsic height, so `height: 100%` resolved to auto and both object-fit and the
+  focal point were ignored: a portrait image grew past its frame and was clipped
+  at the bottom edge. Sizing the picture to the frame restores containment, the
+  focal point and the contain variant.
+*/
+.media__frame picture { display: block; width: 100%; height: 100%; }
+/*
+  Route heroes are excluded: they are composed full bleed against the hero scrim,
+  and sizing the picture there would letterbox a contained hero image instead.
+  Their composition is left exactly as approved.
+*/
+.page-hero__media .media__frame picture { height: auto; }
 .media__frame img { width: 100%; height: 100%; object-fit: cover; object-position: var(--media-focal, 50% 50%); }
 .media--contain .media__frame img { object-fit: contain; }
 .product-media .media__frame { aspect-ratio: auto; background: #fff; }
