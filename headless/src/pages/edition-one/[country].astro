@@ -105,9 +105,10 @@ const relatedEvents = relatedCmsEvents.length ? relatedCmsEvents.map((event) => 
   slug: event.slug, title: event.title, dateLabel: event.dateLabel, timeLabel: event.timeLabel,
   timezoneLabel: event.timezoneLabel, venue: event.venue, location: event.location, eventType: event.kind,
 })) : [];
+// Readiness follows what the profile actually publishes, so the badge cannot read
+// "available" on the strength of material this page no longer renders.
 const profileReady = Boolean(cmsCountry && (
-  heroMediaFromCms || textOnly(cmsCountry.introduction) || textOnly(cmsCountry.interpretation)
-  || textOnly(cmsCountry.participationSummary) || textOnly(cmsCountry.credits) || cmsDesigner
+  heroMediaFromCms || textOnly(cmsCountry.introduction) || textOnly(cmsCountry.interpretation) || cmsDesigner
 ));
 const profileStatus = profileReady ? (cmsCountry?.profileStatus ?? 'Profile available') : 'Profile in review';
 const regionLabel = cmsRegion?.name ?? cmsCountry?.regionLabel ?? (country ? regionName(country.region) : '');
@@ -117,18 +118,18 @@ const slotContent = {
   symbol: textOnly(featuredSymbol?.meaning),
   designer: textOnly(cmsDesigner?.biography),
   interpretation: textOnly(cmsCountry?.interpretation) ?? textOnly(principalParticipation?.statement),
-  participation: textOnly(cmsCountry?.participationSummary) ?? principalParticipation?.selectionContext,
-  credits: textOnly(cmsCountry?.credits),
 } as const;
 
-/** Every slot on this template, so an incomplete profile reads as in-review rather than as a finished page. */
+/**
+ * Every slot on this template, so an incomplete profile reads as in-review rather
+ * than as a finished page. Participation and credits are held in the CMS but are
+ * not published on the profile, so they are not slots here.
+ */
 const slots = [
   { id: 'introduction', label: 'Introduction', title: 'About this contribution', need: 'Approve a 60-100 word introduction.' },
   { id: 'symbol', label: 'Featured symbol', title: 'The symbol', need: 'Supply verified symbol name, artwork, cultural meaning, source and acknowledgement. Meaning is never inferred from artwork.' },
   { id: 'designer', label: 'The designer', title: 'The designer', need: 'Approve display name, studio, role, a 120-180 word biography, portrait and links.' },
   { id: 'interpretation', label: 'Creative interpretation', title: 'The interpretation', need: 'Approve a 100-150 word designer-approved statement. No invented first-person copy.' },
-  { id: 'participation', label: 'Participation', title: 'Participation', need: 'Confirm the selection and event context for this contribution.' },
-  { id: 'credits', label: 'Credits', title: 'Credits', need: 'Supply full model, photography, makeup, production and partner attribution as applicable.' },
 ];
 ---
 {!country ? (
@@ -176,31 +177,6 @@ const slots = [
         <p class="state__note" style="max-width:70ch"><strong>Regional grouping:</strong> {country.regionNote}</p>
       </Section>
     )}
-
-    <Section tone="ivory" id="colours">
-      <SectionHead
-        eyebrow="Colours"
-        title={colours.length === 1
-          ? `One colour in the twelve-colour system.`
-          : `${colours.length} colours in the twelve-colour system.`}
-      >
-        <p>Colour is shown with its name and country as text. It is never the only signal of which country a panel belongs to.</p>
-      </SectionHead>
-      <ul class="country-colours">
-        {colours.map((colour) => (
-          <li class="country-colour" style={colour.style}>
-            <span class="country-colour__field">
-              <span class="country-colour__index">{String(colour.index).padStart(2, '0')}</span>
-              <span class="country-colour__name">{colour.name}</span>
-            </span>
-            <span class="country-colour__meta">
-              <span>Position {colour.index} of 12</span>
-              <span class="badge badge--awaiting">Symbol link pending</span>
-            </span>
-          </li>
-        ))}
-      </ul>
-    </Section>
 
     {slots.map((slot, index) => (
       <Section tone={index % 2 === 0 ? 'surface' : 'ivory'} id={slot.id}>
@@ -322,22 +298,6 @@ const slots = [
   .country-hero__title { font-size: clamp(2.5rem, 8vw, 6rem); line-height: 0.92; letter-spacing: -0.04em; margin: var(--space-sm) 0 var(--space-md); }
   .country-hero__status { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); margin: var(--space-md) 0 0; font-size: 0.875rem; color: var(--on-ink-muted); }
   .country-hero .colour-chip { background: rgb(247 243 232 / 10%); border-color: rgb(247 243 232 / 30%); color: var(--on-ink); }
-
-  .country-colours { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: var(--space-md); }
-  .country-colour { display: flex; flex-direction: column; border: 1px solid var(--border); }
-  .country-colour__field {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: var(--space-lg);
-    min-height: 180px;
-    padding: var(--space-md);
-    background: var(--panel);
-    color: var(--panel-on);
-  }
-  .country-colour__index { font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.12em; }
-  .country-colour__name { font-family: var(--font-display); font-size: clamp(1.75rem, 3vw, 2.5rem); line-height: 1; letter-spacing: -0.02em; }
-  .country-colour__meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--space-2xs); padding: var(--space-sm) var(--space-md); font-size: 0.75rem; color: var(--muted); }
 
   .designer-name { font-family: var(--font-display); font-size: 1.5rem; line-height: 1.2; margin: 0; }
 
