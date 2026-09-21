@@ -582,6 +582,43 @@
   .event-poster__facts > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
 }
 
+/* --------------------------------------------------------- Compact event row */
+/*
+  The archive is a scanning list, not a second poster: one hairline-separated row
+  per event, so a long archive stays short and never competes with the featured
+  event above it. Rows stack into date, title, then place on narrow screens.
+*/
+.event-list { display: grid; gap: 0; }
+.event-row {
+  display: grid;
+  grid-template-columns: auto minmax(11rem, 14rem) minmax(0, 1fr) minmax(0, auto) auto;
+  align-items: center;
+  column-gap: clamp(16px, 2vw, 32px);
+  row-gap: 4px;
+  padding-block: var(--space-sm);
+  border-top: 1px solid var(--border);
+  color: var(--text);
+  text-decoration: none;
+  transition: background-color var(--duration-base) var(--ease-out);
+}
+.event-list > li:last-child .event-row { border-bottom: 1px solid var(--border); }
+.event-row:hover { background: rgb(247 243 232 / 6%); text-decoration: none; }
+.event-row:hover .event-row__title { text-decoration: underline; text-underline-offset: 4px; }
+.event-row__thumb { display: block; width: clamp(48px, 5vw, 72px); flex: none; }
+/* <picture> has no intrinsic height, so the square thumbnail needs the block sized here for object-fit to apply. */
+.event-row__thumb picture { display: block; width: 100%; height: 100%; }
+.event-row__date { font-size: 0.8125rem; line-height: 1.4; color: var(--muted); }
+.event-row__title { font-family: var(--font-display); font-size: clamp(1.0625rem, 1.4vw, 1.25rem); line-height: 1.2; letter-spacing: -0.01em; }
+.event-row__place { font-size: 0.8125rem; line-height: 1.4; color: var(--muted); }
+.event-row__cue { font-size: 0.6875rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--accent); white-space: nowrap; }
+@media (max-width: 899px) {
+  .event-row { grid-template-columns: auto minmax(0, 1fr); column-gap: var(--space-sm); padding-block: var(--space-md); }
+  .event-row__thumb { grid-row: span 3; align-self: start; }
+  .event-row__date, .event-row__title, .event-row__place, .event-row__cue { grid-column: 2; }
+  .event-row__cue { margin-top: 4px; }
+}
+@media (prefers-reduced-motion: reduce) { .event-row { transition: none; } }
+
 /* ---------------------------------------------------------- Empty and states */
 .state {
   display: flex;

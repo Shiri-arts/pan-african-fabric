@@ -6,6 +6,7 @@ import Copy from '../../components/Copy.astro';
 import PageHero from '../../components/PageHero.astro';
 import EventPoster from '../../components/EventPoster.astro';
 import EventCard from '../../components/EventCard.astro';
+import EventRow from '../../components/EventRow.astro';
 import EmptyState from '../../components/EmptyState.astro';
 import { eventPhase, eventStructuredData, events } from '../../data/events';
 import { awaiting, draft } from '../../lib/content';
@@ -133,8 +134,8 @@ const formats = [
       <p>{cmsPlainText(archiveSection?.body) ?? 'After an event has taken place, it moves here. The archive records what was scheduled; it never claims attendance, outcomes or press response that has not been supplied.'}</p>
     </SectionHead>
     {archive.length > 0 ? (
-      <ul class="card-grid card-grid--wide">
-        {archive.map((event) => <li><EventCard event={event} /></li>)}
+      <ul class="event-list">
+        {archive.map((event) => <li><EventRow event={event} /></li>)}
       </ul>
     ) : (
       <EmptyState
