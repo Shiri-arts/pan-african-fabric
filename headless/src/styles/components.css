@@ -596,6 +596,49 @@
   .event-poster__facts > div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
 }
 
+/* ------------------------------------------------------------ Image gallery */
+/*
+  Large view with a thumbnail strip. Before the script runs, every slide is in the
+  flow as a stacked gallery, which is also what a visitor without JavaScript sees;
+  once it runs, the stage holds one slide at a time.
+*/
+.gallery { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(16px, 2vw, 32px); align-items: start; }
+.gallery__stage { display: grid; gap: clamp(20px, 3vw, 40px); min-width: 0; }
+.gallery[data-gallery-ready] .gallery__stage { gap: 0; }
+/*
+  The stage is height-led rather than ratio-led: a portrait garment shot would
+  otherwise stand over a thousand pixels tall on a desktop. The image is contained
+  rather than cropped, because a garment should be seen whole.
+*/
+.gallery__stage .media__frame { aspect-ratio: auto; height: min(70svh, 660px); background: var(--paper); }
+.gallery__stage .media__frame img { object-fit: contain; }
+.gallery__thumbs { display: flex; flex-wrap: wrap; gap: clamp(8px, 1vw, 14px) clamp(8px, 1vw, 14px); list-style: none; margin: 0; padding: 0; }
+/* Thumbnails sit beside the image on desktop; a single image keeps the full width. */
+@media (min-width: 900px) {
+  .gallery[data-gallery-multi] { grid-template-columns: minmax(0, 8fr) minmax(0, 4fr); }
+  .gallery__thumbs { padding-top: 4px; }
+}
+.gallery__thumb {
+  display: block;
+  position: relative;
+  width: clamp(64px, 8vw, 96px);
+  border: 1px solid var(--border);
+  transition: border-color var(--duration-base) var(--ease-out);
+}
+/* <picture> carries no intrinsic height, so the square thumbnail is sized here. */
+.gallery__thumb picture { display: block; width: 100%; height: 100%; }
+.gallery__thumb:hover { border-color: var(--text); }
+.gallery__thumb[aria-current] { border-color: var(--text); box-shadow: inset 0 0 0 2px var(--canvas), 0 0 0 1px var(--text); }
+.gallery__thumb[aria-current]::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: -7px;
+  height: 2px;
+  background: var(--gold);
+}
+@media (prefers-reduced-motion: reduce) { .gallery__thumb { transition: none; } }
+
 /* --------------------------------------------------------- Compact event row */
 /*
   The archive is a scanning list, not a second poster: one hairline-separated row
