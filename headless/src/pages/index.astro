@@ -18,7 +18,7 @@ import { TAGLINE, fastFacts } from '../data/site';
 import { stories, storyCategories, type StoryCategory, type StoryRecord } from '../data/stories';
 import { approved, awaiting, draft } from '../lib/content';
 import { mediaSlot } from '../lib/media';
-import { getEditionColours, getEditionCountries, getMediaById, getPageByKey, getPageSections, getPrimaryEdition, getPublishedStories, getRegions, getSiteSettings, getUpcomingEvents, type CmsEvent } from '../lib/wix-cms';
+import { getEditionCountries, getMediaById, getPageByKey, getPageSections, getPrimaryEdition, getPublishedStories, getRegions, getSiteSettings, getUpcomingEvents, type CmsEvent } from '../lib/wix-cms';
 import { cmsPlainText, escapedHeroTitle } from '../lib/cms-presentation';
 import { loadReviewCopy, reviewStories } from '../lib/review';
 
@@ -26,10 +26,9 @@ const review = await loadReviewCopy();
 const [cmsPage, cmsSections, cmsSettings, cmsEvents, cmsStoryRecords, cmsEdition, cmsRegions] = await Promise.all([
   getPageByKey('home'), getPageSections('home'), getSiteSettings(), getUpcomingEvents(), getPublishedStories(), getPrimaryEdition(), getRegions(),
 ]);
-const [cmsCountries, cmsColours] = await Promise.all([
-  cmsEdition ? getEditionCountries(cmsEdition.id) : Promise.resolve([]),
-  getEditionColours(cmsEdition?.id),
-]);
+// The colour records are no longer read here: the tiles carry flags, and the
+// twelve colours are published on the Edition One page.
+const cmsCountries = cmsEdition ? await getEditionCountries(cmsEdition.id) : [];
 const section = (key: string) => cmsSections.find(item => item.sectionKey === key);
 const sectionEnabled = (key: string) => section(key)?.isEnabled ?? true;
 const editionSection = section('edition-one');
@@ -66,14 +65,10 @@ const homepageCountryEntries = cmsCountries.flatMap(record => {
   if (!known) return [];
   const region = record.regionId ? cmsRegionById.get(record.regionId) : undefined;
   const regionKey = knownRegions.some(item => item.slug === region?.regionKey) ? region!.regionKey as RegionSlug : known.region;
-  const colours = cmsColours
-    .filter(colour => colour.countryId === record.id && colour.textHex && (colour.contrastRatio ?? 0) >= 4.5)
-    .map(colour => ({ hex: colour.hexValue, textOn: colour.textHex! }));
   return [{
     country: { ...known, name: record.countryName, region: regionKey, regionNote: record.regionNote ?? known.regionNote,
       hasApprovedProfile: Boolean(record.introduction || record.interpretation || record.heroAssetId) },
     regionLabel: region?.name ?? record.regionLabel,
-    colours,
     status: record.profileStatus,
   }];
 });
@@ -149,8 +144,7 @@ const partnerMedia = (partnerSection?.mediaAssetId ? await getMediaById(partnerS
     )}
     <p class="caption" style="margin-top:24px;max-width:78ch">
       Each country carries its own colour from the Edition One fabric; Cameroon, Ghana and South Africa carry two.
-      Colour values are representative samples from the source artwork, which has gentle gradients rather than flat
-      swatches, and are shown for on-screen review rather than as print specifications.
+      The twelve colours are shown on the Edition One page.
     </p>
   </Section>
 

@@ -3,8 +3,8 @@
  * The nine-country grid.
  *
  * This is the country index: every country appears exactly once, so no separate
- * list is needed beneath it. Colour is the ground rather than the subject, and
- * country, region and status are all text.
+ * list is needed beneath it. Each tile carries its country's flag on a plain
+ * ground, and country, region and status are all text.
  */
 import CountryTile from './CountryTile.astro';
 import { countries, type Country } from '../data/countries';
@@ -12,7 +12,8 @@ import { countries, type Country } from '../data/countries';
 interface CountryEntry {
   readonly country: Country;
   readonly regionLabel?: string;
-  readonly colours?: readonly { readonly hex: string; readonly textOn: string }[];
+  /** Approved flag image URL, when one is supplied through the media library. */
+  readonly flag?: string;
   readonly status?: string;
 }
 interface Props { label?: string; class?: string; entries?: readonly CountryEntry[]; }

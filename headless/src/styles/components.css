@@ -932,28 +932,27 @@ textarea.field__control { min-height: 140px; resize: vertical; }
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(12px, 1.4vw, 20px);
 }
+/* A two-line country name sets the row height, so every tile in it fills that height. */
+.tile-grid > li { display: grid; }
 .tile {
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: var(--space-lg);
+  gap: var(--space-sm);
   min-height: clamp(200px, 24vw, 300px);
   padding: clamp(14px, 1.8vw, 24px);
   overflow: hidden;
-  background: var(--tile);
-  color: var(--tile-on);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
   text-decoration: none;
-  transition: transform var(--duration-base) var(--ease-out);
+  transition: transform var(--duration-base) var(--ease-out), border-color var(--duration-base) var(--ease-out);
 }
-.tile:hover { transform: translateY(-4px); text-decoration: none; }
-/* The second colour of a two-colour country, shown without text crossing it. */
-.tile--dual { padding-right: calc(clamp(14px, 1.8vw, 24px) + 18%); }
-.tile__band { position: absolute; inset: 0 0 0 auto; width: 18%; background: var(--tile-second); }
+.tile:hover { transform: translateY(-4px); border-color: var(--text); text-decoration: none; }
 .tile__top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-sm); }
 .tile__index { font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.12em; }
-/* No opacity on these: dimming the label pushed Kenya's red under 4.5:1. The
-   hierarchy comes from size, letterspacing and case instead. */
+/* Hierarchy comes from size, letterspacing and case rather than from dimming. */
 .tile__region { font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase; text-align: right; }
 .tile__name {
   font-family: var(--font-display);
@@ -962,6 +961,29 @@ textarea.field__control { min-height: 140px; resize: vertical; }
   letter-spacing: -0.025em;
   text-wrap: balance;
   margin-top: auto;
+}
+/*
+  Whole flag, never cropped and never stretched: the 3:2 box is reserved so the
+  card cannot shift as the file loads, and a flag of another ratio, such as
+  Nigeria's 2:1, sits centred inside it. The hairline keeps a flag with a white
+  edge from bleeding into the card.
+*/
+.flag { display: block; aspect-ratio: 3 / 2; }
+.flag img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.tile__flag {
+  width: min(100%, 210px);
+  margin-inline: auto;
+  padding: 1px;
+  background: var(--canvas);
+  box-shadow: 0 0 0 1px var(--border), 0 6px 18px rgb(36 33 30 / 10%);
+}
+/* Edition One country card: the flag leads the card body, above the country name. */
+.country-card__flag {
+  width: min(100%, 168px);
+  margin-bottom: var(--space-2xs);
+  padding: 1px;
+  background: var(--canvas);
+  box-shadow: 0 0 0 1px var(--border);
 }
 .tile__foot { display: flex; flex-direction: column; gap: 4px; }
 .tile__status { font-size: 0.625rem; letter-spacing: 0.08em; text-transform: uppercase; }

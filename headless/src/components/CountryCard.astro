@@ -2,12 +2,23 @@
 /**
  * A country entry. The country name supplies the accessible link text, the region
  * is a text label rather than a colour, and an incomplete profile says so instead
- * of presenting invented details. No flag or decorative motif is used.
+ * of presenting invented details.
+ *
+ * The card carries the country's flag, whole and uncropped, on the card ground:
+ * it is what distinguishes countries that share a palette. The colour rail above
+ * it still reports how many Edition One colours the country carries.
  */
+import CountryFlag from './CountryFlag.astro';
 import { coloursForCountry } from '../data/colours';
 import { countryPath, regionName, type Country } from '../data/countries';
-interface Props { country: Country; index?: number; colourStyles?: readonly string[]; }
-const { country, index, colourStyles } = Astro.props;
+interface Props {
+  country: Country;
+  index?: number;
+  colourStyles?: readonly string[];
+  /** Approved flag image URL, when one is supplied through the media library. */
+  flag?: string;
+}
+const { country, index, colourStyles, flag } = Astro.props;
 const colours = colourStyles ?? (import.meta.env.DEV ? coloursForCountry(country.slug).map(colour => `--rail:var(${colour.variable})`) : []);
 const status = country.hasApprovedProfile ? 'Profile available' : 'Profile in review';
 ---
@@ -16,6 +27,7 @@ const status = country.hasApprovedProfile ? 'Profile available' : 'Profile in re
     {colours.map((style) => <span style={style}></span>)}
   </span>
   <span class="card__body">
+    <CountryFlag name={country.name} slug={country.slug} override={flag} class="country-card__flag" />
     <span class="card__meta">
       {index !== undefined && <span>{String(index + 1).padStart(2, '0')}</span>}
       <span>{regionName(country.region)}</span>
