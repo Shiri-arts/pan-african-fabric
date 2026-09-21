@@ -169,12 +169,17 @@ const process = [
         themselves are listed below.
       </p>
     </SectionHead>
-    {colours.length > 0 ? <ul class="colour-grid colour-grid--tall" aria-label="The twelve colours of Edition One" data-reveal-group>
+    {colours.length > 0 ? <ul class="colour-grid colour-grid--tall colour-grid--gallery" aria-label="The twelve colours of Edition One" data-reveal-group>
       {colours.map((colour, index) => (
         <li data-reveal="rise" style={`--reveal-delay:${Math.min(index, 8) * 45}ms`}>
-          <div class="colour-panel" style={colour.style}>
-            <p class="colour-panel__name">{colour.name}</p>
-            <p class="colour-panel__country">{colour.countryName}</p>
+          <div class="colour-panel colour-panel--gallery" style={colour.style}>
+            {/*
+              Purely visual by design: the swatch itself is the content, with no
+              printed name or country. The name and country still exist for every
+              visitor who uses a screen reader — visually-hidden text, not a
+              missing label.
+            */}
+            <span class="visually-hidden">{colour.name} — {colour.countryName}</span>
           </div>
         </li>
       ))}

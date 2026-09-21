@@ -17,4 +17,8 @@ export default defineConfig({
   ...(localBrowserTest ? {} : { adapter: wixHosting() }),
   server: { host: '127.0.0.1', port: 4321 },
   devToolbar: { enabled: false },
+  // Lets the dev server accept requests forwarded through a tunnel (ngrok, etc.)
+  // for sharing a local review build with someone who doesn't have the project
+  // set up. Dev-only: never applies to `astro build` or the deployed site.
+  vite: { server: { allowedHosts: ['.ngrok-free.dev', '.ngrok-free.app', '.ngrok.io'] } },
 });

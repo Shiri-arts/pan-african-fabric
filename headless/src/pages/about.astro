@@ -35,11 +35,15 @@ const founderPortrait = (founderSection?.mediaAssetId ? await getMediaById(found
 const heroMedia = (cmsPage?.heroAssetId ? await getMediaById(cmsPage.heroAssetId) : undefined)
   ?? mediaSlot('about-hero', '21/9', 'Approved photograph of the fabric, a workshop or a public programme.');
 
-/** Section spine from the copy deck. Headings only: no narrative is invented. */
+/**
+ * Section spine from the copy deck. Each section has one heading: the numbered
+ * label itself (e.g. "01 — Origin"), unless approved CMS copy supplies a
+ * dedicated heading to replace it.
+ */
 const sections = [
-  { id: 'origin', label: 'Origin', title: 'Why this initiative exists.', need: 'Approve the origin story: what prompted the initiative and when it began.' },
-  { id: 'mission', label: 'Mission and vision', title: 'What it sets out to do.', need: 'Approve the mission statement and the vision for where the initiative is going.' },
-  { id: 'model', label: 'How it works', title: 'How the initiative is made.', need: 'Approve the explanation of how countries, designers and institutions take part.' },
+  { id: 'origin', label: 'Origin', need: 'Approve the origin story: what prompted the initiative and when it began.' },
+  { id: 'mission', label: 'Mission and vision', need: 'Approve the mission statement and the vision for where the initiative is going.' },
+  { id: 'model', label: 'How it works', need: 'Approve the explanation of how countries, designers and institutions take part.' },
 ];
 ---
 <Layout
@@ -70,9 +74,10 @@ const sections = [
 
   {sections.map((section, index) => {
     const content = cmsSection(section.id);
+    const numbered = content?.eyebrow ?? `${String(index + 1).padStart(2, '0')} — ${section.label}`;
     return (
     <Section tone={index % 2 === 0 ? 'ivory' : 'surface'} id={section.id} hidden={!sectionEnabled(section.id)}>
-      <SectionHead eyebrow={content?.eyebrow ?? `${String(index + 1).padStart(2, '0')} — ${section.label}`} title={content?.heading ?? section.title}>
+      <SectionHead title={content?.heading ?? numbered} class="section-head--numbered">
         {content?.body ? <CmsRichText value={content.body} class="lead" /> : <EmptyState
           title={`${section.label} copy is not approved yet.`}
           text="This section is designed and ready. Approved copy drops straight in without a layout change."
@@ -209,4 +214,17 @@ const sections = [
   .timeline__label { font-family: var(--font-display); font-size: 1.125rem; color: var(--muted); }
 
   .h-inline { font-size: clamp(1.5rem, 3vw, 2.25rem); margin: 0; max-width: 18ch; }
+
+  /*
+    The Origin / Mission / How it works sections previously carried two competing
+    headings: a small numbered eyebrow and a separate title below it. The number
+    is now the only heading, so it needs to read as one rather than as a label —
+    larger, tracked out and given room to stand alone.
+  */
+  :global(.section-head--numbered .section-head__title) {
+    font-size: clamp(2rem, 1.35rem + 3.4vw, 3.75rem);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    max-width: none;
+  }
 </style>
