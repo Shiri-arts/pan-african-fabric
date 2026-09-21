@@ -74,10 +74,14 @@ const sections = [
 
   {sections.map((section, index) => {
     const content = cmsSection(section.id);
+    // The numbered label is the heading, full stop — not a fallback for missing
+    // CMS copy. A previously-approved "heading" field (e.g. "Why this initiative
+    // exists.") must not resurface here once it's been retired in favour of the
+    // number; that's exactly the duplicate-heading problem this page fixed.
     const numbered = content?.eyebrow ?? `${String(index + 1).padStart(2, '0')} — ${section.label}`;
     return (
     <Section tone={index % 2 === 0 ? 'ivory' : 'surface'} id={section.id} hidden={!sectionEnabled(section.id)}>
-      <SectionHead title={content?.heading ?? numbered} class="section-head--numbered">
+      <SectionHead title={numbered} class="section-head--numbered">
         {content?.body ? <CmsRichText value={content.body} class="lead" /> : <EmptyState
           title={`${section.label} copy is not approved yet.`}
           text="This section is designed and ready. Approved copy drops straight in without a layout change."
