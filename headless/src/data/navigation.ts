@@ -59,8 +59,7 @@ export const navigation: readonly NavigationItem[] = [
   {
     href: '/stories', label: 'Stories', purpose: 'The living voice',
     sections: [
-      { href: '/stories#index', label: 'All stories' },
-      { href: '/stories#categories', label: 'Categories' },
+      { href: '/stories#stories', label: 'All stories' },
     ],
   },
   {
