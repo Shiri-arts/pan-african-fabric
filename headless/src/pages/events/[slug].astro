@@ -18,13 +18,28 @@ import NotFound from '../../components/NotFound.astro';
 import { eventPath, eventPhase, eventStructuredData, findEvent, posterDate } from '../../data/events';
 import { COUNTRY_COUNT } from '../../data/countries';
 import { cmsPlainText, presentCmsEvent } from '../../lib/cms-route-presenters';
-import { getEventBySlug, getMediaById } from '../../lib/wix-cms';
+import { getEventBySlug, getMediaById, getUpcomingEvents } from '../../lib/wix-cms';
 
 export const prerender = false;
 
 const cmsEvent = Astro.params.slug ? await getEventBySlug(Astro.params.slug) : undefined;
 const cmsPresentation = cmsEvent ? await presentCmsEvent(cmsEvent, getMediaById) : undefined;
-const event = cmsPresentation ?? (import.meta.env.DEV ? findEvent(Astro.params.slug) : undefined);
+const candidate = cmsPresentation ?? (import.meta.env.DEV ? findEvent(Astro.params.slug) : undefined);
+
+/*
+  /events presents the leading confirmed event as one poster and folds every other
+  confirmed event of that occasion into it, so a companion event has no page of its
+  own and its slug returns a real 404. The leading event is resolved exactly as the
+  index resolves it, so the two can never disagree about which event that is.
+*/
+const confirmedAhead = await getUpcomingEvents();
+const leadSlug = (confirmedAhead.find(item => item.featured) ?? confirmedAhead[0])?.slug;
+const isCompanion = Boolean(
+  cmsEvent?.slug && leadSlug && cmsEvent.slug !== leadSlug
+  && confirmedAhead.some(item => item.slug === cmsEvent.slug),
+);
+
+const event = isCompanion ? undefined : candidate;
 if (!event) Astro.response.status = 404;
 
 const previewArchive = import.meta.env.DEV && Astro.url.searchParams.get('preview') === 'archive';
@@ -83,12 +98,6 @@ const partnerCredits = cmsPlainText(cmsEvent?.publicPartnerCredits);
           <div><dt>Location</dt><dd>{event.location}</dd></div>
         </dl>
       </div>
-      {(cmsEvent?.officialUrl || cmsEvent?.ticketUrl) && (
-        <p class="actions">
-          {cmsEvent.officialUrl && <Button href={cmsEvent.officialUrl} variant="secondary">Official event information<span class="button__arrow" aria-hidden="true">&#8599;</span></Button>}
-          {cmsEvent.ticketUrl && <Button href={cmsEvent.ticketUrl}>Attendance information<span class="button__arrow" aria-hidden="true">&#8599;</span></Button>}
-        </p>
-      )}
     </Section>
 
     <Section tone="ivory" size="tight" flush="bottom">
@@ -126,8 +135,16 @@ const partnerCredits = cmsPlainText(cmsEvent?.publicPartnerCredits);
     ) : (
       <Section tone="ink" id="attend">
         <SectionHead eyebrow="Attending" title="How to attend.">
-          <p>{admission ?? 'Access details are published once confirmed by the venue. No ticketing, registration or booking route is offered here unless it has been confirmed.'}</p>
+          <p>{admission ?? (cmsEvent?.ticketUrl
+            ? 'Tickets for this event are available through the official ticketing page.'
+            : 'Access details are published once confirmed by the venue.')}</p>
         </SectionHead>
+        {(cmsEvent?.ticketUrl || cmsEvent?.officialUrl) && (
+          <p class="actions">
+            {cmsEvent.ticketUrl && <Button href={cmsEvent.ticketUrl}>Get tickets<span class="button__arrow" aria-hidden="true">&#8599;</span></Button>}
+            {cmsEvent.officialUrl && <Button href={cmsEvent.officialUrl} variant="secondary">Official event information<span class="button__arrow" aria-hidden="true">&#8599;</span></Button>}
+          </p>
+        )}
         {accessibility && <div class="event-copy event-copy--ink"><h3>Accessibility</h3><p>{accessibility}</p></div>}
         {!admission && !accessibility && !cmsEvent?.ticketUrl && !cmsEvent?.officialUrl && (
           <EmptyState

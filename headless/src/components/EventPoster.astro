@@ -15,8 +15,37 @@ interface Props {
   kicker?: string;
   linkToDetail?: boolean;
   now?: Date;
+  /** Approved description, shown under the title. */
+  summary?: string;
+  /** Approved entry wording, e.g. "By Invitation". */
+  admission?: string;
+  /** Official ticketing page. Renders a ticket action when supplied. */
+  ticketUrl?: string;
+  /** Official event page. */
+  officialUrl?: string;
+  /**
+   * Other confirmed events that belong to the same occasion. They are presented
+   * inside this poster rather than as posters of their own, so one day reads as
+   * one thing.
+   */
+  alsoOn?: readonly {
+    slug: string;
+    title: string;
+    dateLabel: string;
+    timeLabel: string | null;
+    venue: string;
+    location: string;
+    admission?: string;
+    summary?: string;
+  }[];
+  /** Heading for the companion block, e.g. "Later the same day". */
+  alsoOnLabel?: string;
 }
-const { event, level = 2, kicker, linkToDetail = true, now } = Astro.props;
+const {
+  event, level = 2, kicker, linkToDetail = true, now, summary, admission, ticketUrl, officialUrl,
+  alsoOn = [], alsoOnLabel = 'Later the same day',
+} = Astro.props;
+const CompanionHeading = `h${Math.min(level + 1, 6)}` as 'h3' | 'h4' | 'h5' | 'h6';
 const Heading = `h${level}` as 'h1' | 'h2' | 'h3';
 const date = posterDate(event);
 const phase = eventPhase(event, now ?? new Date());
@@ -35,17 +64,45 @@ const timeWithZone = event.timeLabel && event.timezoneLabel ? `${event.timeLabel
   </div>
   <div class="event-poster__body">
     <Heading class="event-poster__title">{event.title}</Heading>
+    {summary && <p class="event-poster__summary">{summary}</p>}
     <dl class="event-poster__facts">
       <div><dt>Date</dt><dd>{event.dateLabel}</dd></div>
       {timeWithZone && <div><dt>Time</dt><dd>{timeWithZone}</dd></div>}
       <div><dt>Venue</dt><dd>{event.venue}</dd></div>
       <div><dt>Location</dt><dd>{event.location}</dd></div>
+      {admission && <div><dt>Entry</dt><dd>{admission}</dd></div>}
     </dl>
-    {linkToDetail && (
+    {alsoOn.length > 0 && (
+      <div class="event-poster__also">
+        <p class="event-poster__also-label">{alsoOnLabel}</p>
+        {alsoOn.map((item) => (
+          <div class="event-poster__also-item">
+            <CompanionHeading class="event-poster__also-name">{item.title}</CompanionHeading>
+            {item.summary && <p class="event-poster__also-summary">{item.summary}</p>}
+            <dl class="event-poster__facts event-poster__facts--compact">
+              {item.dateLabel !== event.dateLabel && <div><dt>Date</dt><dd>{item.dateLabel}</dd></div>}
+              {item.timeLabel && <div><dt>Time</dt><dd>{item.timeLabel}</dd></div>}
+              <div><dt>Venue</dt><dd>{item.venue}</dd></div>
+              <div><dt>Location</dt><dd>{item.location}</dd></div>
+              {item.admission && <div><dt>Entry</dt><dd>{item.admission}</dd></div>}
+            </dl>
+          </div>
+        ))}
+      </div>
+    )}
+    {(linkToDetail || ticketUrl || officialUrl) && (
       <p class="actions">
-        <Button href={eventPath(event.slug)} variant="secondary">
-          Event details<span class="button__arrow" aria-hidden="true">&#8594;</span>
-        </Button>
+        {ticketUrl && (
+          <Button href={ticketUrl}>Get tickets<span class="button__arrow" aria-hidden="true">&#8599;</span></Button>
+        )}
+        {linkToDetail && (
+          <Button href={eventPath(event.slug)} variant="secondary">
+            Event details<span class="button__arrow" aria-hidden="true">&#8594;</span>
+          </Button>
+        )}
+        {officialUrl && (
+          <Button href={officialUrl} variant="text">Official event information<span class="button__arrow" aria-hidden="true">&#8599;</span></Button>
+        )}
       </p>
     )}
   </div>

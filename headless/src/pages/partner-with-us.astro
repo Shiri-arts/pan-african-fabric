@@ -159,14 +159,6 @@ const enquiryTypes = enquiryOptions.length > 0 ? enquiryOptions.map(option => op
     </SectionHead>
 
     <div class="enquiry">
-      <div class="enquiry__notice" role="note">
-        <p class="badge">Enquiries open</p>
-        <p class="enquiry__notice-text">
-          Your details are used only to review and respond to this enquiry. The form sends your message directly to
-          the initiative's approved email address; it does not create a new CMS enquiry record.
-        </p>
-      </div>
-
       <form class="form-preview" id="partner-enquiry-form" aria-describedby="enquiry-status">
         <p id="enquiry-status" class="form-status" role="status" aria-live="polite"></p>
         <input type="hidden" id="partner-started-at" name="startedAt" value="" />
@@ -190,6 +182,20 @@ const enquiryTypes = enquiryOptions.length > 0 ? enquiryOptions.map(option => op
           <p class="enquiry__actions-note">You can also email <a href="mailto:info@shiriachuart.com">info@shiriachuart.com</a>.</p>
         </div>
       </form>
+
+      <dialog class="enquiry-confirm" id="enquiry-confirm" aria-labelledby="enquiry-confirm-title">
+        <div class="enquiry-confirm__body">
+          <p class="enquiry-confirm__mark" aria-hidden="true">&#10003;</p>
+          <h2 class="enquiry-confirm__title" id="enquiry-confirm-title">Your enquiry has been sent</h2>
+          <p class="enquiry-confirm__text">
+            Thank you. Your enquiry has been emailed to The Pan-African Fabric, and a reply will come to the address
+            you supplied.
+          </p>
+          <form method="dialog">
+            <Button type="submit" size="large">Close</Button>
+          </form>
+        </div>
+      </dialog>
     </div>
   </Section>
 
@@ -206,6 +212,40 @@ const enquiryTypes = enquiryOptions.length > 0 ? enquiryOptions.map(option => op
 </Layout>
 
 <style>
+  /*
+    Success confirmation. A native dialog is used so focus handling, Escape and the
+    backdrop come from the platform. The inline status line is still written to, so
+    the outcome is announced to assistive technology and remains readable if the
+    dialog cannot open.
+  */
+  .enquiry-confirm { border: 0; padding: 0; background: transparent; max-width: min(92vw, 30rem); }
+  .enquiry-confirm::backdrop { background: rgb(24 21 18 / 62%); }
+  .enquiry-confirm__body {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-sm);
+    padding: clamp(24px, 4vw, 40px);
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-media);
+    text-align: center;
+  }
+  .enquiry-confirm__mark {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    margin: 0;
+    border-radius: 50%;
+    background: var(--gold);
+    color: var(--ink-deep);
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+  .enquiry-confirm__title { margin: 0; font-size: clamp(1.25rem, 2.6vw, 1.75rem); line-height: 1.15; }
+  .enquiry-confirm__text { margin: 0; max-width: 42ch; color: var(--muted); }
+
   .colour-band { display: flex; height: clamp(10px, 1.6vw, 20px); }
   .colour-band span { flex: 1; }
 
@@ -220,19 +260,13 @@ const enquiryTypes = enquiryOptions.length > 0 ? enquiryOptions.map(option => op
   .way h3 { margin: 0 0 var(--space-xs); font-size: 1.375rem; }
   .way p { white-space: pre-line; }
 
-  .enquiry { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: clamp(24px, 4vw, 64px); align-items: start; }
-  .enquiry__notice { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-sm); padding: var(--space-md); border: 1px dashed var(--border); background: rgb(255 255 255 / 55%); position: sticky; top: 108px; }
-  .enquiry__notice-text { font-size: 0.8125rem; line-height: 1.55; color: var(--muted); margin: 0; }
+  .enquiry { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(24px, 4vw, 64px); align-items: start; max-width: 52rem; }
   .enquiry__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-md); padding-top: var(--space-sm); border-top: 1px solid var(--border); }
   .enquiry__actions-note { font-size: 0.75rem; line-height: 1.5; color: var(--muted); margin: 0; max-width: 30ch; }
   .form-status { min-height: 1.5em; margin: 0 0 var(--space-sm); font-weight: 600; }
   .form-status[data-state='error'] { color: var(--rust); }
   .form-status[data-state='success'] { color: #1f6b45; }
   .form-trap { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-  @media (max-width: 899px) {
-    .enquiry { grid-template-columns: minmax(0, 1fr); }
-    .enquiry__notice { position: static; }
-  }
 </style>
 
 <script>
@@ -240,6 +274,7 @@ const enquiryTypes = enquiryOptions.length > 0 ? enquiryOptions.map(option => op
   const status = document.querySelector<HTMLElement>('#enquiry-status');
   const submit = document.querySelector<HTMLButtonElement>('#partner-submit');
   const started = document.querySelector<HTMLInputElement>('#partner-started-at');
+  const confirmation = document.querySelector<HTMLDialogElement>('#enquiry-confirm');
   if (started) started.value = String(Date.now());
   form?.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -273,8 +308,22 @@ const enquiryTypes = enquiryOptions.length > 0 ? enquiryOptions.map(option => op
       status.dataset.state = 'success';
       form.reset();
       if (started) started.value = String(Date.now());
-    } catch {
-      status.textContent = 'The enquiry could not be submitted. Please email info@shiriachuart.com.';
+      if (confirmation && typeof confirmation.showModal === 'function' && !confirmation.open) confirmation.showModal();
+    } catch (error) {
+      /*
+        The endpoint explains exactly what it rejected: a missing field, missing
+        consent, a stale form. Showing that instead of a blanket failure is the
+        difference between a visitor correcting one field and a visitor believing
+        the form is broken.
+      */
+      const reason = error instanceof Error ? error.message : '';
+      status.textContent = reason === 'rate-limit'
+        ? 'Too many attempts from this browser. Please email info@shiriachuart.com.'
+        : reason === 'spam-check'
+        ? 'Please take a moment to complete the form, then send it again.'
+        : reason && reason !== 'delivery-failed'
+        ? reason
+        : 'The enquiry could not be sent just now. Please email info@shiriachuart.com.';
       status.dataset.state = 'error';
     } finally {
       submit.disabled = false;

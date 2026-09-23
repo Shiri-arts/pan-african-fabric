@@ -373,6 +373,13 @@
   .page-hero__copy { max-width: none; }
   .page-hero--full { min-height: min(88svh, 760px); }
   .page-hero__title { max-width: none; }
+  /*
+    The desktop lockup holds the title and tagline on one line each. At this width
+    that line is wider than the screen, so it has to wrap: without this the hero
+    text runs past the right edge and the page scrolls sideways.
+  */
+  .page-hero--home .page-hero__title,
+  .page-hero--home .page-hero__tagline { white-space: normal; text-wrap: balance; }
   .page-hero--home .page-hero__title { font-size: clamp(1.85rem, 9.4vw, 3.5rem); }
   .page-hero--home .page-hero__tagline { font-size: clamp(1rem, 5vw, 1.5rem); }
   /* Text covers most of the photograph here, so the overlay keeps its original strength. */
@@ -519,6 +526,60 @@
 
 @media (max-width: 1023px) { .colour-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 639px) { .colour-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/*
+  The twelve colours read as a band of swatches: the colour itself is the content,
+  so no name or country is printed over it. Each swatch still carries a
+  visually-hidden label, so removing the visible text costs nothing in meaning for
+  a screen reader. Placed after the shared .colour-grid breakpoints so the swatch
+  layout wins at every width.
+*/
+.colour-grid--swatches {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(6px, 0.8vw, 12px);
+  border: 0;
+}
+.colour-grid--swatches > li {
+  border-radius: var(--radius-media);
+  overflow: hidden;
+}
+.colour-panel--swatch {
+  position: relative;
+  min-height: 0;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  isolation: isolate;
+  transition: transform var(--duration-base) var(--ease-editorial),
+              box-shadow var(--duration-base) var(--ease-editorial);
+}
+/* A sheen sweeps across the swatch on hover and on keyboard focus. */
+.colour-panel--swatch::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 35%, rgb(255 255 255 / 34%) 50%, transparent 65%);
+  transform: translate3d(-120%, 0, 0);
+  transition: transform var(--duration-slow) var(--ease-editorial);
+}
+.colour-grid--swatches > li:hover,
+.colour-grid--swatches > li:focus-within { position: relative; z-index: 2; overflow: visible; }
+.colour-grid--swatches > li:hover .colour-panel--swatch,
+.colour-grid--swatches > li:focus-within .colour-panel--swatch {
+  transform: translate3d(0, -6px, 0) scale(1.05);
+  box-shadow: 0 14px 30px rgb(36 33 30 / 22%);
+  border-radius: var(--radius-media);
+}
+.colour-grid--swatches > li:hover .colour-panel--swatch::after,
+.colour-grid--swatches > li:focus-within .colour-panel--swatch::after {
+  transform: translate3d(120%, 0, 0);
+}
+/*
+  Strictly three across and four down at every width: the twelve colours are read
+  as one fixed block, so the grid never reflows into a different shape.
+*/
+@media (max-width: 1023px) { .colour-grid--swatches { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 639px) { .colour-grid--swatches { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
 
 /* -------------------------------------------------------------------- Cards */
 .card {
@@ -1014,3 +1075,44 @@ textarea.field__control { min-height: 140px; resize: vertical; }
 .tile:hover .tile__go { text-decoration: underline; text-underline-offset: 4px; }
 @media (max-width: 1023px) { .tile-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 599px) { .tile-grid { grid-template-columns: minmax(0, 1fr); } }
+
+/*
+  One occasion reads as one poster. The showcase leads; anything else confirmed for
+  the same day sits inside the same poster rather than repeating the layout below
+  it, with its own facts and a link to its full page.
+*/
+.event-poster__summary {
+  margin: 0 0 var(--space-sm);
+  max-width: 60ch;
+  color: var(--muted);
+}
+.event-poster__also {
+  margin-top: var(--space-md);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border);
+}
+.event-poster__also-label {
+  margin: 0 0 var(--space-sm);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.event-poster__also-item + .event-poster__also-item { margin-top: var(--space-md); }
+.event-poster__also-name {
+  margin: 0 0 var(--space-2xs);
+  font-family: var(--font-display);
+  font-size: clamp(1.0625rem, 1.8vw, 1.375rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.event-poster__also-summary { margin: 0 0 var(--space-sm); max-width: 60ch; color: var(--muted); }
+.event-poster__facts--compact { margin-bottom: var(--space-sm); }
+.event-poster__also-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}

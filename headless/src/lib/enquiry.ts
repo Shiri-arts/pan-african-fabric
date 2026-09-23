@@ -19,7 +19,8 @@ export function validateEnquiry(value: unknown, now = Date.now()): { ok: true; d
     location: clean(input.location, 180), enquiryType: clean(input.enquiryType, 180), message: clean(input.message, 4_000),
     timeline: clean(input.timeline, 300), consent: input.consent === true, startedAt,
   };
-  if (!data.name || !data.organisation || !data.enquiryType || data.message.length < 10) return { ok: false, message: 'Please complete every required field.' };
+  if (!data.name || !data.organisation || !data.enquiryType || !data.message) return { ok: false, message: 'Please complete every required field.' };
+  if (data.message.length < 10) return { ok: false, message: 'Please add a little more detail to your enquiry.' };
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) return { ok: false, message: 'Enter a valid email address.' };
   if (!data.consent) return { ok: false, message: 'Consent is required so the initiative can respond.' };
   return { ok: true, data };

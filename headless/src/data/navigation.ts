@@ -50,8 +50,7 @@ export const navigation: readonly NavigationItem[] = [
   {
     href: '/events', label: 'Events', purpose: 'Where it happens',
     sections: [
-      { href: '/events#featured', label: 'Next event' },
-      { href: '/events#upcoming', label: 'Upcoming' },
+      { href: '/events#upcoming', label: 'Next event' },
       { href: '/events#formats', label: 'Formats' },
       { href: '/events#archive', label: 'Archive' },
     ],
@@ -66,7 +65,6 @@ export const navigation: readonly NavigationItem[] = [
     href: '/shop', label: 'Shop', purpose: 'Own a piece of the story',
     sections: [
       { href: '/shop#collection', label: 'Collection' },
-      { href: '/shop#positions', label: 'What the shop will carry' },
     ],
   },
   {

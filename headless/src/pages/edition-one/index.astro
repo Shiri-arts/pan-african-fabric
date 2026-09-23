@@ -163,12 +163,11 @@ const heroTitle = cmsPage?.heroTitle ? safeHeroTitle(cmsPage.heroTitle) : 'One f
         themselves are listed below.
       </p>
     </SectionHead>
-    {colours.length > 0 ? <ul class="colour-grid colour-grid--tall" aria-label="The twelve colours of Edition One" data-reveal-group>
+    {colours.length > 0 ? <ul class="colour-grid colour-grid--swatches" aria-label="The twelve colours of Edition One" data-reveal-group>
       {colours.map((colour, index) => (
-        <li data-reveal="rise" style={`--reveal-delay:${Math.min(index, 8) * 45}ms`}>
-          <div class="colour-panel" style={colour.style}>
-            <p class="colour-panel__name">{colour.name}</p>
-            <p class="colour-panel__country">{colour.countryName}</p>
+        <li data-reveal="rise" style={`--reveal-delay:${Math.min(index, 11) * 55}ms`}>
+          <div class="colour-panel colour-panel--swatch" style={colour.style}>
+            <span class="visually-hidden">{colour.name}, {colour.countryName}</span>
           </div>
         </li>
       ))}

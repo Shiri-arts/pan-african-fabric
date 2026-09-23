@@ -5,7 +5,6 @@ import SectionHead from '../../components/SectionHead.astro';
 import Copy from '../../components/Copy.astro';
 import PageHero from '../../components/PageHero.astro';
 import EventPoster from '../../components/EventPoster.astro';
-import EventCard from '../../components/EventCard.astro';
 import EventRow from '../../components/EventRow.astro';
 import EmptyState from '../../components/EmptyState.astro';
 import { eventPhase, eventStructuredData, events } from '../../data/events';
@@ -35,7 +34,39 @@ const active = eventRecords.filter(event => eventPhase(event, now) !== 'archive'
 const archive = eventRecords.filter(event => eventPhase(event, now) === 'archive').sort((a, b) => Date.parse(b.startsAt ?? b.isoDate) - Date.parse(a.startsAt ?? a.isoDate));
 const preferredSlug = cmsPairs.find(pair => pair.source.featured)?.event.slug;
 const featured = active.find(event => event.slug === preferredSlug) ?? active[0] ?? archive[0];
-const upcoming = active.filter(event => event.slug !== featured?.slug);
+/*
+  One presentation for confirmed events: the featured event leads, every other
+  active event follows in the same poster format. Each poster carries the same
+  facts the event page shows, so the two never disagree.
+*/
+const sourceBySlug = new Map(cmsPairs.map(pair => [pair.event.slug, pair.source]));
+const posterDetail = (slug: string) => {
+  const source = sourceBySlug.get(slug);
+  return {
+    summary: cmsPlainText(source?.overview) ?? cmsPlainText(source?.programme),
+    admission: cmsPlainText(source?.admission),
+    ticketUrl: source?.ticketUrl,
+    officialUrl: source?.officialUrl,
+  };
+};
+const featuredDetail = featured
+  ? posterDetail(featured.slug)
+  : { summary: undefined, admission: undefined, ticketUrl: undefined, officialUrl: undefined };
+const withZone = (record: typeof active[number]) =>
+  record.timeLabel && record.timezoneLabel ? `${record.timeLabel} ${record.timezoneLabel}` : record.timeLabel;
+const companions = active.filter(event => event.slug !== featured?.slug).map(event => ({
+  slug: event.slug,
+  title: event.title,
+  dateLabel: event.dateLabel,
+  timeLabel: withZone(event),
+  venue: event.venue,
+  location: event.location,
+  admission: posterDetail(event.slug).admission,
+  summary: posterDetail(event.slug).summary,
+}));
+const companionLabel = companions.length > 0 && companions.every(item => item.dateLabel === featured?.dateLabel)
+  ? 'Later the same day'
+  : 'Also confirmed';
 
 const intro = review
   ? draft(review.events.intro, 'Content lead')
@@ -90,26 +121,27 @@ const formats = [
       : <Copy copy={intro} class="page-hero__intro lead" fallbackTitle="Events introduction" emptyTone="ink" />}
   </PageHero>
 
-  {featured && (
-    <Section tone="paper" id="featured" hidden={!sectionEnabled('featured')}>
-      <div data-reveal="rise">
-        <EventPoster event={featured} level={2} />
-      </div>
-    </Section>
-  )}
-
-  <Section tone="ivory" id="upcoming" hidden={!sectionEnabled('upcoming')}>
+  <Section tone="paper" id="upcoming" hidden={!sectionEnabled('upcoming')}>
     <SectionHead eyebrow={featuredLabel} title={upcomingSection?.heading ?? 'What is coming next.'}>
       <p>{cmsPlainText(upcomingSection?.body) ?? 'Only confirmed events are listed. Nothing provisional is shown as if it were scheduled.'}</p>
     </SectionHead>
-    {upcoming.length > 0 ? (
-      <ul class="card-grid card-grid--wide">
-        {upcoming.map((event) => <li><EventCard event={event} /></li>)}
-      </ul>
+    {featured ? (
+      <div data-reveal="rise">
+        <EventPoster
+          event={featured}
+          level={3}
+          summary={featuredDetail.summary}
+          admission={featuredDetail.admission}
+          ticketUrl={featuredDetail.ticketUrl}
+          officialUrl={featuredDetail.officialUrl}
+          alsoOn={companions}
+          alsoOnLabel={companionLabel}
+        />
+      </div>
     ) : (
       <EmptyState
-        title="No further events are confirmed yet."
-        text="The inaugural showcase is the confirmed event for Edition One. Additional dates appear here as each one is confirmed."
+        title="No events are confirmed yet."
+        text="Confirmed dates appear here as each one is approved."
         layout="centred"
       />
     )}

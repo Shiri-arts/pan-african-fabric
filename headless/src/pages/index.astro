@@ -13,13 +13,14 @@ import Media from '../components/Media.astro';
 import CmsRichText from '../components/CmsRichText.astro';
 import { COLOUR_COUNT } from '../data/colours';
 import { COUNTRY_COUNT, REGION_COUNT, countries as knownCountries, regions as knownRegions, type RegionSlug } from '../data/countries';
-import { eventPath, eventStructuredData, nextEvent, type EventKind, type EventRecord } from '../data/events';
+import { eventPath, eventStructuredData, nextEvent, type EventRecord } from '../data/events';
 import { TAGLINE, fastFacts } from '../data/site';
 import { stories, storyCategories, type StoryCategory, type StoryRecord } from '../data/stories';
 import { approved, awaiting, draft } from '../lib/content';
 import { mediaSlot } from '../lib/media';
-import { getEditionCountries, getMediaById, getPageByKey, getPageSections, getPrimaryEdition, getPublishedStories, getRegions, getSiteSettings, getUpcomingEvents, type CmsEvent } from '../lib/wix-cms';
+import { getEditionCountries, getMediaById, getPageByKey, getPageSections, getPrimaryEdition, getPublishedStories, getRegions, getSiteSettings, getUpcomingEvents } from '../lib/wix-cms';
 import { cmsPlainText, escapedHeroTitle } from '../lib/cms-presentation';
+import { presentCmsEvent } from '../lib/cms-route-presenters';
 import { sectionLabel } from '../lib/section-labels';
 import { loadReviewCopy, reviewStories } from '../lib/review';
 
@@ -38,17 +39,9 @@ const storiesSection = section('stories');
 const partnerSection = section('partner');
 // The bar follows whichever event is soonest, and disappears on its own once none
 // is upcoming, so the homepage needs no per-event wiring.
-const cmsEventToRecord = (event: CmsEvent): EventRecord | undefined => {
-  const kind = event.eventType as EventKind | undefined;
-  const isoDate = event.startsAt?.slice(0, 10);
-  if (!event.slug || !event.title || !kind || !['showcase', 'exhibition', 'workshop', 'competition', 'reception', 'talk', 'travelling'].includes(kind)
-    || !event.dateLabel || !isoDate || !event.venue || !event.location || !event.isConfirmed) return undefined;
-  return { slug: event.slug, kind, title: event.title, dateLabel: event.dateLabel, isoDate, timeLabel: event.timeLabel ?? null,
-    timezoneLabel: event.timezoneLabel ?? null, startsAt: event.startsAt ?? null, endsAt: event.endsAt ?? null, venue: event.venue,
-    location: event.location, hero: mediaSlot(`event-${event.id}-hero`, '3/2', 'Approved event image.'), officialUrl: null, isConfirmed: true };
-};
-const upcoming = cmsEvents.map(cmsEventToRecord).find((event): event is EventRecord => Boolean(event))
-  ?? (import.meta.env.DEV ? nextEvent() : undefined);
+const cmsUpcoming = (await Promise.all(cmsEvents.map(event => presentCmsEvent(event, getMediaById))))
+  .find((event): event is EventRecord => Boolean(event));
+const upcoming = cmsUpcoming ?? (import.meta.env.DEV ? nextEvent() : undefined);
 const cmsStories = (await Promise.all(cmsStoryRecords.slice(0, 3).map(async (story): Promise<StoryRecord | undefined> => {
   const category = story.category as StoryCategory | undefined;
   const isoDate = story.storyDate?.slice(0, 10) ?? story.publishedDate?.slice(0, 10);
