@@ -29,13 +29,14 @@ const categoriesSection = sections.get('categories');
 const sectionEnabled = (key: string) => cmsSections.find(section => section.sectionKey === key)?.isEnabled ?? true;
 
 /*
-  Categories come from the published stories themselves: a category appears only
-  when a published story carries it, in the order the category vocabulary defines.
-  No category is invented, and no new collection is involved.
+  Every category in the vocabulary is listed, whether or not a story is published
+  in it yet, so the range the initiative publishes is visible from the start. The
+  count says how many stories each one holds, and an empty category is honest
+  about it rather than hidden. No category is invented, and no new collection is
+  involved.
 */
 const categoryCounts = new Map(storyCategories
-  .map(category => [category, all.filter(story => story.category === category).length] as const)
-  .filter(([, count]) => count > 0));
+  .map(category => [category, all.filter(story => story.category === category).length] as const));
 const categories = [...categoryCounts.keys()];
 
 /*
