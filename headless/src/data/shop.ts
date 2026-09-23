@@ -1,11 +1,8 @@
 /**
  * Shop.
  *
- * No approved product, price, availability, variant, fulfilment term or commerce
- * integration exists. The storefront and product templates are complete and render
- * a truthful "Shop collection coming soon" state. No functional Add to Cart,
- * checkout, price, stock, discount, preorder or payment control is rendered
- * anywhere, in any build.
+ * Editorial catalogue records. Price, stock, checkout and payment remain outside
+ * this phase; available items can be ordered directly by email.
  */
 import type { Media } from '../lib/media';
 
@@ -13,9 +10,9 @@ export interface ProductRecord {
   readonly slug: string;
   readonly title: string;
   readonly kind: string;
-  /** Always null in this phase. A price may only come from an approved source. */
+  /** Always null in the editorial catalogue. Price is confirmed directly by email. */
   readonly price: null;
-  readonly availability: null;
+  readonly availability: string | null;
   readonly gallery: readonly Media[];
   readonly story: string | null;
   readonly editionRelationship: string | null;
@@ -27,5 +24,13 @@ export interface ProductRecord {
 export const products: readonly ProductRecord[] = [];
 
 export const COMMERCE_ENABLED = false;
+
+export const SHOP_EMAIL = 'info@shiriachuart.com';
+
+export const productEnquiryHref = (title: string): string => {
+  const subject = `Order enquiry: ${title}`;
+  const body = `Hello,\n\nI would like to order ${title}. Please send me the price, payment and delivery details.\n\nThank you.`;
+  return `mailto:${SHOP_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+};
 
 export const productPath = (slug: string): string => `/shop/${slug}`;

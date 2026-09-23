@@ -1,7 +1,6 @@
 ---
 /**
- * A product presentation card. No price, stock, discount, preorder or cart control
- * is rendered: none has been approved and no commerce integration exists.
+ * Editorial product card. Ordering is handled on the detail page by direct email.
  */
 import Media from './Media.astro';
 import { productPath, type ProductRecord } from '../data/shop';
@@ -18,7 +17,7 @@ const cover = product.gallery[0];
     </span>
     <span class="card__title">{product.title}</span>
     <span class="card__foot">
-      <span class="badge badge--awaiting">Not available for purchase</span>
+      <span class="badge">{product.availability ?? 'Contact for availability'}</span>
       <span class="card__cue">View<span aria-hidden="true">&#8594;</span></span>
     </span>
   </span>

@@ -2,9 +2,8 @@
 /**
  * Product detail presentation template.
  *
- * Gallery states, product story, edition relationship and the price, availability,
- * variant and fulfilment positions are all laid out. None of them renders a value,
- * because none has been approved, and no functional purchase control exists.
+ * Editorial product detail. Price, payment and delivery are confirmed directly by
+ * email; this frontend does not operate a cart or checkout.
  */
 import Layout from '../../layouts/Layout.astro';
 import Section from '../../components/Section.astro';
@@ -13,7 +12,7 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import Media from '../../components/Media.astro';
 import NotFound from '../../components/NotFound.astro';
 import EmptyState from '../../components/EmptyState.astro';
-import { COMMERCE_ENABLED, productPath, products } from '../../data/shop';
+import { COMMERCE_ENABLED, productEnquiryHref, productPath, products, SHOP_EMAIL } from '../../data/shop';
 import { presentCmsProduct } from '../../lib/cms-route-presenters';
 import { reviewProducts } from '../../lib/review';
 import { getMediaById, getShopItemBySlug } from '../../lib/wix-cms';
@@ -30,7 +29,7 @@ if (!product) Astro.response.status = 404;
 
 const cover = product?.gallery[0];
 const rest = product?.gallery.slice(1) ?? [];
-const availability = cmsProduct?.availabilityLabel ?? product?.availability ?? 'Not available for purchase';
+const availability = cmsProduct?.availabilityLabel ?? product?.availability ?? 'Contact for availability';
 ---
 {!product ? (
   <Layout title="Product not found" description="The requested product does not exist." path={Astro.url.pathname}>
@@ -39,7 +38,7 @@ const availability = cmsProduct?.availabilityLabel ?? product?.availability ?? '
 ) : (
   <Layout
     title={product.title}
-    description={`${product.title}. Part of The Pan-African Fabric. Not available for purchase.`}
+    description={`${product.title}. Part of The Pan-African Fabric and available to order directly from the initiative.`}
     path={productPath(product.slug)}
   >
     <Section tone="ivory" size="tight">
@@ -62,7 +61,7 @@ const availability = cmsProduct?.availabilityLabel ?? product?.availability ?? '
           <dl class="product__positions">
             <div>
               <dt>Price</dt>
-              <dd>{product.price ?? 'Not published'}</dd>
+              <dd>{product.price ?? 'Confirmed by email'}</dd>
             </div>
             <div>
               <dt>Availability</dt>
@@ -85,9 +84,10 @@ const availability = cmsProduct?.availabilityLabel ?? product?.availability ?? '
           {COMMERCE_ENABLED ? null : (
             <div class="product__gate">
               <p class="product__gate-text">
-                This site cannot take an order. There is no cart, no checkout and no payment on this frontend.
+                Order directly from the initiative. Current price, payment and delivery details are confirmed by email before purchase.
               </p>
-              <Button href="/press-contact" variant="secondary">Ask about availability<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
+              <Button href={productEnquiryHref(product.title)} variant="secondary">Order by email<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
+              <p class="product__email-fallback">Or email <a href={`mailto:${SHOP_EMAIL}`}>{SHOP_EMAIL}</a>.</p>
             </div>
           )}
         </div>
@@ -131,6 +131,7 @@ const availability = cmsProduct?.availabilityLabel ?? product?.availability ?? '
   .product__positions dd { margin: 0; font-size: 0.9375rem; line-height: 1.45; }
   .product__gate { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-sm); padding: var(--space-md); border: 1px dashed var(--border); background: rgb(255 255 255 / 45%); }
   .product__gate-text { font-size: 0.875rem; line-height: 1.55; color: var(--muted); margin: 0; }
+  .product__email-fallback { margin: 0; font-size: 0.75rem; color: var(--muted); }
   .product__story { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: clamp(24px, 4vw, 64px); }
   @media (max-width: 899px) { .product { grid-template-columns: minmax(0, 1fr); } }
 </style>
