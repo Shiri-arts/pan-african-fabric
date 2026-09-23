@@ -2,7 +2,7 @@
 export const EXISTING_EDITOR_SITE_ID = 'cf6dc8aa-2320-4c66-b52e-44252adf69f3';
 export const HEADLESS_SITE_ID = '6dabfd00-04c6-4f6f-8282-fb56b240c160';
 export const editorialPermissions = Object.freeze({ insert: 'ADMIN', update: 'ADMIN', remove: 'ADMIN', read: 'ANYONE' });
-export const enquiryPermissions = Object.freeze({ insert: 'ANYONE', update: 'ADMIN', remove: 'ADMIN', read: 'ADMIN' });
+export const enquiryPermissions = Object.freeze({ insert: 'ADMIN', update: 'ADMIN', remove: 'ADMIN', read: 'ADMIN' });
 export const publishPlugin = Object.freeze({ type: 'PUBLISH', publishOptions: { defaultStatus: 'DRAFT' } });
 
 const label = key => key.replace(/([A-Z])/g, ' $1').replace(/^./, value => value.toUpperCase())

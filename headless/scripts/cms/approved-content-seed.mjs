@@ -61,7 +61,7 @@ const pageContent = {
   'edition-one': { eyebrow: 'Edition One', heroTitle: 'One fabric. Nine countries.', heroTagline: 'Nine countries. Five regions. One shared visual language.', introduction: 'Edition One brings together creative voices from Cameroon, the Central African Republic, Egypt, Ethiopia, Ghana, Kenya, Morocco, Nigeria and South Africa. Explore the designers, cultural symbols and fashion interpretations behind each contribution.', heroAsset: 'media-source-symbols-and-meanings', heroMetaLabels: ['12 colours', '9 countries', '5 regions'] },
   events: { eyebrow: 'Events', heroTitle: 'Where the fabric comes alive.', introduction: 'From exhibitions and workshops to runway presentations and cultural receptions, each event creates a place for the fabric, its makers and its stories to meet the public.', heroAsset: 'media-source-obp05905', primaryCtaLabel: 'See the inaugural showcase', primaryCtaHref: '/events/inaugural-pan-african-fabric-fashion-showcase' },
   stories: { eyebrow: 'Stories', heroTitle: 'The living voice of the initiative.', introduction: 'Read reflections, poems and records from the people, places and creative moments shaping The Pan-African Fabric.', heroAsset: 'media-source-img-6999' },
-  shop: { eyebrow: 'Shop', heroTitle: 'Own a piece of the story.', introduction: 'Explore the Pan-African Fan and future approved products connected directly to the initiative, its fabric and its cultural story.', heroAsset: 'media-home-hero-pan-african-fan' },
+  shop: { eyebrow: 'Shop', heroTitle: 'Own a piece of the story.', introduction: 'The Pan-African Fan is available to order. Contact the initiative directly for current price, payment and delivery details.', heroAsset: 'media-home-hero-pan-african-fan' },
   'press-contact': { eyebrow: 'Press & Contact', heroTitle: 'Professional access to the initiative.', introduction: 'Find verified facts, official releases, approved media materials and the right contact route for press, interviews and general enquiries.', heroAsset: 'media-source-obp05746' },
   'partner-with-us': { eyebrow: 'Partner with us', heroTitle: 'Bring the fabric to your city.', introduction: 'Museums, embassies, universities, sponsors, cultural organisations, designers and future hosts can help shape where this initiative goes next.', heroAsset: 'media-source-obp06356', primaryCtaLabel: 'Start an enquiry', primaryCtaHref: '#enquiry', secondaryCtaLabel: 'Explore Edition One', secondaryCtaHref: '/edition-one' },
 };
@@ -368,8 +368,9 @@ const collaboratorRecordId = label => ({
   Sponsors: 'partnership-sponsors', 'Cultural organisations': 'partnership-cultural-organisations',
   Designers: 'partnership-designers-and-future-hosts',
 }[label] ?? `partnership-collaborator-${slugify(label)}`);
+const collaboratorDisplayOrder = ['Embassies', 'Museums', 'Cultural organisations', 'Future hosts', 'Universities', 'Sponsors', 'Designers'];
 const partnershipRecords = [
-  ...Object.entries(collaboratorDescriptions).map(([label, description], index) => sourceTruthRecord('PartnershipOptions', collaboratorRecordId(label), 'Validated page-by-page content and media proposal', { title: label, slug: `collaborator-${slugify(label)}`, optionType: 'collaborator', label, enquiryValue: label, description: richText(description), isEnabled: true, displayOrder: index + 1 })),
+  ...collaboratorDisplayOrder.map((label, index) => sourceTruthRecord('PartnershipOptions', collaboratorRecordId(label), 'Validated page-by-page content and media proposal', { title: label, slug: `collaborator-${slugify(label)}`, optionType: 'collaborator', label, enquiryValue: label, description: richText(collaboratorDescriptions[label]), isEnabled: true, displayOrder: index + 1 })),
   ...[
     ['Exhibitions', 'Present the fabric, its symbols, designers and stories through an institution-led exhibition.'],
     ['Fashion showcases', 'Stage a runway or presentation featuring approved interpretations of The Pan-African Fabric.'],
@@ -417,7 +418,7 @@ const pageSectionRecords = [
   section('partner-with-us', 'enquiry', 4, 'Tell us what you have in mind.', 'Choose the enquiry type that best fits your idea and share the city, organisation, dates and format you are considering.'),
 ];
 
-const shopRecord = sourceTruthRecord('ShopItems', 'shop-pan-african-fan', 'Client-supplied The Pan-African Fan.jpg', { title: 'The Pan-African Fan', slug: 'the-pan-african-fan', itemType: 'fan', availabilityLabel: 'Details forthcoming', commerceEnabled: false, edition: 'edition-one', heroAsset: 'media-home-hero-pan-african-fan', displayOrder: 1 });
+const shopRecord = sourceTruthRecord('ShopItems', 'shop-pan-african-fan', 'Client-approved editorial catalogue implementation on 2026-09-23.', { title: 'The Pan-African Fan', slug: 'the-pan-african-fan', itemType: 'fan', availabilityLabel: 'Available to order', editorialStory: richText('The Pan-African Fan brings the fabric’s colour, pattern and shared visual language into a functional object connected to Edition One.'), fulfilment: richText('Current price, payment and delivery details are confirmed directly by email before purchase.'), commerceEnabled: false, edition: 'edition-one', heroAsset: 'media-home-hero-pan-african-fan', displayOrder: 1 });
 
 export const seedRecords = Object.freeze([
   record('MediaAssets', 'media-home-hero-pan-african-fan', 'Client-supplied hero image and publication authorization on 2026-09-13.', {}),
