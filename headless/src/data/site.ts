@@ -71,6 +71,7 @@ export const contactChannels: readonly ContactChannel[] = [
 /** Counts stated in the implementation brief. Structural facts, not cultural claims. */
 export const fastFacts: readonly { readonly value: string; readonly label: string }[] = [
   { value: '12', label: 'Colours in Edition One' },
+  { value: '12', label: 'Cultural symbols' },
   { value: '09', label: 'Countries' },
   { value: '05', label: 'African regions' },
   { value: '01', label: 'Fabric' },

@@ -83,9 +83,6 @@ const partnerCredits = cmsPlainText(cmsEvent?.publicPartnerCredits);
           <div><dt>Location</dt><dd>{event.location}</dd></div>
         </dl>
       </div>
-      <p class="caption" style="margin-top:24px;max-width:72ch">
-        These are the confirmed details supplied for this event. Information that has not been approved is left out.
-      </p>
       {(cmsEvent?.officialUrl || cmsEvent?.ticketUrl) && (
         <p class="actions">
           {cmsEvent.officialUrl && <Button href={cmsEvent.officialUrl} variant="secondary">Official event information<span class="button__arrow" aria-hidden="true">&#8599;</span></Button>}

@@ -13,6 +13,7 @@ import { mediaSlot } from '../lib/media';
 import { cmsPlainText, escapeCmsHeading, presentCmsEvent, sectionsByKey } from '../lib/cms-route-presenters';
 import { loadReviewCopy } from '../lib/review';
 import { getContactChannels, getEventBySlug, getMediaById, getPageByKey, getPageHeroMedia, getPageSections, getPressItems } from '../lib/wix-cms';
+import { sectionLabel } from '../lib/section-labels';
 
 const review = await loadReviewCopy();
 const [cmsPage, cmsSections, cmsHeroMedia, cmsPressItems, cmsChannels, cmsEvent] = await Promise.all([
@@ -87,12 +88,7 @@ const verifiedFacts = [
   </PageHero>
 
   <Section tone="paper" id="fast-facts" hidden={!sectionEnabled('fast-facts')}>
-    <SectionHead eyebrow="Fast facts" title="What can be stated today.">
-      <p>
-        Only confirmed facts appear here. Anything not on this list has not been confirmed and should not be attributed
-        to the initiative.
-      </p>
-    </SectionHead>
+    <SectionHead eyebrow="Fast facts" title="What can be stated today." />
     <dl class="facts">
       {verifiedFacts.map((fact) => (
         <div class="facts__row">
@@ -108,7 +104,7 @@ const verifiedFacts = [
   </Section>
 
   <Section tone="ivory" id="releases" hidden={!sectionEnabled('releases')}>
-    <SectionHead eyebrow={releaseSection?.eyebrow ?? 'Press releases'} title={releaseSection?.heading ?? 'Releases and statements.'}>
+    <SectionHead eyebrow={sectionLabel(releaseSection?.eyebrow, 'Press releases')} title={releaseSection?.heading ?? 'Releases and statements.'}>
       <p>{cmsPlainText(releaseSection?.body) ?? 'Dated releases are listed here as they are issued.'}</p>
     </SectionHead>
     {releases.length > 0 ? (
@@ -126,7 +122,7 @@ const verifiedFacts = [
   </Section>
 
   <Section tone="surface" id="assets" hidden={!sectionEnabled('assets')}>
-    <SectionHead eyebrow={assetsSection?.eyebrow ?? 'Media assets'} title={assetsSection?.heading ?? 'Approved images and files.'}>
+    <SectionHead eyebrow={sectionLabel(assetsSection?.eyebrow, 'Media assets')} title={assetsSection?.heading ?? 'Approved images and files.'}>
       <p>{cmsPlainText(assetsSection?.body) ?? 'Download controls appear only for files that carry an approved version, file size, usage terms and a permitted URL. Nothing on this site is made downloadable simply because it is visible.'}</p>
     </SectionHead>
     {assets.length > 0 ? (
@@ -143,11 +139,11 @@ const verifiedFacts = [
     ) : <EmptyState title="No downloadable asset has been approved." text="There is no press kit link here, because no approved press kit file has been supplied. A planning document is not a press kit." note={import.meta.env.DEV ? 'Supply the current approved press kit PDF with its version, date, file size and permitted download URL.' : undefined} layout="centred" />}
   </Section>
 
-  <Section tone="ivory" id="coverage" hidden={!sectionEnabled('coverage')}>
-    <SectionHead eyebrow={coverageSection?.eyebrow ?? 'Coverage'} title={coverageSection?.heading ?? 'Selected coverage.'}>
-      <p>{cmsPlainText(coverageSection?.body) ?? 'Coverage is listed only with a verified publication, date and link.'}</p>
-    </SectionHead>
-    {coverage.length > 0 ? (
+  {coverage.length > 0 && (
+    <Section tone="ivory" id="coverage" hidden={!sectionEnabled('coverage')}>
+      <SectionHead eyebrow={sectionLabel(coverageSection?.eyebrow, 'Coverage')} title={coverageSection?.heading ?? 'Selected coverage.'}>
+        <p>{cmsPlainText(coverageSection?.body) ?? 'Coverage is listed only with a verified publication, date and link.'}</p>
+      </SectionHead>
       <ul class="press-list">
         {coverage.map(item => (
           <li class="press-item">
@@ -158,11 +154,11 @@ const verifiedFacts = [
           </li>
         ))}
       </ul>
-    ) : <EmptyState title="No coverage has been verified for listing." text="No publication logo, quotation or headline is shown until the source is confirmed." layout="centred" />}
-  </Section>
+    </Section>
+  )}
 
   <Section tone="ink" id="contact" hidden={!sectionEnabled('contact')}>
-    <SectionHead eyebrow={contactSection?.eyebrow ?? 'Enquiries'} title={contactSection?.heading ?? 'How to reach the initiative.'}>
+    <SectionHead eyebrow={sectionLabel(contactSection?.eyebrow, 'Enquiries')} title={contactSection?.heading ?? 'How to reach the initiative.'}>
       <p>{cmsPlainText(contactSection?.body) ?? 'Each enquiry route below has a destination reserved. No address is published until it is confirmed for public use, and no contact form on this site transmits anything.'}</p>
     </SectionHead>
     <ul class="channels">

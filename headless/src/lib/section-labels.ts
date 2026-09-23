@@ -55,9 +55,9 @@ export function resolveSectionLabel(
   return number ? { number, label } : { label };
 }
 
-/** Renders resolved parts back into a single label, e.g. "01 — Origin". */
+/** Renders resolved parts back into a single label, e.g. "01 Origin". */
 export function formatSectionLabel(parts: SectionLabelParts): string {
-  return parts.number ? `${parts.number} — ${parts.label}` : parts.label;
+  return parts.number ? `${parts.number} ${parts.label}` : parts.label;
 }
 
 /** Convenience wrapper for sections that only need the finished string. */

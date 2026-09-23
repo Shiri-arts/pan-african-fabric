@@ -75,7 +75,8 @@ export const navigation: readonly NavigationItem[] = [
       { href: '/press-contact#fast-facts', label: 'Fast facts' },
       { href: '/press-contact#releases', label: 'Press releases' },
       { href: '/press-contact#assets', label: 'Media assets' },
-      { href: '/press-contact#coverage', label: 'Coverage' },
+      // Coverage is hidden until a verified item is published; restore
+      // { href: '/press-contact#coverage', label: 'Coverage' } alongside it.
       { href: '/press-contact#contact', label: 'Enquiries' },
     ],
   },

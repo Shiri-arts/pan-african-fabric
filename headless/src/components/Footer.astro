@@ -75,7 +75,7 @@ const pending = externalLinks.filter((link) => !link.verified);
           <ul class="stack stack--sm" style="margin-top:16px">
             {pending.map((link) => (
               <li class="caption" style="color:var(--on-ink-muted);font-size:0.75rem">
-                <b style="color:var(--gold);font-weight:500">Pending:</b> {link.label} — {link.pending}
+                <b style="color:var(--gold);font-weight:500">Pending:</b> {link.label}: {link.pending}
               </li>
             ))}
           </ul>

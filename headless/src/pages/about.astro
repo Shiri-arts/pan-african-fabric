@@ -99,7 +99,7 @@ const sections = [
         <Media media={founderPortrait} placeholderTone="ink" />
       </div>
       <div class="founder__copy" data-reveal="rise">
-        <p class="eyebrow"><span>{founderSection?.eyebrow ?? '04 — The founder'}</span></p>
+        <p class="eyebrow"><span>{sectionLabel(founderSection?.eyebrow, '04 The founder')}</span></p>
         <h2 class="founder__title">{founderSection?.heading ?? 'The creator.'}</h2>
         {founderSection?.quoteText ? (
           <blockquote class="founder__quote">
@@ -120,7 +120,7 @@ const sections = [
   </Section>
 
   <Section tone="paper" id="milestones" hidden={!sectionEnabled('milestones')}>
-    <SectionHead eyebrow={milestonesSection?.eyebrow ?? '05 — Milestones'} title={milestonesSection?.heading ?? 'A public journey, recorded honestly.'}>
+    <SectionHead eyebrow={sectionLabel(milestonesSection?.eyebrow, '05 Milestones')} title={milestonesSection?.heading ?? 'A public journey, recorded honestly.'}>
       {milestonesSection?.body
         ? <CmsRichText value={milestonesSection.body} />
         : <p>Milestones appear here once each one is verified. Dates, titles and outcomes are never estimated or filled in from a planning document.</p>}

@@ -21,6 +21,7 @@ import { inauguralShowcase } from '../data/events';
 import { mediaSlot } from '../lib/media';
 import { cmsPlainText, escapeCmsHeading, presentCmsEvent, sectionsByKey } from '../lib/cms-route-presenters';
 import { getEventBySlug, getMediaById, getPageByKey, getPageHeroMedia, getPageSections, getPartnershipOptions } from '../lib/wix-cms';
+import { sectionLabel } from '../lib/section-labels';
 
 const [cmsPage, cmsSections, cmsHeroMedia, cmsOptions, cmsEvent] = await Promise.all([
   getPageByKey('partner-with-us'),
@@ -96,7 +97,7 @@ const enquiryTypes = enquiryOptions.length > 0 ? enquiryOptions.map(option => op
   </Section>
 
   <Section tone="ivory" id="why-partner" hidden={!sectionEnabled('why-partner')}>
-    <SectionHead eyebrow={whySection?.eyebrow ?? '01 — Why partner'} title={whySection?.heading ?? 'What a partnership makes possible.'}>
+    <SectionHead eyebrow={sectionLabel(whySection?.eyebrow, '01 Why partner')} title={whySection?.heading ?? 'What a partnership makes possible.'}>
       {whySection?.body
         ? <CmsRichText value={whySection.body} class="lead" />
         : <EmptyState
@@ -108,7 +109,7 @@ const enquiryTypes = enquiryOptions.length > 0 ? enquiryOptions.map(option => op
   </Section>
 
   <Section tone="ink" id="collaborators" hidden={!sectionEnabled('collaborators')}>
-    <SectionHead eyebrow={collaboratorSection?.eyebrow ?? '02 — Who we work with'} title={collaboratorSection?.heading ?? 'Seven kinds of collaborator.'}>
+    <SectionHead eyebrow={sectionLabel(collaboratorSection?.eyebrow, '02 Who we work with')} title={collaboratorSection?.heading ?? 'Seven kinds of collaborator.'}>
       <p>{cmsPlainText(collaboratorSection?.body) ?? 'These are the collaborator types the initiative works with. What each collaboration involves is set out by the initiative, not assumed here.'}</p>
     </SectionHead>
     <ul class="collab-grid">
@@ -125,7 +126,7 @@ const enquiryTypes = enquiryOptions.length > 0 ? enquiryOptions.map(option => op
   </Section>
 
   <Section tone="paper" id="ways" hidden={!sectionEnabled('ways')}>
-    <SectionHead eyebrow={waysSection?.eyebrow ?? '03 — Ways to collaborate'} title={waysSection?.heading ?? 'How this usually starts.'}>
+    <SectionHead eyebrow={sectionLabel(waysSection?.eyebrow, '03 Ways to collaborate')} title={waysSection?.heading ?? 'How this usually starts.'}>
       {cmsPlainText(waysSection?.body) && <p>{cmsPlainText(waysSection?.body)}</p>}
       {wayOptions.length > 0 ? (
         <ul class="way-grid">
@@ -153,7 +154,7 @@ const enquiryTypes = enquiryOptions.length > 0 ? enquiryOptions.map(option => op
   </Section>
 
   <Section tone="surface" id="enquiry" hidden={!sectionEnabled('enquiry')}>
-    <SectionHead eyebrow={enquirySection?.eyebrow ?? '04 — Enquiry'} title={enquirySection?.heading ?? 'Tell us what you have in mind.'}>
+    <SectionHead eyebrow={sectionLabel(enquirySection?.eyebrow, '04 Enquiry')} title={enquirySection?.heading ?? 'Tell us what you have in mind.'}>
       <p>{cmsPlainText(enquirySection?.body) ?? 'Share the organisation, location, timeline and collaboration you have in mind. Enquiries are stored securely in Wix CMS for the initiative team to review.'}</p>
     </SectionHead>
 
