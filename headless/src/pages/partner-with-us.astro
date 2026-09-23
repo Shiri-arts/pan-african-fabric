@@ -161,8 +161,8 @@ const enquiryTypes = enquiryOptions.length > 0 ? enquiryOptions.map(option => op
       <div class="enquiry__notice" role="note">
         <p class="badge">Enquiries open</p>
         <p class="enquiry__notice-text">
-          Your details are used only to review and respond to this enquiry. Submissions are stored in the private
-          Enquiries collection in Wix CMS and are not exposed through the public content API.
+          Your details are used only to review and respond to this enquiry. The form sends your message directly to
+          the initiative's approved email address; it does not create a new CMS enquiry record.
         </p>
       </div>
 
@@ -235,7 +235,6 @@ const enquiryTypes = enquiryOptions.length > 0 ? enquiryOptions.map(option => op
 </style>
 
 <script>
-  import { items } from '@wix/data';
   const form = document.querySelector<HTMLFormElement>('#partner-enquiry-form');
   const status = document.querySelector<HTMLElement>('#enquiry-status');
   const submit = document.querySelector<HTMLButtonElement>('#partner-submit');
@@ -262,14 +261,14 @@ const enquiryTypes = enquiryOptions.length > 0 ? enquiryOptions.map(option => op
       const active = recent.filter(time => Date.now() - time < 15 * 60_000);
       if (active.length >= 5) throw new Error('rate-limit');
       sessionStorage.setItem('paf-enquiry-attempts', JSON.stringify([...active, Date.now()]));
-      await items.insert('Enquiries', {
-        title: `${String(payload.name)} — ${String(payload.enquiryType)}`,
-        name: payload.name, organisation: payload.organisation, email: payload.email,
-        location: payload.location, enquiryType: payload.enquiryType, message: payload.message,
-        timeline: payload.timeline, consent: payload.consent, status: 'New',
-        submittedAt: new Date().toISOString(), sourcePath: '/partner-with-us',
+      const response = await fetch('/api/enquiries', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
       });
-      status.textContent = 'Thank you. Your enquiry has been received.';
+      const result = await response.json().catch(() => ({})) as { ok?: boolean; message?: string };
+      if (!response.ok || !result.ok) throw new Error(result.message ?? 'delivery-failed');
+      status.textContent = 'Thank you. Your enquiry has been emailed to the initiative.';
       status.dataset.state = 'success';
       form.reset();
       if (started) started.value = String(Date.now());
