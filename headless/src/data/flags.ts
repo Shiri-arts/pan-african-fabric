@@ -113,6 +113,78 @@ function normalise(value: string): string {
     .trim();
 }
 
+/**
+ * Each flag's aspect ratio, read from its SVG viewBox.
+ *
+ * The card reserves the exact shape of the flag it is about to show, so the flag
+ * sits flush with no letterbox band around it and the card does not shift as the
+ * file loads. Ratios are the official ones: 3:2 for most, 2:1 for Nigeria and
+ * Ethiopia, and a handful of others.
+ */
+const RATIOS: Readonly<Record<string, number>> = {
+  ao: 1.5,
+  bf: 1.5,
+  bi: 1.6667,
+  bj: 1.5,
+  bw: 1.5,
+  cd: 1.3333,
+  cf: 1.5,
+  cg: 1.5,
+  ci: 1.5,
+  cm: 1.5,
+  cv: 1.7,
+  dj: 1.5,
+  dz: 1.5,
+  eg: 1.5,
+  eh: 2.0,
+  er: 2.0,
+  et: 2.0,
+  ga: 1.3333,
+  gh: 1.5,
+  gm: 1.5,
+  gn: 1.5,
+  gq: 1.5,
+  gw: 2.0,
+  ke: 1.5,
+  km: 1.6667,
+  lr: 1.9,
+  ls: 1.5,
+  ly: 2.0,
+  ma: 1.5,
+  mg: 1.5,
+  ml: 1.5,
+  mr: 1.5,
+  mu: 1.5,
+  mw: 1.5,
+  mz: 1.5,
+  na: 1.5,
+  ne: 1.1667,
+  ng: 2.0,
+  rw: 1.5,
+  sc: 2.0,
+  sd: 2.0,
+  sl: 1.5,
+  sn: 1.5,
+  so: 1.5,
+  ss: 2.0,
+  st: 2.0,
+  sz: 1.5,
+  td: 1.5,
+  tg: 1.618,
+  tn: 1.5,
+  tz: 1.5,
+  ug: 1.5,
+  za: 1.5,
+  zm: 1.5,
+  zw: 2.0,
+};
+
+/** Width divided by height for a country's flag, for reserving its box. */
+export function flagRatio(name?: string, slug?: string): number | undefined {
+  const code = countryCode(name, slug);
+  return code ? RATIOS[code] : undefined;
+}
+
 /** The country's ISO 3166-1 alpha-2 code, from its name or its slug. */
 export function countryCode(name?: string, slug?: string): string | undefined {
   for (const candidate of [name, slug]) {

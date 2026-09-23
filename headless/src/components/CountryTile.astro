@@ -7,10 +7,10 @@
  * star, emblem or disc separates them, so the whole flag is shown rather than a
  * colour taken from it.
  *
- * The ground is plain rather than an Edition One colour, so the country, region
- * and status sit on a known background and no text ever crosses a flag. A
- * country outside the flag set keeps the plain tile and loses nothing but the
- * image.
+ * The ground is plain rather than an Edition One colour, so the number, region
+ * and name sit on a known background and no text ever crosses a flag. Review
+ * status is not published here. A country outside the flag set keeps the plain
+ * tile and loses nothing but the image.
  */
 import CountryFlag from './CountryFlag.astro';
 import { countryPath, regionName, type Country } from '../data/countries';
@@ -21,19 +21,19 @@ interface Props {
   regionLabel?: string;
   /** Approved flag image URL, when one is supplied through the media library. */
   flag?: string;
-  status?: string;
 }
-const { country, index, regionLabel, flag, status } = Astro.props;
+const { country, index, regionLabel, flag } = Astro.props;
 ---
 <a class="tile" href={countryPath(country.slug)}>
-  <span class="tile__top">
-    <span class="tile__index">{String(index + 1).padStart(2, '0')}</span>
-    <span class="tile__region">{regionLabel ?? regionName(country.region)}</span>
-  </span>
   <CountryFlag name={country.name} slug={country.slug} override={flag} class="tile__flag" />
-  <span class="tile__name">{country.name}</span>
-  <span class="tile__foot">
-    <span class="tile__status">{status ?? (country.hasApprovedProfile ? 'Profile available' : 'Profile in review')}</span>
-    <span class="tile__go">View country<span aria-hidden="true">&#8594;</span></span>
+  <span class="tile__text">
+    <span class="tile__top">
+      <span class="tile__index">{String(index + 1).padStart(2, '0')}</span>
+      <span class="tile__region">{regionLabel ?? regionName(country.region)}</span>
+    </span>
+    <span class="tile__name">{country.name}</span>
+    <span class="tile__foot">
+      <span class="tile__go">View country<span aria-hidden="true">&#8594;</span></span>
+    </span>
   </span>
 </a>

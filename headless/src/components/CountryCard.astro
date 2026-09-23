@@ -1,12 +1,12 @@
 ---
 /**
- * A country entry. The country name supplies the accessible link text, the region
- * is a text label rather than a colour, and an incomplete profile says so instead
- * of presenting invented details.
+ * A country entry: its flag, its number, its region and its name. The country name
+ * supplies the accessible link text, and the region is a text label rather than a
+ * colour.
  *
- * The card carries the country's flag, whole and uncropped, on the card ground:
- * it is what distinguishes countries that share a palette. The colour rail above
- * it still reports how many Edition One colours the country carries.
+ * The flag is whole and uncropped, and it is what distinguishes countries that
+ * share a palette. Review status and colour counts are not published here; the
+ * profile itself says where it stands.
  */
 import CountryFlag from './CountryFlag.astro';
 import { coloursForCountry } from '../data/colours';
@@ -20,7 +20,6 @@ interface Props {
 }
 const { country, index, colourStyles, flag } = Astro.props;
 const colours = colourStyles ?? (import.meta.env.DEV ? coloursForCountry(country.slug).map(colour => `--rail:var(${colour.variable})`) : []);
-const status = country.hasApprovedProfile ? 'Profile available' : 'Profile in review';
 ---
 <a class="card card--link country-card" href={countryPath(country.slug)}>
   <span class="card__rail" aria-hidden="true">
@@ -28,17 +27,15 @@ const status = country.hasApprovedProfile ? 'Profile available' : 'Profile in re
   </span>
   <span class="card__body">
     <CountryFlag name={country.name} slug={country.slug} override={flag} class="country-card__flag" />
-    <span class="card__meta">
-      {index !== undefined && <span>{String(index + 1).padStart(2, '0')}</span>}
-      <span>{regionName(country.region)}</span>
-    </span>
-    <span class="card__title">{country.name}</span>
-    <span class="card__summary">
-      {colours.length === 1 ? '1 colour' : `${colours.length} colours`} in the twelve-colour system
-    </span>
-    <span class="card__foot">
-      <span class="badge badge--awaiting">{status}</span>
-      <span class="card__cue">Open<span aria-hidden="true">&#8594;</span></span>
+    <span class="country-card__text">
+      <span class="card__meta">
+        {index !== undefined && <span>{String(index + 1).padStart(2, '0')}</span>}
+        <span>{regionName(country.region)}</span>
+      </span>
+      <span class="card__title">{country.name}</span>
+      <span class="card__foot">
+        <span class="card__cue">Open<span aria-hidden="true">&#8594;</span></span>
+      </span>
     </span>
   </span>
 </a>

@@ -4,7 +4,7 @@
  *
  * This is the country index: every country appears exactly once, so no separate
  * list is needed beneath it. Each tile carries its country's flag on a plain
- * ground, and country, region and status are all text.
+ * ground, with its number, region and name as text.
  */
 import CountryTile from './CountryTile.astro';
 import { countries, type Country } from '../data/countries';
@@ -14,7 +14,6 @@ interface CountryEntry {
   readonly regionLabel?: string;
   /** Approved flag image URL, when one is supplied through the media library. */
   readonly flag?: string;
-  readonly status?: string;
 }
 interface Props { label?: string; class?: string; entries?: readonly CountryEntry[]; }
 const { label = 'Edition One countries', class: className, entries: suppliedEntries } = Astro.props;

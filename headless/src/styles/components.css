@@ -934,14 +934,18 @@ textarea.field__control { min-height: 140px; resize: vertical; }
 }
 /* A two-line country name sets the row height, so every tile in it fills that height. */
 .tile-grid > li { display: grid; }
+/*
+  A compact index entry: the flag on the left at a fixed height, its own width,
+  and the number, region, name and cue beside it. Laid out as a row so the flag
+  can be large without a tall card or an empty area next to it.
+*/
 .tile {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: var(--space-sm);
-  min-height: clamp(200px, 24vw, 300px);
-  padding: clamp(14px, 1.8vw, 24px);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: clamp(12px, 1.2vw, 20px);
+  padding: clamp(10px, 1vw, 14px);
   overflow: hidden;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -950,43 +954,55 @@ textarea.field__control { min-height: 140px; resize: vertical; }
   transition: transform var(--duration-base) var(--ease-out), border-color var(--duration-base) var(--ease-out);
 }
 .tile:hover { transform: translateY(-4px); border-color: var(--text); text-decoration: none; }
-.tile__top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-sm); }
+.tile__text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.tile__top { display: flex; align-items: baseline; gap: var(--space-xs); }
 .tile__index { font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.12em; }
 /* Hierarchy comes from size, letterspacing and case rather than from dimming. */
-.tile__region { font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase; text-align: right; }
+.tile__region { font-size: 0.625rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 .tile__name {
   font-family: var(--font-display);
-  font-size: clamp(1.5rem, 2.6vw, 2.25rem);
-  line-height: 1.02;
-  letter-spacing: -0.025em;
+  font-size: clamp(1.125rem, 1.5vw, 1.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
   text-wrap: balance;
-  margin-top: auto;
+  margin: 0;
 }
 /*
-  Whole flag, never cropped and never stretched: the 3:2 box is reserved so the
-  card cannot shift as the file loads, and a flag of another ratio, such as
-  Nigeria's 2:1, sits centred inside it. The hairline keeps a flag with a white
-  edge from bleeding into the card.
+  Whole flag, never cropped and never stretched, and the box is reserved at that
+  flag's own ratio so the card cannot shift as the file loads. The hairline keeps
+  a flag with a white edge, such as Nigeria's, from bleeding into the card.
+
+  Every flag is set to the same height and takes whatever width its own ratio
+  gives it. Sizing by width instead would leave a gap under a 2:1 flag such as
+  Nigeria's or Ethiopia's once the grid equalised the row, and sizing the box to a
+  single ratio would put a band around every flag that does not share it.
 */
-.flag { display: block; aspect-ratio: 3 / 2; }
-.flag img { display: block; width: 100%; height: 100%; object-fit: contain; }
-.tile__flag {
-  width: min(100%, 210px);
-  margin-inline: auto;
-  padding: 1px;
-  background: var(--canvas);
-  box-shadow: 0 0 0 1px var(--border), 0 6px 18px rgb(36 33 30 / 10%);
+.flag {
+  display: block;
+  /* Its parents are flex and grid columns, which would otherwise stretch it wide. */
+  align-self: start;
+  height: clamp(84px, 8.5vw, 128px);
+  width: auto;
+  max-width: 100%;
+  aspect-ratio: var(--flag-ratio, 1.5);
+  /*
+    Drawn over the image, not behind it, so a flag with a white field or stripe,
+    such as Nigeria's or the Central African Republic's, reads as one object
+    against a light card. An outline rather than a border, so it costs no layout.
+  */
+  outline: 1px solid rgb(36 33 30 / 22%);
+  outline-offset: -1px;
 }
-/* Edition One country card: the flag leads the card body, above the country name. */
-.country-card__flag {
-  width: min(100%, 168px);
-  margin-bottom: var(--space-2xs);
-  padding: 1px;
-  background: var(--canvas);
-  box-shadow: 0 0 0 1px var(--border);
+.flag img { display: block; width: 100%; height: 100%; }
+/* Edition One country card: flag beside the text, same compact row as the tile. */
+.country-card .card__body {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: clamp(12px, 1.2vw, 20px);
 }
+.country-card__text { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .tile__foot { display: flex; flex-direction: column; gap: 4px; }
-.tile__status { font-size: 0.625rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .tile__go {
   display: inline-flex;
   align-items: center;
@@ -997,4 +1013,4 @@ textarea.field__control { min-height: 140px; resize: vertical; }
 }
 .tile:hover .tile__go { text-decoration: underline; text-underline-offset: 4px; }
 @media (max-width: 1023px) { .tile-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 599px) { .tile-grid { grid-template-columns: minmax(0, 1fr); } .tile { min-height: 168px; } }
+@media (max-width: 599px) { .tile-grid { grid-template-columns: minmax(0, 1fr); } }

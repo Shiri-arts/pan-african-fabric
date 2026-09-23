@@ -2,16 +2,16 @@
 /**
  * A country's flag, whole.
  *
- * The flag is contained rather than cropped or stretched: national flags have
- * defined proportions, and it is the emblem in the middle or the stripe at one
- * edge that tells two similar flags apart. The frame reserves a fixed 3:2 box so
- * the card does not shift as the file loads, and a flag of any other ratio sits
- * centred inside it.
+ * The flag is neither cropped nor stretched: national flags have defined
+ * proportions, and it is the emblem in the middle or the stripe at one edge that
+ * tells two similar flags apart. The box is reserved at that flag's own ratio, so
+ * the flag sits flush with no band around it and the card does not shift as the
+ * file loads.
  *
  * Decorative: every card names its country in text beside the flag, so reading
  * "Flag of Ghana" aloud after the word "Ghana" would only repeat it.
  */
-import { flagSource } from '../data/flags';
+import { flagRatio, flagSource } from '../data/flags';
 interface Props {
   /** Country name as published, preferred over the slug for resolution. */
   name?: string;
@@ -22,9 +22,11 @@ interface Props {
 }
 const { name, slug, override, class: className } = Astro.props;
 const source = flagSource(name, slug, override);
+// An overriding image has no known ratio, so 3:2 reserves the common flag shape.
+const ratio = flagRatio(name, slug) ?? 1.5;
 ---
 {source && (
-  <span class:list={['flag', className]}>
+  <span class:list={['flag', className]} style={`--flag-ratio:${ratio}`}>
     <img src={source} alt="" loading="lazy" decoding="async" draggable="false" />
   </span>
 )}
