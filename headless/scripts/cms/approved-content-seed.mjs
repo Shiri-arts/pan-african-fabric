@@ -127,10 +127,22 @@ const countries = [
   ['country-nigeria-edition-one', 'Nigeria', 'nigeria'],
 ];
 
+const countryIntroductions = {
+  'country-cameroon-edition-one': 'Cameroon is a Central African country known for its remarkable geographic, linguistic and cultural diversity. Its landscapes extend from the Atlantic coast through forests, grasslands and highlands. Cameroon brings a powerful meeting of colour and artistry to Edition One through the Bamileke Double Bell and Toghu. These distinct references connect with communication, identity and ceremonial creativity, adding rhythm, symbolism and a strong sense of place to The Pan-African Fabric.',
+  'country-central-african-republic-edition-one': 'The Central African Republic is a landlocked Central African country shaped by diverse communities, languages and artistic traditions. Its contribution to Edition One features the Kuba pattern, whose bold geometry introduces structure, movement and a distinctive graphic presence. Within The Pan-African Fabric, the pattern contributes to a wider conversation about cultural memory, craftsmanship and the design traditions that continue to influence creative expression across Central Africa.',
+  'country-egypt-edition-one': 'Egypt is a North African country whose history, architecture and visual culture have influenced the world for thousands of years. The Nile has long played a central role in its communities and cultural development. Egypt’s contribution to Edition One centres on the Eye of Horus, an ancient symbol associated with protection, healing and knowledge. Its inclusion gives the fabric historical depth and demonstrates how cultural symbols can carry meaning across generations.',
+  'country-ethiopia-edition-one': 'Ethiopia is a country in the Horn of Africa with a long history, distinctive cultural traditions and extraordinary linguistic diversity. Its landscapes range from highlands and valleys to lowland regions. Ethiopia contributes a traditional pattern of parallel lines and stripes to Edition One, evoking unity, community, protection and harmony with nature. Its measured rhythm brings balance and continuity to the fabric while acknowledging Ethiopia’s place within the wider story of African creativity.',
+  'country-ghana-edition-one': 'Ghana is a West African country on the Gulf of Guinea, recognised for its vibrant cultural life, artistic traditions and influential role in modern African history. Ghana’s contribution brings together the Adinkra symbols Nkonsonkonson and Boa Me Na Me Mmoa Wo. Expressing unity, community, cooperation and mutual support, they reinforce the fabric’s central vision: distinct cultural stories joined through shared purpose while retaining their individual identities and meanings.',
+  'country-kenya-edition-one': 'Kenya is an East African country with a rich diversity of communities, languages and landscapes extending from the Indian Ocean coast to highlands, valleys and savannahs. Kenya is represented in Edition One through the visual energy of Maasai Shuka. Its repeated squares and strong red tones evoke bravery, strength, unity and protection. The pattern adds warmth, movement and a bold cultural presence to the shared fabric.',
+  'country-morocco-edition-one': 'Morocco is a North African country where Amazigh, Arab, African and Mediterranean influences meet across centuries of cultural exchange. Its cities, mountain regions, deserts and Atlantic and Mediterranean coastlines support a diverse creative heritage. Morocco’s contribution features the Diamond Amazigh, a geometric symbol associated with womanhood, balance and the union of opposites. The motif brings visual strength and layered cultural memory to Edition One.',
+  'country-nigeria-edition-one': 'Nigeria is a West African country of exceptional cultural, linguistic and creative diversity. Its communities have shaped globally influential traditions in art, literature, music, fashion and design. Nigeria contributes the Northern Knot, a motif associated with unity in diversity and expressed through the palace art of Northern Nigeria. Its interwoven form reflects connection and continuity, supporting the initiative’s vision of bringing distinct African cultural references together within one shared fabric.',
+  'country-south-africa-edition-one': 'South Africa occupies the southern end of the African continent and is home to many communities, languages, landscapes and creative traditions. Its cultural life reflects both deep histories and continually evolving forms of expression. South Africa contributes a Shweshwe-inspired pattern and the Zulu Shield to Edition One. Together, they create a dialogue between textile tradition, visual rhythm and protection, enriching the shared fabric with contrasting forms and cultural associations.',
+};
+
 const countryRecords = countries.map(([id, countryName, slug]) => record(
   'Countries',
   id,
-  'Client-supplied country/colour artwork and Edition One navigation decision.',
+  'Country introductions proposed and approved by the user on 2026-09-25; country roster from client-supplied Edition One materials.',
   {
     title: countryName,
     slug,
@@ -139,6 +151,7 @@ const countryRecords = countries.map(([id, countryName, slug]) => record(
     region: countryRegions[id],
     principalDesigner: countryDesigners[id],
     featuredSymbol: countrySymbols[id],
+    introduction: richText(countryIntroductions[id]),
   },
 ));
 

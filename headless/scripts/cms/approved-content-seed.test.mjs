@@ -81,6 +81,16 @@ test('source-truth regions and designer identities preserve supplied names', () 
   assert.equal(find('Designers', 'designer-naima-el-messaoudi').data.studioName, 'Caftan Joujou');
 });
 
+test('every Edition One country has an approved introduction of at most 100 words', () => {
+  const countries = seedRecords.filter(item => item.collectionId === 'Countries');
+  assert.equal(countries.length, 9);
+  for (const country of countries) {
+    const text = country.data.introduction?.nodes?.[0]?.nodes?.[0]?.textData?.text;
+    assert.ok(text, `${country.data.countryName} is missing its introduction.`);
+    assert.ok(text.trim().split(/\s+/u).length <= 100, `${country.data.countryName} exceeds 100 words.`);
+  }
+});
+
 test('Edition One includes the authorized source-backed editorial fields', () => {
   const edition = find('Editions', 'edition-one').data;
   assert.match(edition.colourNarrative.nodes[0].nodes[0].textData.text, /^The fabric's distinctive color palette/);
