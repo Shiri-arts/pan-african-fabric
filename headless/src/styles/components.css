@@ -1116,3 +1116,33 @@ textarea.field__control { min-height: 140px; resize: vertical; }
   font-size: 0.8125rem;
   font-weight: 500;
 }
+
+/*
+  A country carries one symbol per colour, so three countries show two symbols
+  here. Each card holds the artwork, the approved name, the cultural meaning and
+  the acknowledgement it was supplied with.
+*/
+.symbol-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: clamp(24px, 4vw, 56px);
+}
+.symbol-card { display: flex; flex-direction: column; gap: var(--space-sm); }
+.symbol-card__art {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-media);
+  padding: clamp(16px, 2.5vw, 32px);
+}
+.symbol-card__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.125rem, 2vw, 1.5rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+.symbol-card__meaning { margin: 0; max-width: 56ch; }
+.symbol-card__ack { margin: 0; font-size: 0.75rem; line-height: 1.5; color: var(--muted); max-width: 56ch; }

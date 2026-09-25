@@ -69,6 +69,30 @@ const designer = country ? review?.designerRoster.find((entry) => entry.country 
 const principalParticipation = participations.find((item) => item.isPrincipal) ?? participations[0];
 const cmsDesigner = principalParticipation ? designers.find((item) => item.id === principalParticipation.designerId) : undefined;
 const featuredSymbol = cmsCountry?.featuredSymbolId ? symbols.find((item) => item.id === cmsCountry.featuredSymbolId) : undefined;
+/*
+  A country carries one symbol per colour, so Cameroon, Ghana and South Africa
+  carry two. `featuredSymbol` names only one, so every symbol pointing at this
+  country is collected here, with the featured one first.
+*/
+const countrySymbols = cmsCountry
+  ? [
+      ...(featuredSymbol ? [featuredSymbol] : []),
+      ...symbols.filter((item) => item.countryId === cmsCountry.id && item.id !== featuredSymbol?.id),
+    ]
+  : [];
+/*
+  Until individual artwork is supplied, every symbol points at the one combined
+  "symbols and meanings" sheet. Rendering that sheet as though it were a single
+  symbol would misrepresent it, so it is held back until each symbol carries its
+  own asset. Delete this guard once they do.
+*/
+const COMBINED_SYMBOL_SHEET = 'media-source-symbols-and-meanings';
+const symbolArtwork = new Map(await Promise.all(countrySymbols.map(async (item) => [
+  item.id,
+  item.artworkAssetId && item.artworkAssetId !== COMBINED_SYMBOL_SHEET
+    ? await getMediaById(item.artworkAssetId)
+    : undefined,
+] as const)));
 const siblingBase = country ? adjacentCountries(country.slug) : undefined;
 const displayNameFor = (slug: string, fallback: string) => editionCountries.find((item) => item.slug === slug)?.countryName ?? fallback;
 const siblingRecordsPublished = siblingBase
@@ -124,7 +148,7 @@ const regionLabel = cmsRegion?.name ?? cmsCountry?.regionLabel ?? (country ? reg
 
 const slotContent = {
   introduction: textOnly(cmsCountry?.introduction),
-  symbol: textOnly(featuredSymbol?.meaning),
+  symbol: countrySymbols.length > 0 ? textOnly(countrySymbols[0]?.meaning) : undefined,
   designer: textOnly(cmsDesigner?.biography),
   interpretation: textOnly(cmsCountry?.interpretation) ?? textOnly(principalParticipation?.statement),
 } as const;
@@ -190,9 +214,6 @@ const slots = [
     {slots.map((slot, index) => (
       <Section tone={index % 2 === 0 ? 'surface' : 'ivory'} id={slot.id}>
         <SectionHead eyebrow={slot.label} title={slot.title}>
-          {slot.id === 'symbol' && featuredSymbol?.approvedName ? (
-            <p class="designer-name">{featuredSymbol.approvedName}</p>
-          ) : null}
           {slot.id === 'designer' && cmsDesigner ? (
             <p class="designer-name">{cmsDesigner.displayName}</p>
           ) : slot.id === 'designer' && designer ? (
@@ -204,7 +225,7 @@ const slots = [
               <p class="state__note"><strong>Review note:</strong> {designer.note}</p>
             </div>
           ) : null}
-          {slotContent[slot.id as keyof typeof slotContent] ? (
+          {slot.id === 'symbol' ? null : slotContent[slot.id as keyof typeof slotContent] ? (
             <p class="lead">{slotContent[slot.id as keyof typeof slotContent]}</p>
           ) : (
             <EmptyState
@@ -214,6 +235,28 @@ const slots = [
             />
           )}
         </SectionHead>
+        {slot.id === 'symbol' && (countrySymbols.length > 0 ? (
+          <ul class="symbol-grid" data-reveal-group>
+            {countrySymbols.map((item, symbolIndex) => (
+              <li class="symbol-card" data-reveal="rise" style={`--reveal-delay:${symbolIndex * 70}ms`}>
+                {symbolArtwork.get(item.id) && (
+                  <div class="symbol-card__art">
+                    <Media media={symbolArtwork.get(item.id)!} fit="contain" showCaption={false} />
+                  </div>
+                )}
+                <h3 class="symbol-card__name">{item.approvedName}</h3>
+                {textOnly(item.meaning) && <p class="symbol-card__meaning">{textOnly(item.meaning)}</p>}
+                {item.acknowledgement && <p class="symbol-card__ack">{item.acknowledgement}</p>}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <EmptyState
+            title={`${slot.title} is not approved yet.`}
+            text="The position, typography and spacing are final. Approved material replaces this state without a layout change."
+            note={import.meta.env.DEV ? slot.need : undefined}
+          />
+        ))}
       </Section>
     ))}
 

@@ -66,6 +66,10 @@ export const collections = [
   collection('Symbols', [
     ...fields('TEXT', 'approvedName origin acknowledgement'), field('meaning', 'RICH_TEXT'), field('publicSourceUrl', 'URL'),
     reference('artworkAsset', 'MediaAssets'),
+    // A country carries one symbol per colour, so the three countries with two
+    // colours carry two symbols. Countries.featuredSymbol holds only one, so the
+    // link is owned here and the country page reads every symbol it points to.
+    reference('country', 'Countries'),
   ]),
   collection('Designers', [
     ...fields('TEXT', 'displayName studioName professionalTitle location'), ...fields('RICH_TEXT', 'biography statement'),

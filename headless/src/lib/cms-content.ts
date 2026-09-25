@@ -71,7 +71,7 @@ export interface CmsEditionColour extends CmsEntity {
 }
 export interface CmsSymbol extends CmsEntity {
   readonly approvedName?: string; readonly origin?: string; readonly acknowledgement?: string; readonly meaning?: CmsRichText;
-  readonly publicSourceUrl?: string; readonly artworkAssetId?: string;
+  readonly publicSourceUrl?: string; readonly artworkAssetId?: string; readonly countryId?: string;
 }
 export interface CmsDesigner extends CmsEntity {
   readonly displayName: string; readonly studioName?: string; readonly professionalTitle?: string; readonly location?: string;
@@ -313,7 +313,7 @@ export function createCmsContentAccess(source: PublicCmsSource, scaleWixImage: (
     async getCountryBySlug(slug: string): Promise<CmsCountry | undefined> { return bySlug('Countries', slug, mapCountry); },
     async getEditionColours(editionId?: string): Promise<readonly CmsEditionColour[]> { return mapList('EditionColours', editionId ? { edition: editionId } : undefined, mapColour, [{ field: 'sourcePosition', direction: 'asc' }, { field: '_id', direction: 'asc' }]); },
     async getRegions(): Promise<readonly CmsRegion[]> { return mapList('Regions', undefined, item => withBase(item, { regionKey: text(item.regionKey, 100), name: text(item.name, 200), description: rich(item.description) })); },
-    async getSymbols(): Promise<readonly CmsSymbol[]> { return mapList('Symbols', undefined, item => withBase(item, { approvedName: text(item.approvedName, 300), origin: text(item.origin, 300), acknowledgement: text(item.acknowledgement, 1000), meaning: rich(item.meaning), publicSourceUrl: safePublicUrl(item.publicSourceUrl), artworkAssetId: ref(item.artworkAsset) })); },
+    async getSymbols(): Promise<readonly CmsSymbol[]> { return mapList('Symbols', undefined, item => withBase(item, { approvedName: text(item.approvedName, 300), origin: text(item.origin, 300), acknowledgement: text(item.acknowledgement, 1000), meaning: rich(item.meaning), publicSourceUrl: safePublicUrl(item.publicSourceUrl), artworkAssetId: ref(item.artworkAsset), countryId: ref(item.country) })); },
     async getDesigners(): Promise<readonly CmsDesigner[]> { return mapList('Designers', undefined, mapDesigner); },
     async getDesignerBySlug(slug: string): Promise<CmsDesigner | undefined> { return bySlug('Designers', slug, mapDesigner); },
     async getParticipations(filters: { editionId?: string; countryId?: string; designerId?: string } = {}): Promise<readonly CmsParticipation[]> { const f = compact({ edition: filters.editionId, country: filters.countryId, designer: filters.designerId }); return mapList('Participations', f, mapParticipation); },
