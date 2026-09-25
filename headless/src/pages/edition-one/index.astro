@@ -17,14 +17,14 @@ import { sectionLabel } from '../../lib/section-labels';
 import { loadReviewCopy } from '../../lib/review';
 import {
   getDesigners, getEditionColours, getEditionCountries, getGarments, getMediaAssets, getMediaById, getPageByKey, getPageHeroMedia,
-  getPageSections, getParticipations, getPrimaryEdition, getRegions,
+  getPageSections, getParticipations, getPrimaryEdition, getRegions, getSymbols,
 } from '../../lib/wix-cms';
 
 const [review, cmsPage, cmsEdition, cmsRegions, cmsSections] = await Promise.all([
   loadReviewCopy(), getPageByKey('edition-one'), getPrimaryEdition(), getRegions(), getPageSections('edition-one'),
 ]);
 const cmsPreview = import.meta.env.PUBLIC_CMS_REVIEW_MODE === 'true';
-const [cmsCountries, cmsColours, cmsDesigners, cmsParticipations, cmsPageHero, cmsEditionHero, cmsFabric] = await Promise.all([
+const [cmsCountries, cmsColours, cmsDesigners, cmsParticipations, cmsPageHero, cmsEditionHero, cmsFabric, cmsSymbols] = await Promise.all([
   cmsEdition ? getEditionCountries(cmsEdition.id) : Promise.resolve([]),
   getEditionColours(cmsEdition?.id),
   getDesigners(),
@@ -32,6 +32,7 @@ const [cmsCountries, cmsColours, cmsDesigners, cmsParticipations, cmsPageHero, c
   getPageHeroMedia('edition-one'),
   cmsEdition?.heroAssetId ? getMediaById(cmsEdition.heroAssetId) : Promise.resolve(undefined),
   cmsEdition?.fabricAssetId ? getMediaById(cmsEdition.fabricAssetId) : Promise.resolve(undefined),
+  getSymbols(),
 ]);
 const previewMedia = cmsPreview ? await getMediaAssets() : [];
 const cmsGarments = cmsEdition ? await getGarments({ editionId: cmsEdition.id }) : [];
@@ -61,6 +62,19 @@ const grouped = staticRegions.map((region) => ({
   region: { ...region, name: regionLabel(region.slug) },
   members: countries.filter((country) => country.region === region.slug),
 }));
+
+/*
+  Symbols grouped by the country that carries them. A country carries one symbol
+  per colour, so three countries carry two. Each name links to that country's
+  own symbol section rather than repeating the meaning here.
+*/
+const symbolsByCountry = countries
+  .map((country) => ({
+    country,
+    items: cmsSymbols.filter((symbol) => symbol.countryId === cmsCountryBySlug.get(country.slug)?.id && symbol.approvedName),
+  }))
+  .filter((group) => group.items.length > 0);
+const symbolTotal = symbolsByCountry.reduce((count, group) => count + group.items.length, 0);
 
 const countryById = new Map(cmsCountries.map((country) => [country.id, country]));
 const colours = editionColours.flatMap((fallback) => {
@@ -201,8 +215,31 @@ const heroTitle = cmsPage?.heroTitle ? safeHeroTitle(cmsPage.heroTitle) : 'One f
     </ul> : <EmptyState title="Country profiles are awaiting publication." layout="centred" />}
   </Section>
 
+  <Section tone="paper" id="symbols" hidden={!sectionEnabled('symbols')}>
+    <SectionHead
+      eyebrow="05 The symbols"
+      title={symbolTotal > 0 ? `${symbolTotal} symbols across ${symbolsByCountry.length} countries.` : 'The symbols of Edition One.'}
+    />
+    {symbolsByCountry.length > 0 ? (
+      <div class="regions symbol-index">
+        {symbolsByCountry.map((group) => (
+          <section class="region" aria-labelledby={`symbols-${group.country.slug}`}>
+            <h3 class="region__name" id={`symbols-${group.country.slug}`}>{group.country.name}</h3>
+            <ul class="region__list">
+              {group.items.map((symbol) => (
+                <li>
+                  <a class="region__link" href={`${countryPath(group.country.slug)}#symbol`}>{symbol.approvedName}</a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
+    ) : <EmptyState title="The symbol records are awaiting publication." layout="centred" />}
+  </Section>
+
   <Section tone="ink" id="designers" hidden={!sectionEnabled('designers')}>
-    <SectionHead eyebrow="05 The designers" title="One fabric, interpreted nine ways." />
+    <SectionHead eyebrow="06 The designers" title="One fabric, interpreted nine ways." />
     <ul class="card-grid card-grid--three">
       {designerSlots.map(({ country, cmsDesigner, designer }) => (
         <li>
@@ -253,7 +290,7 @@ const heroTitle = cmsPage?.heroTitle ? safeHeroTitle(cmsPage.heroTitle) : 'One f
 
   <Section tone="surface" id="garments" hidden={!sectionEnabled('garments')}>
     <SectionHead
-      eyebrow={sectionLabel(sectionByKey.get('garments')?.eyebrow, 'Garments and accessories', { position: 6 })}
+      eyebrow={sectionLabel(sectionByKey.get('garments')?.eyebrow, 'Garments and accessories', { position: 7 })}
       title={sectionByKey.get('garments')?.heading ?? 'The finished work.'}
     >
       <p>{cmsPlainText(sectionByKey.get('garments')?.body) ?? 'Garment and accessory galleries publish only with approved photography, captions and full credits.'}</p>
