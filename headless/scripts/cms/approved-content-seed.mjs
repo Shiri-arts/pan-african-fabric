@@ -266,6 +266,29 @@ const additionalMediaRecords = additionalMediaSource.map(([filename, width, heig
   title: filename.replace(/\.[^.]+$/, ''), slug: `source-${slugify(filename)}`, filename, assetType: 'image', alt: `Supplied project image: ${filename}.`, ratio: width === height ? '1/1' : width > height ? '3/2' : '4/5', focalPosition: '50% 50%', image: `https://static.wixstatic.com/media/${wixId}`, width, height, decorative: false, usagePermission: 'web-display-approved', usageTerms: 'User authorized website publication from the supplied source-truth folder on 2026-09-13.', downloadAllowed: false, version: '1', displayOrder: 11 + index,
 }));
 
+const symbolArtworkSource = [
+  ['morocco-diamond-amazigh', 'Diamond Amazigh(Berber).jpg', 410, 410, '9b8a9d_3d18e74683694ed8b2595a7aca239abc~mv2.jpg'],
+  ['egypt-eye-of-horus', 'The Eye of Horus.jpg', 406, 408, '9b8a9d_9eec3e3e889244bc834a13d1c0d76880~mv2.jpg'],
+  ['ghana-nkonsonkonson', 'Nkonsonkonson(chain link).jpg', 411, 410, '9b8a9d_d517a253a09d46b38fccb591000531e2~mv2.jpg'],
+  ['ghana-boa-me', 'Boa me na me mmoa wo.jpg', 412, 412, '9b8a9d_ba4a8db689264b48a2aca522176f9dbc~mv2.jpg'],
+  ['nigeria-northern-knot', 'The Northern knot.jpg', 406, 409, '9b8a9d_d2a2f56867734fb78822540b47c3d03a~mv2.jpg'],
+  ['car-kuba', 'Kuba.jpg', 412, 412, '9b8a9d_a3af4556ce7946bcb381f67a4a48a741~mv2.jpg'],
+  ['cameroon-double-bell', 'Bamileke Double Bell.jpg', 407, 411, '9b8a9d_e864cd972920472ebd7801f049702525~mv2.jpg'],
+  ['cameroon-toghu', 'Toghu.jpg', 410, 412, '9b8a9d_2479a2385ad345168189615019163e53~mv2.jpg'],
+  ['ethiopia-traditional-pattern', 'Traditional Ethiopian pattern.jpg', 408, 413, '9b8a9d_107379538f2c4b01b5ae7268149a5f5f~mv2.jpg'],
+  ['kenya-massai-shuka', 'Maasai Shuka.jpg', 411, 410, '9b8a9d_309955c2570f4fde939f837828af8b97~mv2.jpg'],
+  ['south-africa-shwe-shwe', 'Shwe-shwe pattern.jpg', 409, 410, '9b8a9d_34d4a713145e4601b98b71448fd81cdc~mv2.jpg'],
+  ['south-africa-zulu-shield', 'Zulu Shield.jpg', 411, 412, '9b8a9d_a91265d04875455983beddd86075ce81~mv2.jpg'],
+];
+const symbolArtworkBySlug = new Map(symbolArtworkSource.map(([slug]) => [slug, `media-symbol-${slug}`]));
+const symbolMediaRecords = symbolArtworkSource.map(([slug, filename, width, height, wixId], index) => sourceTruthRecord('MediaAssets', `media-symbol-${slug}`, `Client-authorized Symbols folder in Wix Media Manager on 2026-09-25.`, {
+  title: filename.replace(/\.[^.]+$/, ''), slug: `symbol-${slug}`, filename, assetType: 'image',
+  alt: `Artwork supplied for ${filename.replace(/\.[^.]+$/, '')}.`, ratio: '1/1', focalPosition: '50% 50%',
+  image: `https://static.wixstatic.com/media/${wixId}`, width, height, decorative: false,
+  usagePermission: 'web-display-approved', usageTerms: 'Client authorized display from the Wix Media Manager Symbols folder on 2026-09-25.',
+  downloadAllowed: false, version: '1', displayOrder: 100 + index,
+}));
+
 const symbolSource = [
   ['morocco-diamond-amazigh', 'Diaomond Amazigh (Berber)', 'Originates from an animistic belief and tradition. The diamond is the symbol of the woman, associated with the snake it represents the union of opposites.', 'country-morocco-edition-one'],
   ['egypt-eye-of-horus', 'The Eye of Horus', 'Originated in Ancient Egypt and represents healing and knowledge and is a symbol of protection from evil.', 'country-egypt-edition-one'],
@@ -281,7 +304,7 @@ const symbolSource = [
   ['south-africa-zulu-shield', 'Zulu Shield', "It is the traditional zulu symbol by the Southern part of africa which means to be under somebody's shield.", 'country-south-africa-edition-one'],
 ];
 const symbolRecords = symbolSource.map(([slug, approvedName, meaning, country], index) => sourceTruthRecord('Symbols', `symbol-${slug}`, 'Symbols and meanings.jpg and Screenshot 2024-09-25 141914.jpg', {
-  title: approvedName, slug, approvedName, meaning: richText(meaning), acknowledgement: `Supplied project symbol reference artwork; mapped to ${countryRecords.find(item => item.id === country)?.data.countryName}.`, artworkAsset: 'media-source-symbols-and-meanings', displayOrder: index + 1,
+  title: approvedName, slug, approvedName, meaning: richText(meaning), acknowledgement: `Supplied project symbol reference artwork; mapped to ${countryRecords.find(item => item.id === country)?.data.countryName}.`, artworkAsset: symbolArtworkBySlug.get(slug), displayOrder: index + 1,
 }));
 
 const participationSource = [
@@ -438,6 +461,7 @@ export const seedRecords = Object.freeze([
   ...designerRecords,
   ...sourceMediaRecords,
   ...additionalMediaRecords,
+  ...symbolMediaRecords,
   ...symbolRecords,
   ...participationRecords,
   garmentRecord,
