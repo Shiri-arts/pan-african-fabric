@@ -26,8 +26,10 @@ interface Props extends PageMeta {
   cmsPageKey?: string;
   cmsPage?: CmsPage;
   cmsSettings?: CmsSiteSettings;
+  /** Robots directive for a route that must not follow the site default. */
+  robots?: string;
 }
-const { header = 'solid', progress = false, cmsPageKey, cmsPage: suppliedPage, cmsSettings: suppliedSettings, ...fallbackMeta } = Astro.props;
+const { header = 'solid', progress = false, cmsPageKey, cmsPage: suppliedPage, cmsSettings: suppliedSettings, robots, ...fallbackMeta } = Astro.props;
 const review = await loadReviewCopy();
 const [settings, page, primaryNavigation, footerNavigation] = await Promise.all([
   suppliedSettings ? Promise.resolve(suppliedSettings) : getSiteSettings(),
@@ -52,7 +54,7 @@ const socialImage = socialAssetId ? await getMediaById(socialAssetId) : undefine
     <meta name="theme-color" content="#161412" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta name="color-scheme" content="light" />
-    <Meta {...meta} siteName={settings?.siteName} canonicalOrigin={settings?.canonicalOrigin} cmsRobots={page?.robots}
+    <Meta {...meta} siteName={settings?.siteName} canonicalOrigin={settings?.canonicalOrigin} cmsRobots={robots ?? page?.robots}
       titlePattern={settings?.defaultSeoTitlePattern} socialImageUrl={socialImage?.desktop?.src} socialImageAlt={socialImage?.alt} />
   </head>
   <body>

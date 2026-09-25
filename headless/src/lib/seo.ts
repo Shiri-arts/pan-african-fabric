@@ -1,9 +1,9 @@
 /**
  * Route metadata contract.
  *
- * Production-quality metadata components are prepared for later CMS wiring, but
- * no production frontend URL and no approved social image exist, so no canonical
- * URL and no `og:image` are invented. Review builds stay `noindex, nofollow`.
+ * The canonical origin and the social share image both come from Site Settings
+ * in the CMS; neither is invented here. Routes are indexable by default, and a
+ * route that must stay out of the index passes its own `robots` value.
  */
 import { CANONICAL_ORIGIN, ROBOTS, SITE_NAME } from '../data/site';
 

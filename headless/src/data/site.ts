@@ -78,8 +78,13 @@ export const fastFacts: readonly { readonly value: string; readonly label: strin
 ];
 
 /**
- * Review builds stay out of search indexes and no production URL has been
- * approved, so no canonical origin is invented.
+ * The site is published and open to search engines. This is the default every
+ * route falls back to: only `/` and `/about` read a CMS Pages record, so a
+ * `robots` value stored in the CMS overrides this for those two routes only.
+ * A route that must stay out of the index passes `robots` to the Layout.
+ *
+ * The canonical origin is supplied by Site Settings in the CMS
+ * (`canonicalOrigin`), so none is invented here.
  */
 export const CANONICAL_ORIGIN: string | null = null;
-export const ROBOTS = 'noindex, nofollow' as const;
+export const ROBOTS = 'index, follow' as const;
