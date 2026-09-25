@@ -43,6 +43,7 @@ export const navigation: readonly NavigationItem[] = [
       { href: '/edition-one#colours', label: 'The twelve colours' },
       { href: '/edition-one#regions', label: 'Five regions' },
       { href: '/edition-one#countries', label: 'The countries' },
+      { href: '/edition-one#symbols', label: 'The symbols' },
       { href: '/edition-one#designers', label: 'The designers' },
       { href: '/edition-one#garments', label: 'Garments and accessories' },
     ],
