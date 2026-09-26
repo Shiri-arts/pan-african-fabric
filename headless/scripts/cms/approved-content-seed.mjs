@@ -63,7 +63,7 @@ const pageContent = {
   stories: { eyebrow: 'Stories', heroTitle: 'The living voice of the initiative.', introduction: 'Read reflections, poems and records from the people, places and creative moments shaping The Pan-African Fabric.', heroAsset: 'media-source-img-6999' },
   shop: { eyebrow: 'Shop', heroTitle: 'Own a piece of the story.', introduction: 'The Pan-African Fan is available to order. Contact the initiative directly for current price, payment and delivery details.', heroAsset: 'media-home-hero-pan-african-fan' },
   'press-contact': { eyebrow: 'Press & Contact', heroTitle: 'Professional access to the initiative.', introduction: 'Find verified facts, official releases, approved media materials and the right contact route for press, interviews and general enquiries.', heroAsset: 'media-source-obp05746' },
-  'partner-with-us': { eyebrow: 'Partner with us', heroTitle: 'Bring the fabric to your city.', introduction: 'Museums, embassies, universities, sponsors, cultural organisations, designers and future hosts can help shape where this initiative goes next.', heroAsset: 'media-source-obp06356', primaryCtaLabel: 'Start an enquiry', primaryCtaHref: '#enquiry', secondaryCtaLabel: 'Explore Edition One', secondaryCtaHref: '/edition-one' },
+  'partner-with-us': { eyebrow: 'Partner with us', heroTitle: 'Bring the fabric to your city.', introduction: 'Museums, embassies, universities, sponsors, cultural organisations, designers and future hosts can help shape where this initiative goes next.', heroAsset: 'ee6ad0d3-ba0d-4d74-ae42-70a43d3868eb', primaryCtaLabel: 'Start an enquiry', primaryCtaHref: '#enquiry', secondaryCtaLabel: 'Explore Edition One', secondaryCtaHref: '/edition-one' },
 };
 
 const pageRecords = pages.map(([id, title, pageKey, path, navigationLabel, displayOrder]) => record(
@@ -456,6 +456,25 @@ const pageSectionRecords = [
 
 const shopRecord = sourceTruthRecord('ShopItems', 'shop-pan-african-fan', 'Client-approved editorial catalogue implementation on 2026-09-23.', { title: 'The Pan-African Fan', slug: 'the-pan-african-fan', itemType: 'fan', availabilityLabel: 'Available to order', editorialStory: richText('The Pan-African Fan brings the fabric’s colour, pattern and shared visual language into a functional object connected to Edition One.'), fulfilment: richText('Current price, payment and delivery details are confirmed directly by email before purchase.'), commerceEnabled: false, edition: 'edition-one', heroAsset: 'media-home-hero-pan-african-fan', displayOrder: 1 });
 
+const partnerHeroMediaRecord = sourceTruthRecord('MediaAssets', 'ee6ad0d3-ba0d-4d74-ae42-70a43d3868eb', 'Client selected IMG_6861.jpg for the Partner With Us hero in Wix CMS and requested its display be fixed on 2026-09-26.', {
+  title: 'IMG_6861',
+  slug: 'partner-with-us-hero-img-6861',
+  filename: 'IMG_6861.jpg',
+  assetType: 'image',
+  alt: 'A woman wearing a colourful Pan-African Fabric garment stands beside a yellow vintage car in front of an ornate fountain.',
+  ratio: '4/5',
+  focalPosition: '50% 70%',
+  image: 'wix:image://v1/9b8a9d_a711596f56364648971c96a0b7824634~mv2.jpg/IMG_6861.jpg#originWidth=3847&originHeight=5771',
+  width: 3847,
+  height: 5771,
+  decorative: false,
+  usagePermission: 'web-display-approved',
+  usageTerms: 'Client authorized display from Wix Media Manager and requested the Partner With Us hero be fixed on 2026-09-26.',
+  downloadAllowed: false,
+  version: '1',
+  displayOrder: 160,
+});
+
 export const seedRecords = Object.freeze([
   record('MediaAssets', 'media-home-hero-pan-african-fan', 'Client-supplied hero image and publication authorization on 2026-09-13.', {}),
   record('MediaAssets', 'media-founder-shiri-achu', 'Client-supplied founder portrait and publication authorization on 2026-09-13.', {}),
@@ -474,6 +493,7 @@ export const seedRecords = Object.freeze([
   ...designerRecords,
   ...sourceMediaRecords,
   ...additionalMediaRecords,
+  partnerHeroMediaRecord,
   ...symbolMediaRecords,
   ...symbolRecords,
   ...participationRecords,

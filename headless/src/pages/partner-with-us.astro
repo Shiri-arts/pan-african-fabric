@@ -74,6 +74,7 @@ const enquiryTypes = enquiryOptions.length > 0 ? enquiryOptions.map(option => op
   header="overlay"
 >
   <PageHero
+    class="page-hero--partner"
     eyebrow={cmsPage?.eyebrow ?? 'Partner with us'}
     title={escapeCmsHeading(cmsPage?.heroTitle, 'Bring the fabric<span>to your city.</span>')}
     size="full"
@@ -212,6 +213,14 @@ const enquiryTypes = enquiryOptions.length > 0 ? enquiryOptions.map(option => op
 </Layout>
 
 <style>
+  /*
+    This hero uses a portrait photograph inside a wide full-bleed frame. Give the
+    picture the frame's height so object-fit and the CMS focal position can place
+    the subject instead of clipping the photograph from its top edge.
+  */
+  :global(.page-hero.page-hero--partner .page-hero__media .media__frame) { height: 100%; aspect-ratio: auto; }
+  :global(.page-hero.page-hero--partner .page-hero__media .media__frame picture) { height: 100%; }
+
   /*
     Success confirmation. A native dialog is used so focus handling, Escape and the
     backdrop come from the platform. The inline status line is still written to, so

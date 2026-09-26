@@ -139,6 +139,12 @@ test('menu and media dependencies match the approved decisions', () => {
   ]);
   assert.equal(find('Pages', 'page-home').data.heroAsset, 'media-home-hero-pan-african-fan');
   assert.equal(find('PageSections', 'section-about-founder').data.mediaAsset, 'media-founder-shiri-achu');
+  assert.equal(find('Pages', 'page-partner-with-us').data.heroAsset, 'ee6ad0d3-ba0d-4d74-ae42-70a43d3868eb');
+  const partnerHero = find('MediaAssets', 'ee6ad0d3-ba0d-4d74-ae42-70a43d3868eb').data;
+  assert.equal(partnerHero.usagePermission, 'web-display-approved');
+  assert.equal(partnerHero.width, 3847);
+  assert.equal(partnerHero.height, 5771);
+  assert.equal(partnerHero.focalPosition, '50% 70%');
 });
 
 test('authorized source media is web-display approved with downloads disabled', () => {
