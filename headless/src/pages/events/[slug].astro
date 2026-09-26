@@ -18,6 +18,7 @@ import NotFound from '../../components/NotFound.astro';
 import { eventPath, eventPhase, eventStructuredData, findEvent, posterDate } from '../../data/events';
 import { COUNTRY_COUNT } from '../../data/countries';
 import { cmsPlainText, presentCmsEvent } from '../../lib/cms-route-presenters';
+import { hasApprovedSource } from '../../lib/media';
 import { getEventBySlug, getMediaById, getUpcomingEvents } from '../../lib/wix-cms';
 
 export const prerender = false;
@@ -100,9 +101,11 @@ const partnerCredits = cmsPlainText(cmsEvent?.publicPartnerCredits);
       </div>
     </Section>
 
-    <Section tone="ivory" size="tight" flush="bottom">
-      <Media media={event.hero} />
-    </Section>
+    {hasApprovedSource(event.hero) && (
+      <Section tone="ivory" size="tight" flush="bottom">
+        <Media media={event.hero} />
+      </Section>
+    )}
 
     <Section tone="ivory" id="about">
       <SectionHead eyebrow="About the event" title="What takes place.">

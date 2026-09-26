@@ -12,7 +12,6 @@ import { coloursForCountry } from '../../data/colours';
 import type { Media as MediaRecord } from '../../lib/media';
 import { adjacentCountries, countryPath, findCountry, regionName } from '../../data/countries';
 import { events } from '../../data/events';
-import { mediaSlot } from '../../lib/media';
 import { cmsPlainText } from '../../lib/cms-presentation';
 import { loadReviewCopy } from '../../lib/review';
 import {
@@ -104,9 +103,6 @@ const siblings = siblingBase && (import.meta.env.DEV || siblingRecordsPublished)
 } : undefined;
 const lead = colours[0];
 
-const heroMedia = country
-  ? heroMediaFromCms ?? mediaSlot(`country-${country.slug}-hero`, '21/9', `Approved hero image for ${country.name}, with focal point, alt text, caption, credit and reuse permission.`)
-  : undefined;
 // Every approved garment image for this country, hero first, gallery after, in
 // CMS order with duplicates removed. The gallery shows them all.
 const cmsGarmentMediaIds = [...new Set(cmsGarments.flatMap((item) => [item.heroAssetId, ...item.galleryAssetIds]).filter((id): id is string => Boolean(id)))];
@@ -117,14 +113,8 @@ const cmsGarmentMedia = await Promise.all(cmsGarmentMediaIds.map((id) => getMedi
   images will sit rather than a gallery of placeholders.
 */
 const garmentsApproved = Boolean(country) && cmsGarmentMedia.some(Boolean);
-const garments = country && garmentsApproved
+const garments = country
   ? cmsGarmentMedia.filter((item): item is MediaRecord => Boolean(item))
-  : country
-  ? [
-      mediaSlot(`country-${country.slug}-garment-1`, '4/5', 'Approved garment photograph, primary look.'),
-      mediaSlot(`country-${country.slug}-garment-2`, '4/5', 'Approved supporting garment photograph.'),
-      mediaSlot(`country-${country.slug}-garment-3`, '4/5', 'Approved supporting garment or detail photograph.'),
-    ]
   : [];
 
 const relatedCmsEvents = cmsCountry
@@ -201,9 +191,11 @@ const slots = [
       </div>
     </section>
 
-    <Section tone="ivory" size="tight" flush="bottom">
-      <Media media={heroMedia!} />
-    </Section>
+    {heroMediaFromCms && (
+      <Section tone="ivory" size="tight" flush="bottom">
+        <Media media={heroMediaFromCms} />
+      </Section>
+    )}
 
     {country.regionNote && (
       <Section tone="ivory" size="tight">
@@ -259,20 +251,14 @@ const slots = [
       </Section>
     ))}
 
-    <Section tone="paper" id="garments">
-      <SectionHead eyebrow="Garments" title="The finished garments.">
-        <p>{garmentsApproved
-          ? 'Every approved garment image for this country, each with its own caption and full credit line.'
-          : 'A controlled hero crop and two supporting images, each with its own caption and full credit line.'}</p>
-      </SectionHead>
-      {garmentsApproved ? (
+    {garmentsApproved && (
+      <Section tone="paper" id="garments">
+        <SectionHead eyebrow="Garments" title="The finished garments.">
+          <p>Every approved garment image for this country, each with its own caption and full credit line.</p>
+        </SectionHead>
         <GarmentGallery items={garments} label={`Garments from ${country.name}`} idPrefix={`garment-${country.slug}`} />
-      ) : (
-        <ul class="card-grid">
-          {garments.map((garment) => <li><Media media={garment} /></li>)}
-        </ul>
-      )}
-    </Section>
+      </Section>
+    )}
 
     <Section tone="ivory" id="related-events">
       <SectionHead eyebrow="Related experience" title="Where you can see this work.">
