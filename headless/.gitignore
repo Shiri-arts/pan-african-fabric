@@ -2,6 +2,7 @@ node_modules/
 dist/
 .astro/
 .wix/
+.wrangler/
 .env*
 !.env.example
 wix-error.log
