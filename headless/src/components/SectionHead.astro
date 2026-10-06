@@ -1,0 +1,37 @@
+---
+import Eyebrow from './Eyebrow.astro';
+interface Props {
+  eyebrow?: string;
+  title: string;
+  /** Heading level. Pages keep exactly one h1; sections normally use h2. */
+  level?: 2 | 3;
+  /**
+   * `label` promotes the numbered eyebrow to the section heading and holds the
+   * title back, for sections that read as a single editorial label. The title is
+   * still passed in, so the stored heading is never lost from the template.
+   */
+  heading?: 'title' | 'label';
+  id?: string;
+  wide?: boolean;
+  stack?: boolean;
+  /** Top-align when the supporting column is much taller than the title. */
+  top?: boolean;
+  class?: string;
+}
+const { eyebrow, title, level = 2, heading = 'title', id, wide = false, stack = false, top = false, class: className } = Astro.props;
+const Heading = `h${level}` as 'h2' | 'h3';
+const asLabel = heading === 'label' && Boolean(eyebrow);
+---
+<div class:list={['section-head', wide && 'section-head--wide', stack && 'section-head--stack', top && 'section-head--top', asLabel && 'section-head--label', className]}>
+  <div>
+    {asLabel ? (
+      <Heading id={id} class="section-head__label">{eyebrow}</Heading>
+    ) : (
+      <Fragment>
+        {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
+        <Heading id={id} class="section-head__title">{title}</Heading>
+      </Fragment>
+    )}
+  </div>
+  <div class="section-head__aside"><slot /></div>
+</div>

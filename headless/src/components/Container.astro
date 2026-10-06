@@ -1,0 +1,9 @@
+---
+interface Props {
+  width?: 'standard' | 'editorial' | 'gallery' | 'full';
+  class?: string;
+  as?: 'div' | 'section' | 'header' | 'footer' | 'nav';
+}
+const { width = 'standard', class: className, as: Tag = 'div' }: Props = Astro.props;
+---
+<Tag class:list={['container', `container--${width}`, className]}><slot /></Tag>

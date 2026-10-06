@@ -1,0 +1,95 @@
+---
+/**
+ * Global footer.
+ *
+ * External destinations render only when `verified` is true in src/data/site.ts.
+ * Instagram, the founder site and the work email are all unconfirmed for public
+ * use, so they are held back rather than published as guesses. The review build
+ * shows what is outstanding; a production build simply omits them.
+ */
+import Container from './Container.astro';
+import { editionColours } from '../data/colours';
+import { menuItems } from '../data/navigation';
+import { externalLinks, SITE_NAME } from '../data/site';
+import type { ReviewCopy } from '../data/review-copy.server';
+import type { CmsNavigationItem, CmsSiteSettings } from '../lib/wix-cms';
+import { copyrightLine, mergeNavigation } from '../lib/cms-presentation';
+interface Props { review?: ReviewCopy | undefined; settings?: CmsSiteSettings; cmsNavigation?: readonly CmsNavigationItem[]; cmsNavigationConfigured?: boolean; }
+const { review, settings, cmsNavigation = [], cmsNavigationConfigured = false } = Astro.props;
+const siteName = settings?.siteName ?? SITE_NAME;
+const footerStatement = settings?.footerStatement;
+// Current year, with owner wording from Site Settings when it holds any.
+const copyright = copyrightLine(settings?.copyrightText, siteName);
+const resolvedMenu = cmsNavigationConfigured ? mergeNavigation(cmsNavigation, menuItems, false) : menuItems;
+const cmsLinks = [
+  settings?.instagramUrl ? { label: 'Instagram', href: settings.instagramUrl, verified: true } : undefined,
+  settings?.founderSiteUrl ? { label: 'Shiri Achu Art', href: settings.founderSiteUrl, verified: true } : undefined,
+].filter((link): link is { label: string; href: string; verified: true } => Boolean(link));
+const verified = cmsLinks.length ? cmsLinks : externalLinks.filter((link) => link.verified);
+const pending = externalLinks.filter((link) => !link.verified);
+---
+<footer class="site-footer">
+  <Container>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a class="footer-brand__name" href="/">{siteName}</a>
+        {footerStatement ? (
+          <p>{footerStatement}</p>
+        ) : review && (
+          <p>
+            {review.footerDescription}
+            <span class="draft-copy__mark"><span class="visually-hidden">Status: </span>Draft copy · not approved</span>
+          </p>
+        )}
+        {review && <p class="caption" style="color:var(--on-ink-muted)">{review.creatorCredit}</p>}
+      </div>
+
+      <nav aria-label="Footer">
+        <h2 class="footer-heading">Explore</h2>
+        <ul>
+          {resolvedMenu.map((item) => (
+            <li><a class="footer-link" href={item.href}>{item.label}</a></li>
+          ))}
+        </ul>
+      </nav>
+
+      <div>
+        <h2 class="footer-heading">Connect</h2>
+        {verified.length > 0 ? (
+          <ul>
+            {verified.map((link) => (
+              <li>
+                <a class="footer-link" href={link.href} target="_blank" rel="noopener noreferrer">
+                  {link.label}<span aria-hidden="true">&#8599;</span>
+                  <span class="visually-hidden">(opens in a new tab)</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="caption" style="color:var(--on-ink-muted)">
+            External destinations are not linked yet. They appear here once each destination is confirmed.
+          </p>
+        )}
+        {import.meta.env.DEV && pending.length > 0 && (
+          <ul class="stack stack--sm" style="margin-top:16px">
+            {pending.map((link) => (
+              <li class="caption" style="color:var(--on-ink-muted);font-size:0.75rem">
+                <b style="color:var(--gold);font-weight:500">Pending:</b> {link.label}: {link.pending}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+
+    <div class="footer-colours" aria-hidden="true">
+      {editionColours.map((colour) => <span style={`background:var(${colour.variable})`}></span>)}
+    </div>
+
+    <div class="footer-bottom">
+      <span class="footer-bottom__copyright">{copyright}</span>
+      <a href="#main">Back to top<span aria-hidden="true">&#8593;</span></a>
+    </div>
+  </Container>
+</footer>

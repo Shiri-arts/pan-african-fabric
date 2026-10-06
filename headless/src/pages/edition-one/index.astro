@@ -1,0 +1,357 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Section from '../../components/Section.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import Button from '../../components/Button.astro';
+import Copy from '../../components/Copy.astro';
+import PageHero from '../../components/PageHero.astro';
+import CountryCard from '../../components/CountryCard.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import Media from '../../components/Media.astro';
+import { COLOUR_COUNT, editionColours } from '../../data/colours';
+import { COUNTRY_COUNT, REGION_COUNT, countries as staticCountries, regions as staticRegions, countryPath, regionName, type Country, type RegionSlug } from '../../data/countries';
+import { approved, awaiting, draft } from '../../lib/content';
+import { mediaSlot } from '../../lib/media';
+import { cmsPlainText } from '../../lib/cms-presentation';
+import { sectionLabel } from '../../lib/section-labels';
+import { loadReviewCopy } from '../../lib/review';
+import {
+  getDesigners, getEditionColours, getEditionCountries, getGarments, getMediaAssets, getMediaById, getPageByKey, getPageHeroMedia,
+  getPageSections, getParticipations, getPrimaryEdition, getRegions, getSymbols,
+} from '../../lib/wix-cms';
+
+const [review, cmsPage, cmsEdition, cmsRegions, cmsSections] = await Promise.all([
+  loadReviewCopy(), getPageByKey('edition-one'), getPrimaryEdition(), getRegions(), getPageSections('edition-one'),
+]);
+const cmsPreview = import.meta.env.PUBLIC_CMS_REVIEW_MODE === 'true';
+const [cmsCountries, cmsColours, cmsDesigners, cmsParticipations, cmsPageHero, cmsEditionHero, cmsFabric, cmsSymbols] = await Promise.all([
+  cmsEdition ? getEditionCountries(cmsEdition.id) : Promise.resolve([]),
+  getEditionColours(cmsEdition?.id),
+  getDesigners(),
+  cmsEdition ? getParticipations({ editionId: cmsEdition.id }) : Promise.resolve([]),
+  getPageHeroMedia('edition-one'),
+  cmsEdition?.heroAssetId ? getMediaById(cmsEdition.heroAssetId) : Promise.resolve(undefined),
+  cmsEdition?.fabricAssetId ? getMediaById(cmsEdition.fabricAssetId) : Promise.resolve(undefined),
+  getSymbols(),
+]);
+const previewMedia = cmsPreview ? await getMediaAssets() : [];
+const cmsGarments = cmsEdition ? await getGarments({ editionId: cmsEdition.id }) : [];
+const garmentMedia = (await Promise.all(cmsGarments.map(item => item.heroAssetId ? getMediaById(item.heroAssetId) : undefined)))
+  .filter((item): item is NonNullable<typeof item> => Boolean(item));
+const unassignedPreviewDesigners = cmsPreview
+  ? cmsDesigners.filter(designer => !cmsParticipations.some(participation => participation.designerId === designer.id))
+  : [];
+
+const regionById = new Map(cmsRegions.map((region) => [region.id, region]));
+const cmsCountryBySlug = new Map(cmsCountries.filter((country) => country.slug).map((country) => [country.slug!, country]));
+const countries: readonly Country[] = (import.meta.env.DEV ? staticCountries : staticCountries.filter(fallback => cmsCountryBySlug.has(fallback.slug))).map((fallback) => {
+  const record = cmsCountryBySlug.get(fallback.slug);
+  const cmsRegion = record?.regionId ? regionById.get(record.regionId) : undefined;
+  const region = staticRegions.some((item) => item.slug === cmsRegion?.regionKey) ? cmsRegion!.regionKey as RegionSlug : fallback.region;
+  return {
+    ...fallback,
+    name: record?.countryName ?? fallback.name,
+    region,
+    regionNote: record?.regionNote ?? fallback.regionNote,
+    // Matches what a country profile publishes, so a card cannot promise more than its page shows.
+    hasApprovedProfile: Boolean(record && (record.introduction || record.interpretation || record.heroAssetId)),
+  };
+});
+const regionLabel = (slug: RegionSlug) => cmsRegions.find((region) => region.regionKey === slug)?.name ?? regionName(slug);
+const grouped = staticRegions.map((region) => ({
+  region: { ...region, name: regionLabel(region.slug) },
+  members: countries.filter((country) => country.region === region.slug),
+}));
+
+/*
+  Symbols grouped by the country that carries them. A country carries one symbol
+  per colour, so three countries carry two. Each name links to that country's
+  own symbol section rather than repeating the meaning here.
+*/
+const symbolsByCountry = countries
+  .map((country) => ({
+    country,
+    items: cmsSymbols.filter((symbol) => symbol.countryId === cmsCountryBySlug.get(country.slug)?.id && symbol.approvedName),
+  }))
+  .filter((group) => group.items.length > 0);
+const symbolTotal = symbolsByCountry.reduce((count, group) => count + group.items.length, 0);
+
+const countryById = new Map(cmsCountries.map((country) => [country.id, country]));
+const colours = editionColours.flatMap((fallback) => {
+  const record = cmsColours.find((item) => item.sourcePosition === fallback.index);
+  const relatedCountry = record?.countryId ? countryById.get(record.countryId) : undefined;
+  const safeCmsColour = record && record.textHex && (record.contrastRatio ?? 0) >= 4.5 && relatedCountry?.slug;
+  return safeCmsColour ? [{
+    index: record.sourcePosition ?? fallback.index, name: record.colourName, countryName: relatedCountry.countryName,
+    countrySlug: relatedCountry.slug!, style: `--panel:${record.hexValue};--panel-on:${record.textHex}`,
+  }] : import.meta.env.DEV || cmsPreview ? [{
+    index: fallback.index, name: fallback.name, countryName: countries.find((item) => item.slug === fallback.country)?.name ?? fallback.country,
+    countrySlug: fallback.country, style: `--panel:var(${fallback.variable});--panel-on:${fallback.textOn}`,
+  }] : [];
+});
+const colourStylesByCountry = new Map(cmsCountries.map(country => [country.slug, cmsColours
+  .filter(colour => colour.countryId === country.id && colour.textHex && (colour.contrastRatio ?? 0) >= 4.5)
+  .map(colour => `--rail:${colour.hexValue}`)]));
+
+const sectionByKey = new Map(cmsSections.map((section) => [section.sectionKey, section]));
+const sectionEnabled = (key: string) => sectionByKey.get(key)?.isEnabled ?? true;
+const textOnly = (value: unknown): string | undefined => typeof value === 'string' && value.trim() ? value.trim() : undefined;
+const safeHeroTitle = (value: string): string => value.replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]!);
+
+// The designer framework moved here from the homepage: this is its canonical page.
+// Roster names are a working source and appear only in the review build.
+const designerSlots = countries.map((country) => ({
+  country,
+  cmsDesigner: (() => {
+    const cmsCountry = cmsCountryBySlug.get(country.slug);
+    const participation = cmsParticipations.find((item) => item.countryId === cmsCountry?.id && item.isPrincipal);
+    return participation ? cmsDesigners.find((item) => item.id === participation.designerId) : undefined;
+  })(),
+  designer: review?.designerRoster.find((entry) => entry.country === country.slug),
+}));
+
+const cmsLead = textOnly(cmsEdition?.leadLine);
+const lead = cmsLead
+  ? approved(cmsLead)
+  : review
+  ? draft(review.editionOne.lead, 'Founder / content lead')
+  : awaiting('Edition One lead line');
+
+const cmsIntro = cmsPlainText(cmsPage?.introduction) ?? cmsPlainText(cmsEdition?.statement);
+const intro = cmsIntro
+  ? approved(cmsIntro)
+  : review
+  ? draft(review.editionOne.intro, 'Founder / content lead')
+  : awaiting('Edition One introduction', 'Approve the introduction to the edition, its countries and its designers.');
+
+const heroMedia = cmsEditionHero ?? cmsPageHero ?? mediaSlot('edition-hero', '21/9', 'Approved photograph of the finished fabric, full width.');
+const fabricSectionMedia = sectionByKey.get('the-fabric')?.mediaAssetId ? await getMediaById(sectionByKey.get('the-fabric')!.mediaAssetId!) : undefined;
+const fabricMedia = cmsFabric ?? fabricSectionMedia ?? mediaSlot('edition-fabric', '3/2', 'Approved close-up of the fabric showing weave, colour transitions and scale.');
+const fabricDescription = cmsPlainText(cmsEdition?.fabricDescription) ?? cmsPlainText(sectionByKey.get('the-fabric')?.body);
+
+const pageTitle = cmsPage?.seoTitle ?? cmsPage?.title ?? 'Edition One';
+const pageDescription = cmsPage?.seoDescription ?? 'Edition One: one fabric, twelve colours and nine countries across five African regions, interpreted by designers into finished garments and accessories.';
+const heroTitle = cmsPage?.heroTitle ? safeHeroTitle(cmsPage.heroTitle) : 'One fabric.<span>Twelve colours.</span>';
+
+---
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  path="/edition-one"
+  header="overlay"
+  progress
+>
+  <PageHero
+    eyebrow={cmsPage?.eyebrow ?? 'Edition One'}
+    title={heroTitle}
+    size="tall"
+    media={heroMedia}
+    mediaFit="contain"
+    meta={[`${COLOUR_COUNT} colours`, `${COUNTRY_COUNT} countries`, `${REGION_COUNT} regions`]}
+  >
+    <Copy copy={lead} class="page-hero__tagline" fallbackTitle="Edition One lead line" emptyTone="ink" />
+    <Copy copy={intro} class="page-hero__intro lead" fallbackTitle="Edition One introduction" emptyTone="ink" />
+  </PageHero>
+
+  <Section tone="ivory" id="the-fabric" hidden={!sectionEnabled('the-fabric')}>
+    <div class="fabric">
+      <div class="fabric__media" data-reveal="mask"><Media media={fabricMedia} /></div>
+      <div class="fabric__copy">
+        <p class="eyebrow"><span>01 The fabric</span></p>
+        <h2 class="fabric__title">{sectionByKey.get('the-fabric')?.heading ?? 'A single cloth, carrying twelve colours.'}</h2>
+        {fabricDescription ? <p class="lead">{fabricDescription}</p> : (
+          <EmptyState
+            title="The fabric description is not approved yet."
+            text="This is where the fabric is described: what it is made of, how it was produced and how the twelve colours sit within it."
+            note={import.meta.env.DEV ? 'Approve a 100-150 word description of the fabric and its production.' : undefined}
+          />
+        )}
+      </div>
+    </div>
+  </Section>
+
+  <Section tone="surface" id="colours" hidden={!sectionEnabled('colours')}>
+    <SectionHead eyebrow="02 The twelve colours" title="Twelve colours mapped to nine countries." wide>
+      <p>
+        Cameroon, Ghana and South Africa each carry two colours, so twelve colours meet nine countries. The countries
+        themselves are listed below.
+      </p>
+    </SectionHead>
+    {colours.length > 0 ? <ul class="colour-grid colour-grid--swatches" aria-label="The twelve colours of Edition One" data-reveal-group>
+      {colours.map((colour, index) => (
+        <li data-reveal="rise" style={`--reveal-delay:${Math.min(index, 11) * 55}ms`}>
+          <div class="colour-panel colour-panel--swatch" style={colour.style}>
+            <span class="visually-hidden">{colour.name}, {colour.countryName}</span>
+          </div>
+        </li>
+      ))}
+    </ul> : <EmptyState title="The colour records are awaiting publication." layout="centred" />}
+  </Section>
+
+  <Section tone="paper" id="regions" hidden={!sectionEnabled('regions')}>
+    <SectionHead eyebrow="03 Five regions" title={`${COUNTRY_COUNT} countries, grouped across ${REGION_COUNT} regions.`} />
+    {countries.length > 0 ? <div class="regions">
+      {grouped.map(({ region, members }) => (
+        <section class="region" aria-labelledby={`region-${region.slug}`}>
+          <h3 class="region__name" id={`region-${region.slug}`}>{region.name}</h3>
+          <ul class="region__list">
+            {members.map((country) => (
+              <li><a class="region__link" href={`/edition-one/${country.slug}`}>{country.name}</a></li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div> : <EmptyState title="Region and country records are awaiting publication." layout="centred" />}
+  </Section>
+
+  <Section tone="ivory" id="countries" hidden={!sectionEnabled('countries')}>
+    <SectionHead eyebrow="04 The countries" title="Nine countries. Nine interpretations." />
+    {countries.length > 0 ? <ul class="card-grid card-grid--three">
+      {countries.map((country, index) => (
+        <li data-reveal="rise" style={`--reveal-delay:${Math.min(index, 6) * 45}ms`}>
+          <CountryCard country={country} index={index} colourStyles={colourStylesByCountry.get(country.slug)} />
+        </li>
+      ))}
+    </ul> : <EmptyState title="Country profiles are awaiting publication." layout="centred" />}
+  </Section>
+
+  <Section tone="paper" id="symbols" hidden={!sectionEnabled('symbols')}>
+    <SectionHead
+      eyebrow="05 The symbols"
+      title={symbolTotal > 0 ? `${symbolTotal} symbols across ${symbolsByCountry.length} countries.` : 'The symbols of Edition One.'}
+    />
+    {symbolsByCountry.length > 0 ? (
+      <div class="regions symbol-index">
+        {symbolsByCountry.map((group) => (
+          <section class="region" aria-labelledby={`symbols-${group.country.slug}`}>
+            <h3 class="region__name" id={`symbols-${group.country.slug}`}>{group.country.name}</h3>
+            <ul class="region__list">
+              {group.items.map((symbol) => (
+                <li>
+                  <a class="region__link" href={`${countryPath(group.country.slug)}#symbol`}>{symbol.approvedName}</a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
+    ) : <EmptyState title="The symbol records are awaiting publication." layout="centred" />}
+  </Section>
+
+  <Section tone="ink" id="designers" hidden={!sectionEnabled('designers')}>
+    <SectionHead eyebrow="06 The designers" title="One fabric, interpreted nine ways." />
+    <ul class="card-grid card-grid--three">
+      {designerSlots.map(({ country, cmsDesigner, designer }) => (
+        <li>
+          <div class="designer-slot">
+            <p class="designer-slot__region">{regionLabel(country.region)}</p>
+            <p class="designer-slot__country">{country.name}</p>
+            {cmsDesigner ? (
+              <p class="designer-slot__name">{cmsDesigner.displayName}</p>
+            ) : designer ? (
+              <p class="designer-slot__name">
+                {designer.designer}
+                <span class="draft-copy__mark"><span class="visually-hidden">Status: </span>Working roster · not approved</span>
+              </p>
+            ) : (
+              <p class="designer-slot__name designer-slot__name--empty">Designer to be announced</p>
+            )}
+            <a class="designer-slot__link" href={`${countryPath(country.slug)}#designer`}>
+              Meet the designer<span aria-hidden="true">&#8594;</span>
+            </a>
+          </div>
+        </li>
+      ))}
+    </ul>
+    {unassignedPreviewDesigners.length > 0 && (
+      <div style="margin-top:var(--space-lg)">
+        <p class="eyebrow"><span>CMS draft roster · country relationships pending</span></p>
+        <ul class="card-grid card-grid--narrow">
+          {unassignedPreviewDesigners.map(designer => (
+            <li><div class="designer-slot"><p class="designer-slot__name">{designer.displayName}</p></div></li>
+          ))}
+        </ul>
+      </div>
+    )}
+  </Section>
+
+  {cmsPreview && previewMedia.length > 0 && (
+    <Section tone="paper" id="source-media" label="CMS source media review">
+      <SectionHead eyebrow="Draft CMS media" title="Uploaded source assets">
+        <p>These unchanged files are visible in this Wix Preview for review. Their CMS permission remains review-only and downloads remain disabled.</p>
+      </SectionHead>
+      <ul class="card-grid">
+        {previewMedia.map((item) => (
+          <li><figure><Media media={item} /><figcaption>{item.alt}</figcaption></figure></li>
+        ))}
+      </ul>
+    </Section>
+  )}
+
+  <Section tone="surface" id="garments" hidden={!sectionEnabled('garments')}>
+    <SectionHead
+      eyebrow={sectionLabel(sectionByKey.get('garments')?.eyebrow, 'Garments and accessories', { position: 7 })}
+      title={sectionByKey.get('garments')?.heading ?? 'The finished work.'}
+    >
+      <p>{cmsPlainText(sectionByKey.get('garments')?.body) ?? 'Garment and accessory galleries publish only with approved photography, captions and full credits.'}</p>
+      <Button href="/shop" variant="text">Visit the shop<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
+    </SectionHead>
+    {garmentMedia.length > 0 ? (
+      <ul class="card-grid">
+        {garmentMedia.map((item) => <li><Media media={item} /></li>)}
+      </ul>
+    ) : <EmptyState title="No approved garment or accessory imagery has been supplied." text="Approved garment photography appears here after it is connected in the CMS." layout="centred" />}
+  </Section>
+</Layout>
+
+<style>
+  .fabric { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 6fr); gap: clamp(24px, 5vw, 80px); align-items: center; }
+  .fabric__title { font-size: clamp(1.75rem, 3.6vw, 2.75rem); line-height: 1.05; letter-spacing: -0.03em; margin: 0 0 var(--space-md); max-width: 16ch; }
+  @media (max-width: 899px) { .fabric { grid-template-columns: minmax(0, 1fr); } }
+
+  .regions { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: clamp(16px, 2vw, 32px); }
+  .region { border-top: 2px solid var(--text); padding-top: var(--space-sm); }
+  .region__name { font-size: 0.75rem; font-family: var(--font-body); font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; margin: 0 0 var(--space-2xs); }
+  .region__list { display: flex; flex-direction: column; }
+  .region__link {
+    display: flex;
+    align-items: center;
+    min-height: var(--touch-min);
+    padding-block: 4px;
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    line-height: 1.25;
+    color: var(--text);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .region__link:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 5px; }
+
+  .designer-slot {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    height: 100%;
+    padding: var(--space-md);
+    border: 1px solid var(--on-ink-rule);
+  }
+  .designer-slot__region { font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin: 0; }
+  .designer-slot__country { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.1; margin: 0; }
+  .designer-slot__name { font-size: 0.875rem; line-height: 1.45; color: var(--on-ink-muted); margin: 0; }
+  .designer-slot__name--empty { font-style: italic; }
+  .designer-slot__link {
+    margin-top: auto;
+    padding-top: var(--space-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: var(--touch-min);
+    font-size: 0.6875rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--on-ink);
+    text-decoration: none;
+  }
+  .designer-slot__link:hover { text-decoration: underline; text-underline-offset: 5px; }
+
+</style>

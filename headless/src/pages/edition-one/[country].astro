@@ -1,0 +1,367 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Section from '../../components/Section.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import Button from '../../components/Button.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import Media from '../../components/Media.astro';
+import GarmentGallery from '../../components/GarmentGallery.astro';
+import NotFound from '../../components/NotFound.astro';
+import { coloursForCountry } from '../../data/colours';
+import type { Media as MediaRecord } from '../../lib/media';
+import { adjacentCountries, countryPath, findCountry, regionName } from '../../data/countries';
+import { events } from '../../data/events';
+import { cmsPlainText } from '../../lib/cms-presentation';
+import { loadReviewCopy } from '../../lib/review';
+import {
+  getDesigners, getEditionColours, getGarments, getMediaById, getParticipations, getPrimaryEdition,
+  getCountryBySlug, getEditionCountries, getRegions, getSymbols, getUpcomingEvents,
+} from '../../lib/wix-cms';
+
+export const prerender = false;
+
+const staticCountry = findCountry(Astro.params.country);
+const [review, cmsEdition, candidateCmsCountry, cmsRegions] = await Promise.all([
+  staticCountry ? loadReviewCopy() : Promise.resolve(undefined),
+  getPrimaryEdition(),
+  Astro.params.country ? getCountryBySlug(Astro.params.country) : Promise.resolve(undefined),
+  getRegions(),
+]);
+const cmsCountry = candidateCmsCountry && (!cmsEdition || !candidateCmsCountry.editionId || candidateCmsCountry.editionId === cmsEdition.id)
+  ? candidateCmsCountry
+  : undefined;
+const cmsRegion = cmsCountry?.regionId ? cmsRegions.find((region) => region.id === cmsCountry.regionId) : undefined;
+const country = cmsCountry && staticCountry ? {
+  ...staticCountry,
+  name: cmsCountry.countryName ?? staticCountry.name,
+  regionNote: cmsCountry.regionNote ?? staticCountry.regionNote,
+} : import.meta.env.DEV ? staticCountry : undefined;
+if (!country) Astro.response.status = 404;
+
+const [editionCountries, cmsColours, participations, designers, cmsGarments, symbols, upcomingEvents, heroMediaFromCms] = country ? await Promise.all([
+  cmsEdition ? getEditionCountries(cmsEdition.id) : Promise.resolve([]),
+  getEditionColours(cmsEdition?.id),
+  cmsCountry ? getParticipations({ countryId: cmsCountry.id }) : Promise.resolve([]),
+  getDesigners(),
+  cmsCountry ? getGarments({ countryId: cmsCountry.id }) : Promise.resolve([]),
+  getSymbols(),
+  getUpcomingEvents(),
+  cmsCountry?.heroAssetId ? getMediaById(cmsCountry.heroAssetId) : Promise.resolve(undefined),
+]) : [[], [], [], [], [], [], [], undefined];
+
+const textOnly = (value: unknown): string | undefined => typeof value === 'string' ? cmsPlainText(value) : undefined;
+const fallbackColours = country ? coloursForCountry(country.slug) : [];
+const cmsCountryById = new Map(editionCountries.map((item) => [item.id, item]));
+const colours = fallbackColours.flatMap((fallback) => {
+  const record = cmsColours.find((item) => item.sourcePosition === fallback.index && item.countryId === cmsCountry?.id);
+  const relatedCountry = record?.countryId ? cmsCountryById.get(record.countryId) : undefined;
+  return record && record.textHex && (record.contrastRatio ?? 0) >= 4.5 ? [{
+    index: record.sourcePosition ?? fallback.index, name: record.colourName, style: `--panel:${record.hexValue};--panel-on:${record.textHex}`,
+    symbolId: record.symbolId, countryName: relatedCountry?.countryName ?? country?.name ?? fallback.country,
+  }] : import.meta.env.DEV ? [{
+    index: fallback.index, name: fallback.name, style: `--panel:var(${fallback.variable});--panel-on:${fallback.textOn}`,
+    symbolId: undefined, countryName: country?.name ?? fallback.country,
+  }] : [];
+});
+const designer = country ? review?.designerRoster.find((entry) => entry.country === country.slug) : undefined;
+const principalParticipation = participations.find((item) => item.isPrincipal) ?? participations[0];
+const cmsDesigner = principalParticipation ? designers.find((item) => item.id === principalParticipation.designerId) : undefined;
+const featuredSymbol = cmsCountry?.featuredSymbolId ? symbols.find((item) => item.id === cmsCountry.featuredSymbolId) : undefined;
+/*
+  A country carries one symbol per colour, so Cameroon, Ghana and South Africa
+  carry two. `featuredSymbol` names only one, so every symbol pointing at this
+  country is collected here, with the featured one first.
+*/
+const countrySymbols = cmsCountry
+  ? [
+      ...(featuredSymbol ? [featuredSymbol] : []),
+      ...symbols.filter((item) => item.countryId === cmsCountry.id && item.id !== featuredSymbol?.id),
+    ]
+  : [];
+/*
+  Until individual artwork is supplied, every symbol points at the one combined
+  "symbols and meanings" sheet. Rendering that sheet as though it were a single
+  symbol would misrepresent it, so it is held back until each symbol carries its
+  own asset. Delete this guard once they do.
+*/
+const COMBINED_SYMBOL_SHEET = 'media-source-symbols-and-meanings';
+const symbolArtwork = new Map(await Promise.all(countrySymbols.map(async (item) => [
+  item.id,
+  item.artworkAssetId && item.artworkAssetId !== COMBINED_SYMBOL_SHEET
+    ? await getMediaById(item.artworkAssetId)
+    : undefined,
+] as const)));
+const siblingBase = country ? adjacentCountries(country.slug) : undefined;
+const displayNameFor = (slug: string, fallback: string) => editionCountries.find((item) => item.slug === slug)?.countryName ?? fallback;
+const siblingRecordsPublished = siblingBase
+  ? editionCountries.some(item => item.slug === siblingBase.previous.slug) && editionCountries.some(item => item.slug === siblingBase.next.slug)
+  : false;
+const siblings = siblingBase && (import.meta.env.DEV || siblingRecordsPublished) ? {
+  previous: { ...siblingBase.previous, name: displayNameFor(siblingBase.previous.slug, siblingBase.previous.name) },
+  next: { ...siblingBase.next, name: displayNameFor(siblingBase.next.slug, siblingBase.next.name) },
+} : undefined;
+const lead = colours[0];
+
+// Every approved garment image for this country, hero first, gallery after, in
+// CMS order with duplicates removed. The gallery shows them all.
+const cmsGarmentMediaIds = [...new Set(cmsGarments.flatMap((item) => [item.heroAssetId, ...item.galleryAssetIds]).filter((id): id is string => Boolean(id)))];
+const cmsGarmentMedia = await Promise.all(cmsGarmentMediaIds.map((id) => getMediaById(id)));
+/*
+  The gallery is for approved photography. Until a country has any, the three
+  reserved positions render as before, so an empty section still shows where the
+  images will sit rather than a gallery of placeholders.
+*/
+const garmentsApproved = Boolean(country) && cmsGarmentMedia.some(Boolean);
+const garments = country
+  ? cmsGarmentMedia.filter((item): item is MediaRecord => Boolean(item))
+  : [];
+
+const relatedCmsEvents = cmsCountry
+  ? upcomingEvents.filter((event) => event.countryIds.includes(cmsCountry.id) && event.slug && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(event.slug) && event.title && event.dateLabel)
+  : [];
+const usingCmsRelatedEvents = relatedCmsEvents.length > 0;
+const relatedEvents = relatedCmsEvents.length ? relatedCmsEvents.map((event) => ({
+  slug: event.slug, title: event.title, dateLabel: event.dateLabel, timeLabel: event.timeLabel,
+  timezoneLabel: event.timezoneLabel, venue: event.venue, location: event.location, eventType: event.eventType ?? 'Event',
+})) : import.meta.env.DEV ? events.map((event) => ({
+  slug: event.slug, title: event.title, dateLabel: event.dateLabel, timeLabel: event.timeLabel,
+  timezoneLabel: event.timezoneLabel, venue: event.venue, location: event.location, eventType: event.kind,
+})) : [];
+// Readiness follows what the profile actually publishes, so the badge cannot read
+// "available" on the strength of material this page no longer renders.
+const profileReady = Boolean(cmsCountry && (
+  heroMediaFromCms || textOnly(cmsCountry.introduction) || textOnly(cmsCountry.interpretation) || cmsDesigner
+));
+const profileStatus = profileReady ? (cmsCountry?.profileStatus ?? 'Profile available') : 'Profile in review';
+const regionLabel = cmsRegion?.name ?? cmsCountry?.regionLabel ?? (country ? regionName(country.region) : '');
+
+const slotContent = {
+  introduction: textOnly(cmsCountry?.introduction),
+  symbol: countrySymbols.length > 0 ? textOnly(countrySymbols[0]?.meaning) : undefined,
+  designer: textOnly(cmsDesigner?.biography),
+  interpretation: textOnly(cmsCountry?.interpretation) ?? textOnly(principalParticipation?.statement),
+} as const;
+
+/**
+ * Every slot on this template, so an incomplete profile reads as in-review rather
+ * than as a finished page. Participation and credits are held in the CMS but are
+ * not published on the profile, so they are not slots here.
+ */
+const slots = [
+  { id: 'introduction', label: 'Introduction', title: 'About this contribution', need: 'Approve a 60-100 word introduction.' },
+  { id: 'symbol', label: 'Featured symbol', title: 'The symbol', need: 'Supply verified symbol name, artwork, cultural meaning, source and acknowledgement. Meaning is never inferred from artwork.' },
+  { id: 'designer', label: 'The designer', title: 'The designer', need: 'Approve display name, studio, role, a 120-180 word biography, portrait and links.' },
+  { id: 'interpretation', label: 'Creative interpretation', title: 'The interpretation', need: 'Approve a 100-150 word designer-approved statement. No invented first-person copy.' },
+];
+---
+{!country ? (
+  <Layout title="Country not found" description="The requested country page does not exist." path={Astro.url.pathname}>
+    <NotFound path={Astro.url.pathname} />
+  </Layout>
+) : (
+  <Layout
+    title={country.name}
+    description={cmsCountry?.summary ?? `${country.name} in Edition One of The Pan-African Fabric: its colours in the twelve-colour system, its designer, creative interpretation and finished garments.`}
+    path={countryPath(country.slug)}
+    header="overlay"
+    progress
+  >
+    <section class="country-hero on-ink" style={lead?.style}>
+      <div class="country-hero__media" aria-hidden="true"></div>
+      <div class="page-hero__scrim" aria-hidden="true"></div>
+      <div class="container country-hero__inner">
+        <Breadcrumbs trail={[{ href: '/edition-one', label: 'Edition One' }]} current={country.name} />
+        <div class="hero-enter">
+          <p class="eyebrow"><span>{regionLabel}</span></p>
+          <h1 class="country-hero__title">{country.name}</h1>
+          <ul class="colour-chips" aria-label={`Edition One colours for ${country.name}`}>
+            {colours.map((colour) => (
+              <li class="colour-chip" style={colour.style}>
+                <span class="colour-chip__dot" aria-hidden="true"></span>
+                <span>{colour.name}</span>
+              </li>
+            ))}
+          </ul>
+          <p class="country-hero__status">
+            <span class:list={['badge', !profileReady && 'badge--awaiting']}>{profileStatus}</span>
+            {!profileReady && <span>Approved profile material has not been supplied for this country yet.</span>}
+          </p>
+        </div>
+      </div>
+    </section>
+
+    {heroMediaFromCms && (
+      <Section tone="ivory" size="tight" flush="bottom">
+        <Media media={heroMediaFromCms} />
+      </Section>
+    )}
+
+    {country.regionNote && (
+      <Section tone="ivory" size="tight">
+        <p class="state__note" style="max-width:70ch"><strong>Regional grouping:</strong> {country.regionNote}</p>
+      </Section>
+    )}
+
+    {slots.map((slot, index) => (
+      <Section tone={index % 2 === 0 ? 'surface' : 'ivory'} id={slot.id}>
+        <SectionHead eyebrow={slot.label} title={slot.title}>
+          {slot.id === 'designer' && cmsDesigner ? (
+            <p class="designer-name">{cmsDesigner.displayName}</p>
+          ) : slot.id === 'designer' && designer ? (
+            <div class="stack stack--sm">
+              <p class="designer-name">
+                {designer.designer}
+                <span class="draft-copy__mark"><span class="visually-hidden">Status: </span>Working roster · not approved</span>
+              </p>
+              <p class="state__note"><strong>Review note:</strong> {designer.note}</p>
+            </div>
+          ) : null}
+          {slot.id === 'symbol' ? null : slotContent[slot.id as keyof typeof slotContent] ? (
+            <p class="lead">{slotContent[slot.id as keyof typeof slotContent]}</p>
+          ) : (
+            <EmptyState
+              title={`${slot.title} is not approved yet.`}
+              text="The position, typography and spacing are final. Approved material replaces this state without a layout change."
+              note={import.meta.env.DEV ? slot.need : undefined}
+            />
+          )}
+        </SectionHead>
+        {slot.id === 'symbol' && (countrySymbols.length > 0 ? (
+          <ul class="symbol-grid" data-reveal-group>
+            {countrySymbols.map((item, symbolIndex) => (
+              <li class="symbol-card" data-reveal="rise" style={`--reveal-delay:${symbolIndex * 70}ms`}>
+                {symbolArtwork.get(item.id) && (
+                  <div class="symbol-card__art">
+                    <Media media={symbolArtwork.get(item.id)!} fit="contain" showCaption={false} />
+                  </div>
+                )}
+                <h3 class="symbol-card__name">{item.approvedName}</h3>
+                {textOnly(item.meaning) && <p class="symbol-card__meaning">{textOnly(item.meaning)}</p>}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <EmptyState
+            title={`${slot.title} is not approved yet.`}
+            text="The position, typography and spacing are final. Approved material replaces this state without a layout change."
+            note={import.meta.env.DEV ? slot.need : undefined}
+          />
+        ))}
+      </Section>
+    ))}
+
+    {garmentsApproved && (
+      <Section tone="paper" id="garments">
+        <SectionHead eyebrow="Garments" title="The finished garments.">
+          <p>Every approved garment image for this country, each with its own caption and full credit line.</p>
+        </SectionHead>
+        <GarmentGallery items={garments} label={`Garments from ${country.name}`} idPrefix={`garment-${country.slug}`} />
+      </Section>
+    )}
+
+    <Section tone="ivory" id="related-events">
+      <SectionHead eyebrow="Related experience" title="Where you can see this work.">
+        <p>Events linked to this country appear here once the connection is confirmed.</p>
+      </SectionHead>
+      {relatedEvents.length > 0 ? (
+        <ul class="card-grid card-grid--wide">
+          {relatedEvents.map((event) => (
+            <li>
+              <a class="card card--link" href={`/events/${event.slug}`}>
+                <span class="card__body">
+                  <span class="card__meta"><span>{event.eventType}</span><span>Event</span></span>
+                  <span class="card__title">{event.title}</span>
+                  <span class="card__summary">{event.dateLabel}{event.timeLabel ? ` · ${event.timeLabel}${event.timezoneLabel ? ` ${event.timezoneLabel}` : ''}` : ''}</span>
+                  {(event.venue || event.location) && <span class="card__summary">{[event.venue, event.location].filter(Boolean).join(', ')}</span>}
+                  <span class="card__foot"><span class="card__cue">Event details<span aria-hidden="true">&#8594;</span></span></span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <EmptyState title="No related event has been confirmed for this country yet." layout="centred" />
+      )}
+      {import.meta.env.DEV && !usingCmsRelatedEvents && (
+        <p class="caption" style="margin-top:16px">
+          The inaugural showcase is listed because it is the confirmed event for Edition One. A country-specific
+          programme link is added only when it is confirmed.
+        </p>
+      )}
+    </Section>
+
+    {siblings && (
+      <Section tone="ink" size="tight">
+        <nav class="country-nav" aria-label="Other countries">
+          <a class="country-nav__link country-nav__link--prev" href={countryPath(siblings.previous.slug)}>
+            <span class="country-nav__label"><span aria-hidden="true">&#8592;</span> Previous</span>
+            <span class="country-nav__name">{siblings.previous.name}</span>
+          </a>
+          <a class="country-nav__link" href="/edition-one">
+            <span class="country-nav__label">All countries</span>
+            <span class="country-nav__name">Edition One</span>
+          </a>
+          <a class="country-nav__link country-nav__link--next" href={countryPath(siblings.next.slug)}>
+            <span class="country-nav__label">Next <span aria-hidden="true">&#8594;</span></span>
+            <span class="country-nav__name">{siblings.next.name}</span>
+          </a>
+        </nav>
+      </Section>
+    )}
+
+    <Section tone="surface" size="tight">
+      <div class="cluster cluster--between">
+        <h2 style="font-size:clamp(1.5rem,3vw,2.25rem);margin:0;max-width:20ch">Have material for this country?</h2>
+        <p class="actions">
+          <Button href="/press-contact">Press and contact<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
+          <Button href="/partner-with-us" variant="secondary">Partner With Us</Button>
+        </p>
+      </div>
+    </Section>
+  </Layout>
+)}
+
+<style>
+  /*
+    The country hero takes its ground from that country's first Edition One colour
+    while keeping text on a dark scrim, so the page has contextual identity without
+    relying on colour to carry information or dropping below AA contrast.
+  */
+  .country-hero { position: relative; isolation: isolate; display: flex; align-items: flex-end; min-height: min(56svh, 560px); }
+  .country-hero__media {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background:
+      radial-gradient(120% 100% at 82% 8%, var(--panel, #8b2f24) 0%, transparent 62%),
+      linear-gradient(165deg, #2b2723 0%, #1b1816 52%, #121010 100%);
+  }
+  .country-hero__inner { position: relative; padding-block: clamp(28px, 5vw, 72px); width: 100%; }
+  .country-hero__title { font-size: clamp(2.5rem, 8vw, 6rem); line-height: 0.92; letter-spacing: -0.04em; margin: var(--space-sm) 0 var(--space-md); }
+  .country-hero__status { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-sm); margin: var(--space-md) 0 0; font-size: 0.875rem; color: var(--on-ink-muted); }
+  .country-hero .colour-chip { background: rgb(247 243 232 / 10%); border-color: rgb(247 243 232 / 30%); color: var(--on-ink); }
+
+  .designer-name { font-family: var(--font-display); font-size: 1.5rem; line-height: 1.2; margin: 0; }
+
+  .country-nav { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-md); }
+  .country-nav__link {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-height: var(--control-min);
+    padding-top: var(--space-sm);
+    border-top: 2px solid var(--on-ink-rule);
+    color: var(--on-ink);
+    text-decoration: none;
+  }
+  .country-nav__link:hover { border-top-color: var(--gold); }
+  .country-nav__link:hover .country-nav__name { text-decoration: underline; text-underline-offset: 5px; }
+  .country-nav__link--next { text-align: right; }
+  .country-nav__label { font-size: 0.625rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--on-ink-muted); }
+  .country-nav__name { font-family: var(--font-display); font-size: clamp(1rem, 2vw, 1.375rem); line-height: 1.15; }
+  @media (max-width: 639px) {
+    .country-nav { grid-template-columns: minmax(0, 1fr); }
+    .country-nav__link--next { text-align: left; }
+  }
+</style>

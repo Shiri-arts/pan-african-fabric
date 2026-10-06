@@ -1,0 +1,28 @@
+---
+/**
+ * The nine-country grid.
+ *
+ * This is the country index: every country appears exactly once, so no separate
+ * list is needed beneath it. Each tile carries its country's flag on a plain
+ * ground, with its number, region and name as text.
+ */
+import CountryTile from './CountryTile.astro';
+import { countries, type Country } from '../data/countries';
+
+interface CountryEntry {
+  readonly country: Country;
+  readonly regionLabel?: string;
+  /** Approved flag image URL, when one is supplied through the media library. */
+  readonly flag?: string;
+}
+interface Props { label?: string; class?: string; entries?: readonly CountryEntry[]; }
+const { label = 'Edition One countries', class: className, entries: suppliedEntries } = Astro.props;
+const entries = suppliedEntries ?? (import.meta.env.DEV ? countries.map(country => ({ country })) : []);
+---
+<ul class:list={['tile-grid', className]} aria-label={label}>
+  {entries.map((entry, index) => (
+    <li data-reveal="rise" style={`--reveal-delay:${Math.min(index, 8) * 45}ms`}>
+      <CountryTile {...entry} index={index} />
+    </li>
+  ))}
+</ul>

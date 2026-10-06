@@ -1,0 +1,342 @@
+---
+/**
+ * The primary campaign page.
+ *
+ * Collaborator categories are named because the brief supplies them. Each category
+ * description and the "why partner" narrative are awaiting slots: they belong to
+ * the client, not to this build. The enquiry form is a design preview and does not
+ * submit.
+ */
+import Layout from '../layouts/Layout.astro';
+import Section from '../components/Section.astro';
+import SectionHead from '../components/SectionHead.astro';
+import Button from '../components/Button.astro';
+import PageHero from '../components/PageHero.astro';
+import EmptyState from '../components/EmptyState.astro';
+import Field from '../components/Field.astro';
+import CmsRichText from '../components/CmsRichText.astro';
+import { editionColours } from '../data/colours';
+import { COUNTRY_COUNT, REGION_COUNT } from '../data/countries';
+import { inauguralShowcase } from '../data/events';
+import { mediaSlot } from '../lib/media';
+import { cmsPlainText, escapeCmsHeading, presentCmsEvent, sectionsByKey } from '../lib/cms-route-presenters';
+import { getEventBySlug, getMediaById, getPageByKey, getPageHeroMedia, getPageSections, getPartnershipOptions } from '../lib/wix-cms';
+import { sectionLabel } from '../lib/section-labels';
+
+const [cmsPage, cmsSections, cmsHeroMedia, cmsOptions, cmsEvent] = await Promise.all([
+  getPageByKey('partner-with-us'),
+  getPageSections('partner-with-us'),
+  getPageHeroMedia('partner-with-us'),
+  getPartnershipOptions(),
+  getEventBySlug(inauguralShowcase.slug),
+]);
+const heroMedia = cmsHeroMedia ?? mediaSlot('partner-hero', '21/9', 'Approved photograph from an exhibition, workshop or reception.');
+const sectionContent = sectionsByKey(cmsSections);
+const whySection = sectionContent.get('why-partner');
+const collaboratorSection = sectionContent.get('collaborators');
+const waysSection = sectionContent.get('ways');
+const enquirySection = sectionContent.get('enquiry');
+const sectionEnabled = (key: string) => cmsSections.find(section => section.sectionKey === key)?.isEnabled ?? true;
+const confirmedEvent = cmsEvent ? await presentCmsEvent(cmsEvent, getMediaById) : undefined;
+const eventForCaption = confirmedEvent;
+
+/** Collaborator types named in the implementation brief. */
+const collaboratorFallbacks = [
+  { label: 'Museums', description: undefined },
+  { label: 'Embassies', description: undefined },
+  { label: 'Universities', description: undefined },
+  { label: 'Sponsors', description: undefined },
+  { label: 'Cultural organisations', description: undefined },
+  { label: 'Designers', description: undefined },
+  { label: 'Future hosts', description: undefined },
+];
+
+const collaboratorOptions = cmsOptions.filter(option => option.optionType?.toLowerCase() === 'collaborator');
+const collaborators = collaboratorOptions.length > 0
+  ? collaboratorOptions.map(option => ({ label: option.label, description: cmsPlainText(option.description) }))
+  : collaboratorFallbacks;
+const wayOptions = cmsOptions.filter(option => option.optionType?.toLowerCase() === 'format');
+const enquiryOptions = cmsOptions.filter(option => option.optionType?.toLowerCase() === 'enquiry');
+const enquiryFallbacks = [
+  'Hosting an exhibition',
+  'Workshop or education programme',
+  'Sponsorship',
+  'Cultural partnership',
+  'Designer collaboration',
+  'Something else',
+];
+const enquiryTypes = enquiryOptions.length > 0 ? enquiryOptions.map(option => option.label) : enquiryFallbacks;
+---
+<Layout
+  title={cmsPage?.seoTitle ?? cmsPage?.title ?? 'Partner With Us'}
+  description={cmsPage?.seoDescription ?? 'Museums, embassies, universities, sponsors, cultural organisations, designers and future hosts can collaborate with The Pan-African Fabric.'}
+  path="/partner-with-us"
+  header="overlay"
+>
+  <PageHero
+    class="page-hero--partner"
+    eyebrow={cmsPage?.eyebrow ?? 'Partner with us'}
+    title={escapeCmsHeading(cmsPage?.heroTitle, 'Bring the fabric<span>to your city.</span>')}
+    size="full"
+    media={heroMedia}
+    tagline={cmsPage?.heroTagline}
+    meta={cmsPage?.heroMetaLabels.length ? cmsPage.heroMetaLabels : [`${COUNTRY_COUNT} countries`, `${REGION_COUNT} regions`, 'Open to hosts']}
+  >
+    {cmsPage?.introduction ? <CmsRichText value={cmsPage.introduction} class="page-hero__intro lead" /> : <p class="page-hero__intro lead">Edition One travels through the institutions and people who choose to carry it. If that could be you, start here.</p>}
+    <p class="actions">
+      <Button href={cmsPage?.primaryCtaHref ?? '#enquiry'} size="large">
+        {cmsPage?.primaryCtaLabel ?? 'Start an enquiry'}<span class="button__arrow" aria-hidden="true">&#8595;</span>
+      </Button>
+      <Button href={cmsPage?.secondaryCtaHref ?? '/edition-one'} variant="secondary" size="large">{cmsPage?.secondaryCtaLabel ?? 'See what travels'}</Button>
+    </p>
+  </PageHero>
+
+  <Section tone="ivory" id="why" width="full" flush="both">
+    <div class="colour-band" aria-hidden="true">
+      {editionColours.map((colour) => <span style={`background:var(${colour.variable})`}></span>)}
+    </div>
+  </Section>
+
+  <Section tone="ivory" id="why-partner" hidden={!sectionEnabled('why-partner')}>
+    <SectionHead eyebrow={sectionLabel(whySection?.eyebrow, '01 Why partner')} title={whySection?.heading ?? 'What a partnership makes possible.'}>
+      {whySection?.body
+        ? <CmsRichText value={whySection.body} class="lead" />
+        : <EmptyState
+            title="The case for partnership is not approved yet."
+            text="This is where the initiative sets out what a partner gains and what the collaboration produces. The section is designed and ready for approved copy."
+            note={import.meta.env.DEV ? 'Approve the partnership rationale: audience, cultural value and what a host receives.' : undefined}
+          />}
+    </SectionHead>
+  </Section>
+
+  <Section tone="ink" id="collaborators" hidden={!sectionEnabled('collaborators')}>
+    <SectionHead eyebrow={sectionLabel(collaboratorSection?.eyebrow, '02 Who we work with')} title={collaboratorSection?.heading ?? 'Seven kinds of collaborator.'}>
+      <p>{cmsPlainText(collaboratorSection?.body) ?? 'These are the collaborator types the initiative works with. What each collaboration involves is set out by the initiative, not assumed here.'}</p>
+    </SectionHead>
+    <ul class="collab-grid">
+      {collaborators.map((collaborator, index) => (
+        <li class="collab" data-reveal="rise" style={`--reveal-delay:${Math.min(index, 6) * 40}ms`}>
+          <span class="collab__index">{String(index + 1).padStart(2, '0')}</span>
+          <span class="collab__name">{collaborator.label}</span>
+          {collaborator.description
+            ? <span class="collab__description">{collaborator.description}</span>
+            : <span class="badge badge--awaiting">Description awaiting approval</span>}
+        </li>
+      ))}
+    </ul>
+  </Section>
+
+  <Section tone="paper" id="ways" hidden={!sectionEnabled('ways')}>
+    <SectionHead eyebrow={sectionLabel(waysSection?.eyebrow, '03 Ways to collaborate')} title={waysSection?.heading ?? 'How this usually starts.'}>
+      {cmsPlainText(waysSection?.body) && <p>{cmsPlainText(waysSection?.body)}</p>}
+      {wayOptions.length > 0 ? (
+        <ul class="way-grid">
+          {wayOptions.map(option => (
+            <li class="way">
+              <h3>{option.label}</h3>
+              {cmsPlainText(option.description) && <p>{cmsPlainText(option.description)}</p>}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <EmptyState
+          title="Collaboration routes are not approved yet."
+          text="The formats the initiative can offer a host, and what each one asks of them, are described here once approved."
+          note={import.meta.env.DEV ? 'Approve the list of collaboration formats and what each involves for a host.' : undefined}
+        />
+      )}
+    </SectionHead>
+    {eventForCaption && (
+      <p class="caption" style="max-width:74ch">
+        The confirmed inaugural showcase is {eventForCaption.dateLabel} at {eventForCaption.venue},
+        {' '}{eventForCaption.location}.
+      </p>
+    )}
+  </Section>
+
+  <Section tone="surface" id="enquiry" hidden={!sectionEnabled('enquiry')}>
+    <SectionHead eyebrow={sectionLabel(enquirySection?.eyebrow, '04 Enquiry')} title={enquirySection?.heading ?? 'Tell us what you have in mind.'}>
+      <p>{cmsPlainText(enquirySection?.body) ?? 'Share the organisation, location, timeline and collaboration you have in mind. Enquiries are stored securely in Wix CMS for the initiative team to review.'}</p>
+    </SectionHead>
+
+    <div class="enquiry">
+      <form class="form-preview" id="partner-enquiry-form" aria-describedby="enquiry-status">
+        <p id="enquiry-status" class="form-status" role="status" aria-live="polite"></p>
+        <input type="hidden" id="partner-started-at" name="startedAt" value="" />
+        <div class="form-trap" aria-hidden="true"><label for="partner-website">Website</label><input id="partner-website" name="website" tabindex="-1" autocomplete="off" /></div>
+        <div class="form-preview__row">
+          <Field id="partner-name" label="Your name" required autocomplete="name" disabled={false} />
+          <Field id="partner-organisation" label="Organisation" required autocomplete="organization" disabled={false} />
+        </div>
+        <div class="form-preview__row">
+          <Field id="partner-email" label="Email" type="email" required autocomplete="email"
+            help="Used only to reply to this enquiry." disabled={false} />
+          <Field id="partner-country" label="Country or city" autocomplete="country-name" disabled={false} />
+        </div>
+        <Field id="partner-type" label="Type of enquiry" type="select" required options={enquiryTypes} disabled={false} />
+        <Field id="partner-message" label="Your enquiry" type="textarea" required
+          help="What you have in mind, and any dates or venues you are working towards." disabled={false} />
+        <Field id="partner-timeline" label="Timeline" disabled={false} />
+        <Field id="partner-consent" label="I agree that the information submitted may be used to respond to this enquiry." type="checkbox" required disabled={false} />
+        <div class="enquiry__actions">
+          <Button id="partner-submit" type="submit" describedBy="enquiry-status" size="large">Send enquiry</Button>
+          <p class="enquiry__actions-note">You can also email <a href="mailto:info@shiriachuart.com">info@shiriachuart.com</a>.</p>
+        </div>
+      </form>
+
+      <dialog class="enquiry-confirm" id="enquiry-confirm" aria-labelledby="enquiry-confirm-title">
+        <div class="enquiry-confirm__body">
+          <p class="enquiry-confirm__mark" aria-hidden="true">&#10003;</p>
+          <h2 class="enquiry-confirm__title" id="enquiry-confirm-title">Your enquiry has been sent</h2>
+          <p class="enquiry-confirm__text">
+            Thank you. Your enquiry has been emailed to The Pan-African Fabric, and a reply will come to the address
+            you supplied.
+          </p>
+          <form method="dialog">
+            <Button type="submit" size="large">Close</Button>
+          </form>
+        </div>
+      </dialog>
+    </div>
+  </Section>
+
+  <Section tone="ivory" size="tight">
+    <div class="cluster cluster--between">
+      <h2 style="font-size:clamp(1.5rem,3vw,2.25rem);margin:0;max-width:24ch">
+        Prefer to write directly?
+      </h2>
+      <p class="actions">
+        <Button href="/press-contact" variant="secondary">Press and contact<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
+      </p>
+    </div>
+  </Section>
+</Layout>
+
+<style>
+  /*
+    This hero uses a portrait photograph inside a wide full-bleed frame. Give the
+    picture the frame's height so object-fit and the CMS focal position can place
+    the subject instead of clipping the photograph from its top edge.
+  */
+  :global(.page-hero.page-hero--partner .page-hero__media .media__frame) { height: 100%; aspect-ratio: auto; }
+  :global(.page-hero.page-hero--partner .page-hero__media .media__frame picture) { height: 100%; }
+
+  /*
+    Success confirmation. A native dialog is used so focus handling, Escape and the
+    backdrop come from the platform. The inline status line is still written to, so
+    the outcome is announced to assistive technology and remains readable if the
+    dialog cannot open.
+  */
+  .enquiry-confirm { border: 0; padding: 0; background: transparent; max-width: min(92vw, 30rem); }
+  .enquiry-confirm::backdrop { background: rgb(24 21 18 / 62%); }
+  .enquiry-confirm__body {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-sm);
+    padding: clamp(24px, 4vw, 40px);
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-media);
+    text-align: center;
+  }
+  .enquiry-confirm__mark {
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    margin: 0;
+    border-radius: 50%;
+    background: var(--gold);
+    color: var(--ink-deep);
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+  .enquiry-confirm__title { margin: 0; font-size: clamp(1.25rem, 2.6vw, 1.75rem); line-height: 1.15; }
+  .enquiry-confirm__text { margin: 0; max-width: 42ch; color: var(--muted); }
+
+  .colour-band { display: flex; height: clamp(10px, 1.6vw, 20px); }
+  .colour-band span { flex: 1; }
+
+  .collab-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 0 clamp(16px, 3vw, 48px); }
+  .collab { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2xs); padding-block: var(--space-md); border-top: 1px solid var(--on-ink-rule); }
+  .collab__index { font-size: 0.625rem; letter-spacing: 0.14em; color: var(--gold); }
+  .collab__name { font-family: var(--font-display); font-size: clamp(1.375rem, 2.2vw, 1.75rem); line-height: 1.1; }
+  .collab__description { font-size: 0.875rem; line-height: 1.5; color: var(--on-ink-muted); }
+
+  .way-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: clamp(16px, 2vw, 32px); width: 100%; }
+  .way { padding-top: var(--space-sm); border-top: 2px solid var(--text); }
+  .way h3 { margin: 0 0 var(--space-xs); font-size: 1.375rem; }
+  .way p { white-space: pre-line; }
+
+  .enquiry { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(24px, 4vw, 64px); align-items: start; max-width: 52rem; }
+  .enquiry__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-md); padding-top: var(--space-sm); border-top: 1px solid var(--border); }
+  .enquiry__actions-note { font-size: 0.75rem; line-height: 1.5; color: var(--muted); margin: 0; max-width: 30ch; }
+  .form-status { min-height: 1.5em; margin: 0 0 var(--space-sm); font-weight: 600; }
+  .form-status[data-state='error'] { color: var(--rust); }
+  .form-status[data-state='success'] { color: #1f6b45; }
+  .form-trap { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+</style>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>('#partner-enquiry-form');
+  const status = document.querySelector<HTMLElement>('#enquiry-status');
+  const submit = document.querySelector<HTMLButtonElement>('#partner-submit');
+  const started = document.querySelector<HTMLInputElement>('#partner-started-at');
+  const confirmation = document.querySelector<HTMLDialogElement>('#enquiry-confirm');
+  if (started) started.value = String(Date.now());
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!form.reportValidity() || !status || !submit) return;
+    const values = new FormData(form);
+    const payload = {
+      name: values.get('partner-name'), organisation: values.get('partner-organisation'),
+      email: values.get('partner-email'), location: values.get('partner-country'),
+      enquiryType: values.get('partner-type'), message: values.get('partner-message'),
+      timeline: values.get('partner-timeline'), consent: values.get('partner-consent') === 'on',
+      website: values.get('website'), startedAt: Number(values.get('startedAt')),
+    };
+    submit.disabled = true;
+    submit.setAttribute('aria-busy', 'true');
+    status.textContent = 'Sending your enquiry…';
+    status.dataset.state = '';
+    try {
+      if (payload.website || Date.now() - payload.startedAt < 2_000) throw new Error('spam-check');
+      const recent = JSON.parse(sessionStorage.getItem('paf-enquiry-attempts') ?? '[]') as number[];
+      const active = recent.filter(time => Date.now() - time < 15 * 60_000);
+      if (active.length >= 5) throw new Error('rate-limit');
+      sessionStorage.setItem('paf-enquiry-attempts', JSON.stringify([...active, Date.now()]));
+      const response = await fetch('/api/enquiries', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json().catch(() => ({})) as { ok?: boolean; message?: string };
+      if (!response.ok || !result.ok) throw new Error(result.message ?? 'delivery-failed');
+      status.textContent = 'Thank you. Your enquiry has been emailed to the initiative.';
+      status.dataset.state = 'success';
+      form.reset();
+      if (started) started.value = String(Date.now());
+      if (confirmation && typeof confirmation.showModal === 'function' && !confirmation.open) confirmation.showModal();
+    } catch (error) {
+      /*
+        The endpoint explains exactly what it rejected: a missing field, missing
+        consent, a stale form. Showing that instead of a blanket failure is the
+        difference between a visitor correcting one field and a visitor believing
+        the form is broken.
+      */
+      const reason = error instanceof Error ? error.message : '';
+      status.textContent = reason === 'rate-limit'
+        ? 'Too many attempts from this browser. Please email info@shiriachuart.com.'
+        : reason === 'spam-check'
+        ? 'Please take a moment to complete the form, then send it again.'
+        : reason && reason !== 'delivery-failed'
+        ? reason
+        : 'The enquiry could not be sent just now. Please email info@shiriachuart.com.';
+      status.dataset.state = 'error';
+    } finally {
+      submit.disabled = false;
+      submit.removeAttribute('aria-busy');
+    }
+  });
+</script>

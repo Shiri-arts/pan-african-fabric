@@ -1,0 +1,69 @@
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { assertNewSite, assertEditorialCollection, foundationCollections, creationPlan } from './manifest.mjs';
+import { createPrivateCmsClient } from './content.server.mjs';
+
+function siteToken(siteId) {
+  const supplied = process.env.WIX_CMS_ADMIN_TOKEN?.trim();
+  if (supplied) return supplied;
+  const cli = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+  const result = spawnSync(cli, ['wix', 'token', '--site', siteId], {
+    cwd: fileURLToPath(new URL('../..', import.meta.url)),
+    encoding: 'utf8',
+    windowsHide: true,
+    shell: process.platform === 'win32',
+  });
+  if (result.status !== 0 || !result.stdout.trim()) {
+    throw new Error(result.error?.message || result.stderr || 'Wix CLI authentication failed.');
+  }
+  return result.stdout.trim();
+}
+
+/** Resume safely after an interrupted create; never overwrites existing fields or permissions. */
+export async function applyFoundation(client) {
+  const read = id => client.request(`/wix-data/v2/collections/${id}?consistentRead=true`);
+  const existing = new Map();
+  for (const expected of foundationCollections) {
+    try {
+      const result = await read(expected.id);
+      // For an existing shell, validate every known field before adding missing references.
+      assertEditorialCollection(
+        result.collection,
+        { ...expected, fields: expected.fields.filter(wanted => result.collection?.fields?.some(actual => actual.key === wanted.key)) },
+        { requirePublish: false },
+      );
+      existing.set(expected.id, result.collection);
+    } catch (error) { if (error.status !== 404) throw error; }
+  }
+  for (const operation of creationPlan()) {
+    const id = operation.body.collection?.id ?? operation.body.dataCollectionId;
+    const current = (operation.body.field || operation.body.plugin) ? (await read(id)).collection : existing.get(id);
+    if (operation.body.collection && current) continue;
+    if (operation.body.field && current?.fields?.some(value => value.key === operation.body.field.key)) continue;
+    if (operation.body.plugin && current?.plugins?.some(value => value.type === operation.body.plugin.type)) continue;
+    await client.request(operation.path, operation);
+  }
+  const verified = [];
+  for (const expected of foundationCollections) {
+    const result = await read(expected.id);
+    assertEditorialCollection(result.collection, expected, { requirePublish: expected.plugins.length > 0 });
+    const items = await client.queryPrivate(expected.id);
+    verified.push({ id: expected.id, fields: expected.fields.length, permissions: result.collection.permissions, hasPublishedItems: items.length > 0 });
+  }
+  return { status: 'verified-additive-editorial-foundation', collections: verified, publication: 'explicit-wix-lifecycle' };
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  try {
+    const args = process.argv.slice(2);
+    if (args.length === 0 || (args.length === 1 && args[0] === '--dry-run')) {
+      console.log(JSON.stringify({ mode: 'dry-run', mutations: creationPlan(), contentMutations: 0, publication: 'explicit-wix-lifecycle' }, null, 2));
+    } else {
+      if (args.length !== 3 || args[0] !== '--apply' || args[1] !== '--site') throw new Error('Usage: node apply-foundation.mjs [--dry-run | --apply --site NEW_SITE_ID]');
+      const siteId = args[2];
+      assertNewSite(siteId);
+      const client = createPrivateCmsClient({ siteId, token: siteToken(siteId) });
+      console.log(JSON.stringify(await applyFoundation(client), null, 2));
+    }
+  } catch (error) { console.error(error.message); process.exitCode = 1; }
+}

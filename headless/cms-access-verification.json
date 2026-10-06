@@ -1,0 +1,188 @@
+{
+  "checkedAt": "2026-09-12T14:39:20.145Z",
+  "siteId": "6dabfd00-04c6-4f6f-8282-fb56b240c160",
+  "anonymousAuthentication": "verified",
+  "results": [
+    {
+      "collection": "SiteSettings",
+      "visitorPublishedQueryStatus": 200,
+      "visitorDraftQueryStatus": 404,
+      "draftCollectionState": "not-materialized",
+      "publishedItemCount": 0,
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 1,
+      "pendingDraftCount": 1
+    },
+    {
+      "collection": "Pages",
+      "visitorPublishedQueryStatus": 200,
+      "visitorDraftQueryStatus": 404,
+      "draftCollectionState": "not-materialized",
+      "publishedItemCount": 2,
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 8,
+      "pendingDraftCount": 6
+    },
+    {
+      "collection": "PageSections",
+      "visitorPublishedQueryStatus": 200,
+      "visitorDraftQueryStatus": 404,
+      "draftCollectionState": "not-materialized",
+      "publishedItemCount": 1,
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 1,
+      "pendingDraftCount": 0
+    },
+    {
+      "collection": "Editions",
+      "visitorPublishedQueryStatus": 200,
+      "visitorDraftQueryStatus": 404,
+      "draftCollectionState": "not-materialized",
+      "publishedItemCount": 0,
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 1,
+      "pendingDraftCount": 1
+    },
+    {
+      "collection": "Regions",
+      "visitorPublishedQueryStatus": 200,
+      "visitorDraftQueryStatus": 404,
+      "draftCollectionState": "not-materialized",
+      "publishedItemCount": 0,
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 0,
+      "pendingDraftCount": 0
+    },
+    {
+      "collection": "Countries",
+      "visitorPublishedQueryStatus": 200,
+      "visitorDraftQueryStatus": 404,
+      "draftCollectionState": "not-materialized",
+      "publishedItemCount": 0,
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 9,
+      "pendingDraftCount": 9
+    },
+    {
+      "collection": "EditionColours",
+      "visitorPublishedQueryStatus": 200,
+      "visitorDraftQueryStatus": 404,
+      "draftCollectionState": "not-materialized",
+      "publishedItemCount": 0,
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 12,
+      "pendingDraftCount": 12
+    },
+    {
+      "collection": "Symbols",
+      "visitorPublishedQueryStatus": 200,
+      "visitorDraftQueryStatus": 404,
+      "draftCollectionState": "not-materialized",
+      "publishedItemCount": 0,
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 0,
+      "pendingDraftCount": 0
+    },
+    {
+      "collection": "Designers",
+      "visitorPublishedQueryStatus": 200,
+      "visitorDraftQueryStatus": 404,
+      "draftCollectionState": "not-materialized",
+      "publishedItemCount": 0,
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 0,
+      "pendingDraftCount": 0
+    },
+    {
+      "collection": "Participations",
+      "visitorPublishedQueryStatus": 200,
+      "visitorDraftQueryStatus": 404,
+      "draftCollectionState": "not-materialized",
+      "publishedItemCount": 0,
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 0,
+      "pendingDraftCount": 0
+    },
+    {
+      "collection": "Garments",
+      "visitorPublishedQueryStatus": 200,
+      "visitorDraftQueryStatus": 404,
+      "draftCollectionState": "not-materialized",
+      "publishedItemCount": 0,
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 0,
+      "pendingDraftCount": 0
+    },
+    {
+      "collection": "Events",
+      "visitorPublishedQueryStatus": 200,
+      "visitorDraftQueryStatus": 404,
+      "draftCollectionState": "not-materialized",
+      "publishedItemCount": 0,
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 1,
+      "pendingDraftCount": 1
+    },
+    {
+      "collection": "MediaAssets",
+      "visitorPublishedQueryStatus": 200,
+      "visitorDraftQueryStatus": 404,
+      "draftCollectionState": "not-materialized",
+      "publishedItemCount": 2,
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 2,
+      "pendingDraftCount": 0
+    },
+    {
+      "collection": "Stories",
+      "visitorPublishedQueryStatus": 200,
+      "visitorDraftQueryStatus": 404,
+      "draftCollectionState": "not-materialized",
+      "publishedItemCount": 0,
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 0,
+      "pendingDraftCount": 0
+    },
+    {
+      "collection": "PressItems",
+      "visitorPublishedQueryStatus": 200,
+      "visitorDraftQueryStatus": 404,
+      "draftCollectionState": "not-materialized",
+      "publishedItemCount": 0,
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 0,
+      "pendingDraftCount": 0
+    },
+    {
+      "collection": "PartnershipOptions",
+      "visitorPublishedQueryStatus": 200,
+      "visitorDraftQueryStatus": 404,
+      "draftCollectionState": "not-materialized",
+      "publishedItemCount": 0,
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 0,
+      "pendingDraftCount": 0
+    },
+    {
+      "collection": "ContactChannels",
+      "visitorPublishedQueryStatus": 200,
+      "visitorDraftQueryStatus": 404,
+      "draftCollectionState": "not-materialized",
+      "publishedItemCount": 0,
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 0,
+      "pendingDraftCount": 0
+    },
+    {
+      "collection": "ShopItems",
+      "visitorPublishedQueryStatus": 200,
+      "visitorDraftQueryStatus": 404,
+      "draftCollectionState": "not-materialized",
+      "publishedItemCount": 0,
+      "draftItemCount": 0,
+      "draftInclusiveItemCount": 0,
+      "pendingDraftCount": 0
+    }
+  ],
+  "mutations": 0
+}

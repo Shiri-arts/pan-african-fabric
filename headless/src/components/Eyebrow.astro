@@ -1,0 +1,5 @@
+---
+interface Props { plain?: boolean; class?: string; as?: 'p' | 'h2' | 'h3' | 'span'; }
+const { plain = false, class: className, as: Tag = 'p' }: Props = Astro.props;
+---
+<Tag class:list={['eyebrow', plain && 'eyebrow--plain', className]}><span><slot /></span></Tag>

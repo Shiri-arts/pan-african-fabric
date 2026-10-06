@@ -1,0 +1,220 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Section from '../../components/Section.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import Button from '../../components/Button.astro';
+import PageHero from '../../components/PageHero.astro';
+import StoryCard from '../../components/StoryCard.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import { storyCategories, stories } from '../../data/stories';
+import { mediaSlot } from '../../lib/media';
+import { cmsPlainText, escapeCmsHeading, presentCmsStory, sectionsByKey } from '../../lib/cms-route-presenters';
+import { sectionLabel } from '../../lib/section-labels';
+import { reviewStories } from '../../lib/review';
+import { getMediaById, getPageByKey, getPageHeroMedia, getPageSections, getPublishedStories } from '../../lib/wix-cms';
+
+const [cmsPage, cmsSections, cmsHeroMedia, cmsStoryItems] = await Promise.all([
+  getPageByKey('stories'),
+  getPageSections('stories'),
+  getPageHeroMedia('stories'),
+  getPublishedStories(),
+]);
+const cmsStories = (await Promise.all(cmsStoryItems.map(story => presentCmsStory(story, getMediaById))))
+  .filter((story): story is NonNullable<Awaited<ReturnType<typeof presentCmsStory>>> => Boolean(story));
+const all = cmsStories.length > 0 ? cmsStories : [...stories, ...(await reviewStories())];
+const heroMedia = cmsHeroMedia ?? mediaSlot('stories-hero', '21/9', 'Approved editorial photograph: a workshop, a fitting, a preparation or a portrait.');
+const intro = cmsPlainText(cmsPage?.introduction);
+const sections = sectionsByKey(cmsSections);
+const categoriesSection = sections.get('categories');
+const sectionEnabled = (key: string) => cmsSections.find(section => section.sectionKey === key)?.isEnabled ?? true;
+
+/*
+  Every category in the vocabulary is listed, whether or not a story is published
+  in it yet, so the range the initiative publishes is visible from the start. The
+  count says how many stories each one holds, and an empty category is honest
+  about it rather than hidden. No category is invented, and no new collection is
+  involved.
+*/
+const categoryCounts = new Map(storyCategories
+  .map(category => [category, all.filter(story => story.category === category).length] as const));
+const categories = [...categoryCounts.keys()];
+
+/*
+  Filtering is a real query parameter first and a click handler second: the links
+  below work without client-side JavaScript, the server marks the same stories
+  hidden that the script would, and the script then filters in place.
+*/
+const requestedCategory = Astro.url.searchParams.get('category');
+const activeCategory = categories.find(category => category === requestedCategory);
+const filterHref = (category?: string) =>
+  `/stories${category ? `?category=${encodeURIComponent(category)}` : ''}#stories`;
+const visibleCount = activeCategory ? categoryCounts.get(activeCategory) ?? 0 : all.length;
+const countMessage = (count: number, category?: string) =>
+  `${count} ${count === 1 ? 'story' : 'stories'}${category ? ` in ${category}` : ''}`;
+---
+<Layout
+  title={cmsPage?.seoTitle ?? cmsPage?.title ?? 'Stories'}
+  description={cmsPage?.seoDescription ?? 'The living voice of The Pan-African Fabric: behind the scenes, country and designer stories, announcements, partnerships, founder reflections, interviews and milestones.'}
+  path="/stories"
+  header="overlay"
+>
+  <PageHero
+    class="page-hero--stories"
+    eyebrow={cmsPage?.eyebrow ?? 'Stories'}
+    title={escapeCmsHeading(cmsPage?.heroTitle, 'The living<span>voice.</span>')}
+    size="tall"
+    media={heroMedia}
+    meta={['Behind the scenes', 'Interviews', 'Milestones']}
+  >
+    <p class="page-hero__intro lead">{intro ?? 'Where the initiative speaks in its own words, as the work is being made rather than after it is finished.'}</p>
+  </PageHero>
+
+  <Section tone="ivory" id="stories" hidden={!sectionEnabled('categories')}>
+    <SectionHead
+      eyebrow={sectionLabel(categoriesSection?.eyebrow, 'Categories', { position: 1 })}
+      title={categoriesSection?.heading ?? 'What stories cover.'}
+    >
+      <p>{cmsPlainText(categoriesSection?.body) ?? 'Choose a category to see the stories published in it. Every story keeps its own page.'}</p>
+    </SectionHead>
+
+    {all.length > 0 ? (
+      <div class="story-filter" data-story-filter>
+        <nav class="filter-bar" aria-label="Filter stories by category">
+          <ul class="filter-bar__list">
+            <li>
+              <a
+                class="filter-chip"
+                href={filterHref()}
+                data-filter=""
+                aria-current={activeCategory ? undefined : 'true'}
+              >All<span class="filter-chip__count">{all.length}</span></a>
+            </li>
+            {categories.map((category) => (
+              <li>
+                <a
+                  class="filter-chip"
+                  href={filterHref(category)}
+                  data-filter={category}
+                  aria-current={activeCategory === category ? 'true' : undefined}
+                >{category}<span class="filter-chip__count">{categoryCounts.get(category)}</span></a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <p class="visually-hidden" role="status" data-story-count>{countMessage(visibleCount, activeCategory)}</p>
+
+        <ul class="card-grid card-grid--wide" data-story-list>
+          {all.map((story) => (
+            <li data-category={story.category} hidden={activeCategory ? story.category !== activeCategory : undefined}>
+              <StoryCard story={story} />
+            </li>
+          ))}
+        </ul>
+
+        <div data-story-empty hidden={visibleCount > 0 ? true : undefined}>
+          <EmptyState
+            title="No stories are published in this category yet."
+            text="Choose another category, or select All to see every published story."
+            layout="centred"
+          />
+        </div>
+      </div>
+    ) : (
+      <EmptyState
+        title="No stories have been published yet."
+        text="The gallery and the article template are complete. The first approved story appears here as soon as it is supplied, with no layout change needed."
+        layout="centred"
+      />
+    )}
+  </Section>
+
+  <Section tone="ink" size="tight">
+    <div class="cluster cluster--between">
+      <h2 style="font-size:clamp(1.5rem,3vw,2.25rem);margin:0;max-width:22ch">Have a story from inside the initiative?</h2>
+      <p class="actions">
+        <Button href="/press-contact">Press and contact<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
+      </p>
+    </div>
+  </Section>
+</Layout>
+
+<script>
+  /*
+    Same-page filtering. The links already work on their own: each one is a real
+    query-parameter URL the server renders. This only intercepts the click so the
+    gallery filters without a reload, and keeps the URL, the active state and the
+    status message in step. If it never runs, the links still filter.
+  */
+  const root = document.querySelector<HTMLElement>('[data-story-filter]');
+  const list = root?.querySelector<HTMLElement>('[data-story-list]');
+  const empty = root?.querySelector<HTMLElement>('[data-story-empty]');
+  const status = root?.querySelector<HTMLElement>('[data-story-count]');
+
+  if (root && list) {
+    const chips = [...root.querySelectorAll<HTMLAnchorElement>('[data-filter]')];
+    const items = [...list.querySelectorAll<HTMLElement>('li')];
+
+    const apply = (category: string) => {
+      let shown = 0;
+      for (const item of items) {
+        const match = !category || item.dataset.category === category;
+        item.hidden = !match;
+        if (match) shown += 1;
+      }
+      for (const chip of chips) {
+        const active = (chip.dataset.filter ?? '') === category;
+        if (active) chip.setAttribute('aria-current', 'true');
+        else chip.removeAttribute('aria-current');
+      }
+      if (empty) empty.hidden = shown > 0;
+      if (status) {
+        status.textContent = `${shown} ${shown === 1 ? 'story' : 'stories'}${category ? ` in ${category}` : ''}`;
+      }
+    };
+
+    for (const chip of chips) {
+      chip.addEventListener('click', (event) => {
+        // Let modified clicks open a new tab or window as usual.
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+        event.preventDefault();
+        const category = chip.dataset.filter ?? '';
+        apply(category);
+        history.pushState({ category }, '', chip.href);
+        chip.focus();
+      });
+    }
+
+    addEventListener('popstate', () => {
+      const category = new URL(location.href).searchParams.get('category') ?? '';
+      apply(chips.some((chip) => (chip.dataset.filter ?? '') === category) ? category : '');
+    });
+  }
+</script>
+
+<style>
+  /*
+    Category filters. Chips are links, so they carry the category in the URL and
+    work before the script loads; aria-current marks the active one for assistive
+    technology as well as visually.
+  */
+  .story-filter { display: flex; flex-direction: column; gap: clamp(20px, 3vw, 36px); }
+  .filter-bar__list { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-xs); list-style: none; margin: 0; padding: 0; }
+  .filter-chip {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    font-size: 0.8125rem;
+    line-height: 1.2;
+    color: var(--text);
+    text-decoration: none;
+    transition: border-color var(--duration-base) var(--ease-out), background-color var(--duration-base) var(--ease-out);
+  }
+  .filter-chip:hover { border-color: var(--text); text-decoration: none; }
+  .filter-chip__count { font-size: 0.6875rem; letter-spacing: 0.06em; color: var(--muted); }
+  .filter-chip[aria-current] { background: var(--ink-deep); border-color: var(--ink-deep); color: var(--on-ink); }
+  .filter-chip[aria-current] .filter-chip__count { color: var(--on-ink-muted); }
+  @media (prefers-reduced-motion: reduce) { .filter-chip { transition: none; } }
+</style>

@@ -1,0 +1,188 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Section from '../../components/Section.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import Copy from '../../components/Copy.astro';
+import PageHero from '../../components/PageHero.astro';
+import EventPoster from '../../components/EventPoster.astro';
+import EventRow from '../../components/EventRow.astro';
+import EmptyState from '../../components/EmptyState.astro';
+import { eventPhase, eventStructuredData, events } from '../../data/events';
+import { awaiting, draft } from '../../lib/content';
+import { mediaSlot } from '../../lib/media';
+import { cmsPlainText, escapeCmsHeading, presentCmsEvent, sectionsByKey } from '../../lib/cms-route-presenters';
+import { resolveSectionLabel, sectionLabel } from '../../lib/section-labels';
+import { loadReviewCopy } from '../../lib/review';
+import { getEvents, getMediaById, getPageByKey, getPageHeroMedia, getPageSections } from '../../lib/wix-cms';
+
+const review = await loadReviewCopy();
+const [cmsPage, cmsSections, cmsHeroMedia, cmsSources] = await Promise.all([
+  getPageByKey('events'),
+  getPageSections('events'),
+  getPageHeroMedia('events'),
+  getEvents(),
+]);
+const sectionContent = sectionsByKey(cmsSections);
+const cmsPairs = (await Promise.all(cmsSources.map(async source => ({ source, event: await presentCmsEvent(source, getMediaById) }))))
+  .filter((pair): pair is { source: typeof cmsSources[number]; event: NonNullable<Awaited<ReturnType<typeof presentCmsEvent>>> } => Boolean(pair.event));
+const eventRecords = [
+  ...cmsPairs.map(pair => pair.event),
+  ...(import.meta.env.DEV ? events.filter(fallback => !cmsPairs.some(pair => pair.event.slug === fallback.slug)) : []),
+];
+const now = new Date();
+const active = eventRecords.filter(event => eventPhase(event, now) !== 'archive').sort((a, b) => Date.parse(a.startsAt ?? a.isoDate) - Date.parse(b.startsAt ?? b.isoDate));
+const archive = eventRecords.filter(event => eventPhase(event, now) === 'archive').sort((a, b) => Date.parse(b.startsAt ?? b.isoDate) - Date.parse(a.startsAt ?? a.isoDate));
+const preferredSlug = cmsPairs.find(pair => pair.source.featured)?.event.slug;
+const featured = active.find(event => event.slug === preferredSlug) ?? active[0] ?? archive[0];
+/*
+  One presentation for confirmed events: the featured event leads, every other
+  active event follows in the same poster format. Each poster carries the same
+  facts the event page shows, so the two never disagree.
+*/
+const sourceBySlug = new Map(cmsPairs.map(pair => [pair.event.slug, pair.source]));
+const posterDetail = (slug: string) => {
+  const source = sourceBySlug.get(slug);
+  return {
+    summary: cmsPlainText(source?.overview) ?? cmsPlainText(source?.programme),
+    admission: cmsPlainText(source?.admission),
+    ticketUrl: source?.ticketUrl,
+    officialUrl: source?.officialUrl,
+  };
+};
+const featuredDetail = featured
+  ? posterDetail(featured.slug)
+  : { summary: undefined, admission: undefined, ticketUrl: undefined, officialUrl: undefined };
+const withZone = (record: typeof active[number]) =>
+  record.timeLabel && record.timezoneLabel ? `${record.timeLabel} ${record.timezoneLabel}` : record.timeLabel;
+const companions = active.filter(event => event.slug !== featured?.slug).map(event => ({
+  slug: event.slug,
+  title: event.title,
+  dateLabel: event.dateLabel,
+  timeLabel: withZone(event),
+  venue: event.venue,
+  location: event.location,
+  admission: posterDetail(event.slug).admission,
+  summary: posterDetail(event.slug).summary,
+}));
+const companionLabel = companions.length > 0 && companions.every(item => item.dateLabel === featured?.dateLabel)
+  ? 'Later the same day'
+  : 'Also confirmed';
+
+const intro = review
+  ? draft(review.events.intro, 'Content lead')
+  : awaiting('Events introduction', 'Approve the introduction to public programmes and presentations.');
+
+const cmsIntro = cmsPlainText(cmsPage?.introduction);
+const heroMedia = cmsHeroMedia ?? mediaSlot('events-hero', '21/9', 'Approved photograph from a public programme or exhibition.');
+const upcomingSection = sectionContent.get('upcoming');
+const formatsSection = sectionContent.get('formats');
+const archiveSection = sectionContent.get('archive');
+const sectionEnabled = (key: string) => cmsSections.find(section => section.sectionKey === key)?.isEnabled ?? true;
+
+/*
+  Approved presentation wording for the first numbered section. The CMS record still
+  reads "upcoming"; the approved public wording is "Featured Event". A stored eyebrow
+  that already carries the approved wording is used as it stands, so moving the
+  wording into the CMS later needs no change here beyond deleting this constant.
+*/
+const FEATURED_LABEL = 'Featured Event';
+const storedFeaturedLabel = resolveSectionLabel(upcomingSection?.eyebrow, FEATURED_LABEL, { position: 1 });
+const featuredLabel = sectionLabel(upcomingSection?.eyebrow, FEATURED_LABEL, {
+  position: 1,
+  label: /featured/i.test(storedFeaturedLabel.label) ? storedFeaturedLabel.label : FEATURED_LABEL,
+});
+
+/** Formats the initiative presents. Layouts exist for each; none is populated with invented events. */
+const formats = [
+  { title: 'Exhibitions', text: 'Presentations of the fabric and the finished garments.' },
+  { title: 'Workshops', text: 'Practical sessions with designers, students and communities.' },
+  { title: 'Competitions', text: 'Open calls and design competitions.' },
+  { title: 'Receptions', text: 'Openings and cultural receptions.' },
+  { title: 'Talks', text: 'Conversations on textile, design and cultural exchange.' },
+  { title: 'Travelling presentations', text: 'The edition presented in new cities and venues.' },
+];
+---
+<Layout
+  title={cmsPage?.seoTitle ?? cmsPage?.title ?? 'Events'}
+  description={cmsPage?.seoDescription ?? 'Where The Pan-African Fabric happens: the inaugural showcase at the Smithsonian National Museum of African Art, and the exhibitions, workshops, competitions, receptions and talks that follow.'}
+  path="/events"
+  header="overlay"
+  structuredData={featured ? eventStructuredData(featured) : undefined}
+>
+  <PageHero
+    eyebrow={cmsPage?.eyebrow ?? 'Events'}
+    title={escapeCmsHeading(cmsPage?.heroTitle, 'Where it<span>happens.</span>')}
+    size="tall"
+    media={heroMedia}
+    meta={['Exhibitions', 'Workshops', 'Talks']}
+  >
+    {cmsIntro
+      ? <p class="page-hero__intro lead">{cmsIntro}</p>
+      : <Copy copy={intro} class="page-hero__intro lead" fallbackTitle="Events introduction" emptyTone="ink" />}
+  </PageHero>
+
+  <Section tone="paper" id="upcoming" hidden={!sectionEnabled('upcoming')}>
+    <SectionHead eyebrow={featuredLabel} title={upcomingSection?.heading ?? 'What is coming next.'}>
+      <p>{cmsPlainText(upcomingSection?.body) ?? 'Only confirmed events are listed. Nothing provisional is shown as if it were scheduled.'}</p>
+    </SectionHead>
+    {featured ? (
+      <div data-reveal="rise">
+        <EventPoster
+          event={featured}
+          level={3}
+          summary={featuredDetail.summary}
+          admission={featuredDetail.admission}
+          ticketUrl={featuredDetail.ticketUrl}
+          officialUrl={featuredDetail.officialUrl}
+          alsoOn={companions}
+          alsoOnLabel={companionLabel}
+        />
+      </div>
+    ) : (
+      <EmptyState
+        title="No events are confirmed yet."
+        text="Confirmed dates appear here as each one is approved."
+        layout="centred"
+      />
+    )}
+  </Section>
+
+  <Section tone="surface" id="formats" hidden={!sectionEnabled('formats')}>
+    <SectionHead eyebrow={sectionLabel(formatsSection?.eyebrow, 'Formats', { position: 2 })} title={formatsSection?.heading ?? 'The shapes this initiative takes.'}>
+      <p>{cmsPlainText(formatsSection?.body) ?? 'Each format has a layout ready. A format appears in the listings above only when a real event is confirmed.'}</p>
+    </SectionHead>
+    <ul class="format-grid">
+      {formats.map((format) => (
+        <li class="format">
+          <span class="format__title">{format.title}</span>
+          <span class="format__text">{format.text}</span>
+        </li>
+      ))}
+    </ul>
+  </Section>
+
+  <Section tone="ink" id="archive" hidden={!sectionEnabled('archive')}>
+    <SectionHead eyebrow={sectionLabel(archiveSection?.eyebrow, 'Archive', { position: 3 })} title={archiveSection?.heading ?? 'Past events.'}>
+      <p>{cmsPlainText(archiveSection?.body) ?? 'After an event has taken place, it moves here. The archive records what was scheduled; it never claims attendance, outcomes or press response that has not been supplied.'}</p>
+    </SectionHead>
+    {archive.length > 0 ? (
+      <ul class="event-list">
+        {archive.map((event) => <li><EventRow event={event} /></li>)}
+      </ul>
+    ) : (
+      <EmptyState
+        title="The archive is empty."
+        text="No event in this edition has taken place yet."
+        tone="ink"
+        layout="centred"
+      />
+    )}
+  </Section>
+</Layout>
+
+<style>
+  .format-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 0 clamp(16px, 3vw, 48px); }
+  .format { display: flex; flex-direction: column; gap: 4px; padding-block: var(--space-md); border-top: 1px solid var(--border); }
+  .format__title { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.15; }
+  .format__text { font-size: 0.875rem; line-height: 1.5; color: var(--muted); }
+</style>

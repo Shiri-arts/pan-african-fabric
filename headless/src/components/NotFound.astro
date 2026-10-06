@@ -1,0 +1,53 @@
+---
+/**
+ * The 404 body. Used by src/pages/404.astro and by every dynamic route that has
+ * set `Astro.response.status = 404`, so an unknown slug returns a real 404 with a
+ * designed page rather than a bare string or a 200 response.
+ */
+import Section from './Section.astro';
+import Button from './Button.astro';
+import { menuItems } from '../data/navigation';
+interface Props { path?: string; }
+const { path } = Astro.props;
+---
+<Section tone="ink" class="not-found">
+  <p class="eyebrow"><span>Error 404</span></p>
+  <h1 class="not-found__title">This page<br />does not exist.</h1>
+  <p class="lead">
+    The address may be mistyped, or the page may not have been published yet.
+  </p>
+  {path && <p class="caption not-found__path">Requested: <code>{path}</code></p>}
+  <nav class="not-found__nav" aria-label="Site sections">
+    <ul>
+      {menuItems.map((item) => (
+        <li><a class="not-found__link" href={item.href}>{item.label}<span aria-hidden="true">&#8594;</span></a></li>
+      ))}
+    </ul>
+  </nav>
+  <p class="actions">
+    <Button href="/">Return to the homepage<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
+  </p>
+</Section>
+
+<style>
+  .not-found { min-height: 62vh; display: flex; align-items: center; }
+  .not-found__title { font-size: clamp(2.5rem, 7vw, 5rem); line-height: 0.96; letter-spacing: -0.04em; margin: 0 0 var(--space-md); }
+  .not-found__path { word-break: break-all; }
+  .not-found__path code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.8125rem; }
+  .not-found__nav { margin-block: var(--space-lg); }
+  .not-found__nav ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 0; }
+  .not-found__link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    min-height: var(--control-min);
+    padding-block: var(--space-2xs);
+    padding-right: var(--space-md);
+    border-top: 1px solid var(--on-ink-rule);
+    color: var(--on-ink);
+    font-size: 0.9375rem;
+    text-decoration: none;
+  }
+  .not-found__link:hover { color: var(--gold); text-decoration: underline; text-underline-offset: 5px; }
+</style>

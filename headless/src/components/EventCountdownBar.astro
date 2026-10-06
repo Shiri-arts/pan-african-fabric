@@ -1,0 +1,266 @@
+---
+/**
+ * Homepage banner for the nearest upcoming event.
+ *
+ * Renders nothing at all when no event is upcoming, so the homepage collapses
+ * cleanly. It only counts down for an event whose timezone is confirmed; without
+ * exact instants a countdown would show different remaining times to different
+ * viewers.
+ *
+ * The server renders a real day count and the full details, so the bar is correct
+ * with no JavaScript and cannot hydrate-mismatch. The script refines the timer and
+ * removes the bar the moment the event ends, which also covers a stale response.
+ *
+ * Motion: the client asked for a continuously scrolling detail line and a
+ * continuously sweeping shine, so this banner does move continuously. WCAG 2.2.2
+ * requires a way to stop that, so the bar carries a pause control, also pauses on
+ * hover and on keyboard focus, and remembers a viewer's choice. Under
+ * prefers-reduced-motion nothing scrolls or sweeps at all and the detail line
+ * wraps as ordinary text.
+ *
+ * The timer itself never moves position, and the scrolling copy is duplicated for
+ * a seamless loop with the duplicate hidden from assistive technology.
+ */
+import { editionColours } from '../data/colours';
+import { canCountDown, eventPath, eventPhase, type EventRecord } from '../data/events';
+
+interface Props {
+  event: EventRecord | undefined;
+  now?: Date;
+}
+const { event, now = new Date() } = Astro.props;
+
+const phase = event ? eventPhase(event, now) : 'archive';
+const show = Boolean(event) && phase !== 'archive';
+
+// Whole days remaining, floored, computed on the server for the no-JavaScript case.
+const msRemaining = event?.startsAt ? Date.parse(event.startsAt) - now.getTime() : 0;
+const days = Math.max(0, Math.floor(msRemaining / 86_400_000));
+const live = phase === 'live';
+const counts = event ? canCountDown(event) : false;
+
+const timeWithZone = event?.timeLabel
+  ? `${event.timeLabel}${event.timezoneLabel ? ` ${event.timezoneLabel}` : ''}`
+  : null;
+
+/** Everything the scrolling line carries, in order. */
+const details = event
+  ? [event.dateLabel, timeWithZone, event.venue, event.location].filter(Boolean) as string[]
+  : [];
+
+/** "Washington, D.C." already ends in a full stop; do not add a second. */
+const close = (line: string) => (/[.!?]$/.test(line) ? line : `${line}.`);
+const detailSentence = details.length ? ` ${close(details.join('. '))}` : '';
+
+const summary = event
+  ? live
+    ? `${event.title} is taking place now.${detailSentence}`
+    : counts
+      ? `${days} ${days === 1 ? 'day' : 'days'} until ${event.title}.${detailSentence}`
+      : `${event.title}.${detailSentence}`
+  : '';
+---
+{show && event && (
+  <section class="countdown-band" aria-labelledby="countdown-title">
+    <div class="container">
+      <div
+        class="countdown"
+        data-countdown
+        data-starts={event.startsAt ?? undefined}
+        data-ends={event.endsAt ?? undefined}
+        data-details={details.join('. ')}
+      >
+        <span class="countdown__track" aria-hidden="true">
+          {editionColours.map((colour, index) => (
+            <span class="countdown__segment" style={`background:var(${colour.variable});--i:${index}`}></span>
+          ))}
+          <span class="countdown__shine"></span>
+        </span>
+
+        <div class="countdown__body">
+          <div class="countdown__head">
+            <p class="countdown__kicker" data-countdown-kicker>{live ? 'Happening now' : 'Next event'}</p>
+            <button
+              class="countdown__pause"
+              type="button"
+              data-countdown-pause
+              aria-pressed="false"
+              hidden
+            >
+              <span class="countdown__pause-icon" aria-hidden="true"></span>
+              <span class="countdown__pause-label">Pause event banner</span>
+            </button>
+          </div>
+
+          <div class="countdown__marquee" data-countdown-marquee>
+            <div class="countdown__lane" data-countdown-lane>
+              <span class="countdown__group" data-countdown-group>
+                <span class="countdown__title" id="countdown-title">{event.title}</span>
+                {details.map((detail) => (
+                  <><span class="countdown__dot" aria-hidden="true">&#9679;</span><span class="countdown__detail">{detail}</span></>
+                ))}
+              </span>
+              <span class="countdown__group" aria-hidden="true">
+                <span class="countdown__title">{event.title}</span>
+                {details.map((detail) => (
+                  <><span class="countdown__dot">&#9679;</span><span class="countdown__detail">{detail}</span></>
+                ))}
+              </span>
+            </div>
+          </div>
+
+          <div class="countdown__foot">
+            {counts && (
+              <p class="countdown__timer" data-countdown-digits aria-hidden="true">
+                {live ? (
+                  <span class="countdown__now">Live</span>
+                ) : (
+                  <span class="countdown__unit"><b>{days}</b><i>{days === 1 ? 'day' : 'days'}</i></span>
+                )}
+              </p>
+            )}
+            <p class="visually-hidden" data-countdown-text>{summary}</p>
+            <a class="countdown__cue" href={eventPath(event.slug)}>
+              Event details<span aria-hidden="true">&#8594;</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+)}
+
+<script>
+  const STORAGE_KEY = 'pafr:banner-motion';
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+
+  for (const bar of document.querySelectorAll<HTMLElement>('[data-countdown]')) {
+    const startsAt = Date.parse(bar.dataset.starts ?? '');
+    const endsAt = Date.parse(bar.dataset.ends ?? '');
+    if (!Number.isFinite(startsAt) || !Number.isFinite(endsAt)) continue;
+
+    const section = bar.closest('section');
+    const digits = bar.querySelector<HTMLElement>('[data-countdown-digits]');
+    const text = bar.querySelector<HTMLElement>('[data-countdown-text]');
+    const kicker = bar.querySelector<HTMLElement>('[data-countdown-kicker]');
+    const title = bar.querySelector<HTMLElement>('.countdown__title')?.textContent?.trim() ?? '';
+    // Carried through every rewrite so the accessible sentence never loses the
+    // venue, location or time that the scrolling line shows.
+    const raw = bar.dataset.details ?? '';
+    const detailText = raw ? ` ${/[.!?]$/.test(raw) ? raw : `${raw}.`}` : '';
+
+    /* ---------------------------------------------------------------- timer */
+    let lastDays = -1;
+    let timer = 0;
+    const unit = (value: number, singular: string) =>
+      `<span class="countdown__unit"><b>${value}</b><i>${value === 1 ? singular : singular + 's'}</i></span>`;
+
+    const tick = () => {
+      const now = Date.now();
+      if (now >= endsAt) { section?.remove(); return; }
+
+      if (now >= startsAt) {
+        if (kicker) kicker.textContent = 'Happening now';
+        if (digits) digits.innerHTML = '<span class="countdown__now">Live</span>';
+        if (text) text.textContent = `${title} is taking place now.${detailText}`;
+        timer = window.setTimeout(tick, 30_000);
+        return;
+      }
+
+      const ms = startsAt - now;
+      const days = Math.floor(ms / 86_400_000);
+      const hours = Math.floor(ms / 3_600_000) % 24;
+      const minutes = Math.floor(ms / 60_000) % 60;
+      const seconds = Math.floor(ms / 1000) % 60;
+      const finalHour = ms < 3_600_000;
+
+      if (digits) {
+        digits.innerHTML = finalHour
+          ? unit(minutes, 'minute') + unit(seconds, 'second')
+          : (days > 0 ? unit(days, 'day') : '') + unit(hours, 'hour') + unit(minutes, 'minute');
+      }
+      if (text && days !== lastDays) {
+        lastDays = days;
+        text.textContent = `${days} ${days === 1 ? 'day' : 'days'} until ${title}.${detailText}`;
+      }
+      const period = finalHour ? 1000 : 60_000;
+      timer = window.setTimeout(tick, period - ((now % period) || 0) + 20);
+    };
+
+    if (reduce.matches) {
+      if (Date.now() >= endsAt) section?.remove();
+    } else {
+      tick();
+      addEventListener('pagehide', () => clearTimeout(timer));
+    }
+    if (reduce.matches) continue;
+
+    /* -------------------------------------------------------------- marquee */
+    const lane = bar.querySelector<HTMLElement>('[data-countdown-lane]');
+    const group = bar.querySelector<HTMLElement>('[data-countdown-group]');
+    const pause = bar.querySelector<HTMLButtonElement>('[data-countdown-pause]');
+    if (!lane || !group || !pause) continue;
+
+    // Enough copies that the lane always covers the viewport, so the loop never
+    // shows a gap. Copies beyond the first are decorative.
+    const measure = () => {
+      const width = group.getBoundingClientRect().width;
+      if (!width) return;
+      const needed = Math.max(2, Math.ceil((bar.clientWidth * 2) / width));
+      while (lane.children.length < needed) {
+        const clone = group.cloneNode(true) as HTMLElement;
+        clone.removeAttribute('id');
+        clone.removeAttribute('data-countdown-group');
+        clone.setAttribute('aria-hidden', 'true');
+        clone.querySelector('[id]')?.removeAttribute('id');
+        lane.append(clone);
+      }
+      // Travel exactly one copy, so the next copy lands where the last one was.
+      lane.style.setProperty('--marquee-distance', `${width}px`);
+      lane.style.setProperty('--marquee-duration', `${Math.max(18, width / 55)}s`);
+    };
+
+    let stopped = false;
+    try { stopped = localStorage.getItem(STORAGE_KEY) === 'paused'; } catch { stopped = false; }
+
+    const apply = () => {
+      bar.classList.toggle('is-paused', stopped);
+      pause.setAttribute('aria-pressed', String(stopped));
+      const label = pause.querySelector('.countdown__pause-label');
+      if (label) label.textContent = stopped ? 'Play event banner' : 'Pause event banner';
+    };
+
+    /*
+      Hold while the pointer or keyboard focus is inside the banner, so the line can
+      be read. The control is excluded from both: pressing play leaves the pointer
+      over the button and focus on it, and counting those would hold the banner
+      paused for ever, which is exactly what a plain :hover rule did.
+    */
+    const syncHold = () => {
+      const overBanner = bar.matches(':hover');
+      const overControl = pause.matches(':hover');
+      const focusInBanner = bar.contains(document.activeElement);
+      const focusOnControl = pause.contains(document.activeElement);
+      bar.classList.toggle('is-holding', (overBanner && !overControl) || (focusInBanner && !focusOnControl));
+    };
+    for (const type of ['pointerover', 'pointerout', 'focusin', 'focusout'] as const) {
+      bar.addEventListener(type, () => requestAnimationFrame(syncHold));
+    }
+
+    pause.addEventListener('click', () => {
+      stopped = !stopped;
+      try { localStorage.setItem(STORAGE_KEY, stopped ? 'paused' : 'playing'); } catch { /* private mode */ }
+      apply();
+      syncHold();
+    });
+
+    measure();
+    bar.classList.add('is-marquee');
+    pause.hidden = false;
+    apply();
+
+    syncHold();
+    addEventListener('resize', () => measure(), { passive: true });
+    document.fonts?.ready.then(measure);
+  }
+</script>

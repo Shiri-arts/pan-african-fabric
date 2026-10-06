@@ -1,0 +1,24 @@
+---
+import type { CmsRichText as CmsRichTextValue } from '../lib/cms-content';
+import { sanitizeCmsRichText } from '../lib/safe-rich-text';
+
+interface Props {
+  value?: CmsRichTextValue;
+  class?: string;
+}
+
+const { value, class: className } = Astro.props;
+const html = sanitizeCmsRichText(value);
+---
+{html && <div class:list={['cms-rich-text', className]} set:html={html} />}
+
+<style>
+  .cms-rich-text :global(> :first-child) { margin-top: 0; }
+  .cms-rich-text :global(> :last-child) { margin-bottom: 0; }
+  .cms-rich-text :global(p),
+  .cms-rich-text :global(li) { max-width: 68ch; line-height: 1.7; }
+  .cms-rich-text :global(ul),
+  .cms-rich-text :global(ol) { padding-left: 1.35em; }
+  .cms-rich-text :global(blockquote) { margin-inline: 0; padding-left: var(--space-sm); border-left: 3px solid var(--rust); font-family: var(--font-display); font-size: 1.2em; }
+  .cms-rich-text :global(a) { color: currentColor; text-decoration-thickness: 1px; text-underline-offset: 0.18em; }
+</style>

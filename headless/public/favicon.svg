@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="The Pan-African Fabric">
+  <title>The Pan-African Fabric</title>
+  <!--
+    The Edition One twelve-colour system in artwork order, four across and three
+    down. Built entirely from the supplied colour values: no logo is invented here.
+  -->
+  <rect width="32" height="32" fill="#161412"/>
+  <g>
+    <rect x="1"  y="1"  width="7" height="9" fill="#34514A"/>
+    <rect x="9"  y="1"  width="7" height="9" fill="#EA021A"/>
+    <rect x="17" y="1"  width="7" height="9" fill="#D6BA06"/>
+    <rect x="25" y="1"  width="6" height="9" fill="#E5A09B"/>
+    <rect x="1"  y="11" width="7" height="9" fill="#020605"/>
+    <rect x="9"  y="11" width="7" height="9" fill="#FCF7F8"/>
+    <rect x="17" y="11" width="7" height="9" fill="#199EDC"/>
+    <rect x="25" y="11" width="6" height="9" fill="#92D9CA"/>
+    <rect x="1"  y="21" width="7" height="10" fill="#D76921"/>
+    <rect x="9"  y="21" width="7" height="10" fill="#E3327C"/>
+    <rect x="17" y="21" width="7" height="10" fill="#540C84"/>
+    <rect x="25" y="21" width="6" height="10" fill="#028201"/>
+  </g>
+</svg>

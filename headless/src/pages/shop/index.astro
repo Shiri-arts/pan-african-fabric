@@ -1,0 +1,105 @@
+---
+/**
+ * Storefront.
+ *
+ * Editorial catalogue. Available items are presented with a direct email order
+ * route; this frontend does not operate a cart, checkout or online payment flow.
+ */
+import Layout from '../../layouts/Layout.astro';
+import Section from '../../components/Section.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import Button from '../../components/Button.astro';
+import PageHero from '../../components/PageHero.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import { COMMERCE_ENABLED, products } from '../../data/shop';
+import { mediaSlot } from '../../lib/media';
+import { cmsPlainText, escapeCmsHeading, presentCmsProduct, sectionsByKey } from '../../lib/cms-route-presenters';
+import { reviewProducts } from '../../lib/review';
+import { getMediaById, getPageByKey, getPageHeroMedia, getPageSections, getShopItems } from '../../lib/wix-cms';
+
+const [cmsPage, cmsSections, cmsHeroMedia, cmsItems] = await Promise.all([
+  getPageByKey('shop'),
+  getPageSections('shop'),
+  getPageHeroMedia('shop'),
+  getShopItems(),
+]);
+const cmsProducts = (await Promise.all(cmsItems.map(item => presentCmsProduct(item, getMediaById))))
+  .filter((product): product is NonNullable<Awaited<ReturnType<typeof presentCmsProduct>>> => Boolean(product));
+const reviewFallbacks = [...products, ...(await reviewProducts())];
+const heroMedia = cmsHeroMedia ?? mediaSlot('shop-hero', '21/9', 'Approved product or styling photograph for the storefront header.');
+const intro = cmsPlainText(cmsPage?.introduction);
+const sections = sectionsByKey(cmsSections);
+const collectionSection = sections.get('collection');
+const sectionEnabled = (key: string) => cmsSections.find(section => section.sectionKey === key)?.isEnabled ?? true;
+
+---
+<Layout
+  title={cmsPage?.seoTitle ?? cmsPage?.title ?? 'Shop'}
+  description={cmsPage?.seoDescription ?? 'Own a piece of the story. The Pan-African Fan is available to order directly from the initiative.'}
+  path="/shop"
+  header="overlay"
+>
+  <PageHero
+    eyebrow={cmsPage?.eyebrow ?? 'Shop'}
+    title={escapeCmsHeading(cmsPage?.heroTitle, 'Own a piece<span>of the story.</span>')}
+    size="tall"
+    media={heroMedia}
+    mediaFit="contain"
+  >
+    <p class="page-hero__intro lead">{intro ?? 'The Pan-African Fan is available to order. Open the product to contact the initiative directly for price, payment and delivery details.'}</p>
+  </PageHero>
+
+  <Section tone="paper" id="collection" hidden={!sectionEnabled('collection')}>
+    {cmsProducts.length > 0 ? (
+      <>
+        {(collectionSection?.heading || collectionSection?.body) && (
+          <SectionHead eyebrow={collectionSection.eyebrow ?? 'Collection'} title={collectionSection.heading ?? 'Published pieces.'}>
+            {cmsPlainText(collectionSection.body) && <p>{cmsPlainText(collectionSection.body)}</p>}
+          </SectionHead>
+        )}
+        <ul class="card-grid card-grid--wide">
+          {cmsProducts.map((product) => <li><ProductCard product={product} /></li>)}
+        </ul>
+      </>
+    ) : (
+      <div class="shop-empty">
+        <p class="eyebrow"><span>Collection</span></p>
+        <h2 class="shop-empty__title">Shop collection coming soon</h2>
+        <p class="lead">
+          Products, prices, availability and delivery information will be published here once they are approved. No order
+          can be placed on this site at present.
+        </p>
+        <p class="actions">
+          <Button href="/edition-one" variant="secondary">Explore Edition One<span class="button__arrow" aria-hidden="true">&#8594;</span></Button>
+          <Button href="/press-contact" variant="text">Ask about availability</Button>
+        </p>
+      </div>
+    )}
+  </Section>
+
+  {cmsProducts.length === 0 && reviewFallbacks.length > 0 && !COMMERCE_ENABLED && (
+    <Section tone="ivory" id="templates">
+      <SectionHead eyebrow="Template preview" title="Product presentation template.">
+        <p>
+          Shown in the local review build only, so the storefront and product templates can be checked at every width.
+          This is not a product and it is not for sale.
+        </p>
+      </SectionHead>
+      <ul class="card-grid card-grid--wide">
+        {reviewFallbacks.map((product) => <li><ProductCard product={product} /></li>)}
+      </ul>
+    </Section>
+  )}
+
+  <Section tone="ink" size="tight">
+    <p class="caption" style="color:var(--on-ink-muted);max-width:74ch">
+      This editorial catalogue takes no payment and holds no cart. Orders are arranged directly with the initiative by
+      email, where current price, payment and delivery details are confirmed before purchase.
+    </p>
+  </Section>
+</Layout>
+
+<style>
+  .shop-empty { max-width: 44ch; }
+  .shop-empty__title { font-size: clamp(2rem, 5vw, 3.5rem); line-height: 1; letter-spacing: -0.035em; margin: 0 0 var(--space-md); }
+</style>

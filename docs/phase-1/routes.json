@@ -1,0 +1,42 @@
+{
+  "status": "proposed-not-activated",
+  "primaryNavigation": [
+    {"label": "The Initiative", "path": "/initiative"},
+    {"label": "Edition One", "path": "/edition-one"},
+    {"label": "Exhibitions", "path": "/exhibitions"},
+    {"label": "Media", "path": "/media"},
+    {"label": "Future Editions", "path": "/future-editions"}
+  ],
+  "globalAction": {"label": "Press Kit", "reviewTarget": "/media#press-kit", "approvedDownloadUrl": null, "activation": "Use the approved direct download once supplied; do not create a fake download."},
+  "footerContact": {"emailCandidate": "Info@thepanafricanfabric.com", "status": "user-supplied-work-email-public-use-pending", "instagram": "https://www.instagram.com/thepanafricanfabric/", "instagramStatus": "supplied-in-brief", "founderSite": "https://shiriachuart.com", "privacyPath": "/privacy", "privacyStatus": "copy-and-route-pending"},
+  "pages": [
+    {"path": "/", "title": "The Pan-African Fabric", "kind": "static"},
+    {"path": "/initiative", "title": "The Initiative", "kind": "static"},
+    {"path": "/edition-one", "title": "Edition One", "kind": "edition"},
+    {"path": "/edition-one/cameroon", "title": "Cameroon", "kind": "country"},
+    {"path": "/edition-one/nigeria", "title": "Nigeria", "kind": "country"},
+    {"path": "/edition-one/ghana", "title": "Ghana", "kind": "country"},
+    {"path": "/edition-one/ethiopia", "title": "Ethiopia", "kind": "country"},
+    {"path": "/edition-one/kenya", "title": "Kenya", "kind": "country"},
+    {"path": "/edition-one/egypt", "title": "Egypt", "kind": "country"},
+    {"path": "/edition-one/morocco", "title": "Morocco", "kind": "country"},
+    {"path": "/edition-one/central-african-republic", "title": "Central African Republic", "kind": "country"},
+    {"path": "/edition-one/south-africa", "title": "South Africa", "kind": "country"},
+    {"path": "/exhibitions", "title": "Exhibitions & Programs", "kind": "static"},
+    {"path": "/exhibitions/smithsonian-community-day-2026", "title": "The Pan-African Fabric & Fashion Showcase", "kind": "event"},
+    {"path": "/media", "title": "Media & Resources", "kind": "static"},
+    {"path": "/future-editions", "title": "Future Editions", "kind": "static"}
+  ],
+  "redirects": [
+    {"from": "/about-us", "to": "/initiative"},
+    {"from": "/mission", "to": "/initiative"},
+    {"from": "/designers", "to": "/edition-one"},
+    {"from": "/featured", "to": "/exhibitions"},
+    {"from": "/showcase", "to": "/exhibitions"},
+    {"from": "/journal", "to": "/media"},
+    {"from": "/press", "to": "/media"}
+  ],
+  "redirectGate": "Approve content equivalence, review traffic/backlinks, publish destination pages, then activate redirects. Never enable redirects to missing pages.",
+  "reservedLater": ["/designers/{designer-slug}"],
+  "navigationDecision": "Contact in footer; Press Kit separate global action, following prose in brief page 3."
+}

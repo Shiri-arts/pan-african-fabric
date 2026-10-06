@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-09-13T20:58:46.099Z",
+  "siteId": "6dabfd00-04c6-4f6f-8282-fb56b240c160",
+  "mutations": 0,
+  "valid": true,
+  "summary": {
+    "errors": 0,
+    "warnings": 1
+  },
+  "issues": [
+    {
+      "severity": "warning",
+      "collection": "PressItems",
+      "itemId": "press-showcase-release-august-2026",
+      "field": "title",
+      "code": "long-title",
+      "message": "Title exceeds the recommended 90 characters."
+    }
+  ]
+}

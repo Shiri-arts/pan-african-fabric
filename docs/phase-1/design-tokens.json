@@ -1,0 +1,42 @@
+{
+  "status": "proposed-for-review",
+  "colors": {
+    "canvas": "#F7F3E8", "surface": "#FFFFFF", "text": "#24211E",
+    "muted": "#665F57", "accent": "#8B2F24", "accentHover": "#651D18",
+    "gold": "#D9A521", "border": "#D8D0C2", "inputBorder": "#857A6C",
+    "focus": "#116DFF", "error": "#A02020"
+  },
+  "fonts": {
+    "display": "Adobe Caslon Pro, Georgia, serif",
+    "body": "Archivo, Arial, sans-serif",
+    "note": "Match actual licensed Wix family names in Editor; no fonts downloaded or licensed by this package."
+  },
+  "type": {
+    "display": {"minPx": 40, "maxPx": 72, "lineHeight": 1.08},
+    "h1": {"minPx": 36, "maxPx": 56, "lineHeight": 1.14},
+    "h2": {"minPx": 28, "maxPx": 40, "lineHeight": 1.2},
+    "h3": {"minPx": 24, "maxPx": 28, "lineHeight": 1.28},
+    "lead": {"minPx": 18, "maxPx": 20, "lineHeight": 1.6},
+    "body": {"px": 16, "lineHeight": 1.625},
+    "caption": {"px": 14, "lineHeight": 1.43},
+    "label": {"px": 12, "lineHeight": 1.33, "trackingEm": 0.08}
+  },
+  "spacePx": [4, 8, 12, 16, 24, 32, 48, 64, 96, 128],
+  "containersPx": {"editorial": 720, "standard": 1200, "gallery": 1440},
+  "guttersPx": {"mobile": 24, "tablet": 32, "desktop": 48},
+  "gridColumns": {"mobile": 4, "tablet": 8, "desktop": 12},
+  "breakpointsPx": {"tablet": 768, "desktop": 1100},
+  "radiiPx": {"image": 0, "control": 4, "badge": 999},
+  "shadow": "0 12px 32px rgba(36,33,30,0.12)",
+  "motion": {"durationMs": 160, "reducedMotion": "none"},
+  "controlMinHeightPx": 48,
+  "mediaRatios": {"hero": "16/9", "portrait": "4/5", "editorial": "3/2"},
+  "rules": [
+    "Gold is decorative only; never body text on ivory or white.",
+    "Use the stronger inputBorder for interactive control boundaries.",
+    "One semantic H1 per page; heading levels follow content, not visual size.",
+    "Body text maximum 65 characters per line.",
+    "No negative horizontal offsets or fixed-width containers wider than viewport.",
+    "These are reference-web breakpoints. Wix Editor mobile layout requires separate mapping and verification; do not assume Studio breakpoint APIs exist."
+  ]
+}

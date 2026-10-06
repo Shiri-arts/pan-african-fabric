@@ -1,0 +1,28 @@
+---
+/**
+ * The twelve-colour system.
+ *
+ * Semantic HTML and CSS, not the source raster. Three across and four down, in the
+ * order the colours appear in the artwork. Every swatch carries its colour name and
+ * country as text on the colour, so colour is never the only carrier of that
+ * information, and each pairing is readable with animation switched off.
+ *
+ * The swatches are a reference board rather than navigation; the country pages are
+ * reached from the regions and countries sections on the same page.
+ */
+import ColourPanel from './ColourPanel.astro';
+import { editionColours } from '../data/colours';
+interface Props { tall?: boolean; label?: string; class?: string; }
+const { tall = false, label = 'Edition One colours', class: className } = Astro.props;
+---
+<ul
+  class:list={['colour-grid', tall && 'colour-grid--tall', className]}
+  aria-label={label}
+  data-reveal-group
+>
+  {editionColours.map((colour, index) => (
+    <li data-reveal="rise" style={`--reveal-delay:${Math.min(index, 8) * 45}ms`}>
+      <ColourPanel colour={colour} />
+    </li>
+  ))}
+</ul>

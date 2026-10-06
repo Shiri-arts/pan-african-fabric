@@ -1,0 +1,41 @@
+---
+/**
+ * A country entry: its flag, its number, its region and its name. The country name
+ * supplies the accessible link text, and the region is a text label rather than a
+ * colour.
+ *
+ * The flag is whole and uncropped, and it is what distinguishes countries that
+ * share a palette. Review status and colour counts are not published here; the
+ * profile itself says where it stands.
+ */
+import CountryFlag from './CountryFlag.astro';
+import { coloursForCountry } from '../data/colours';
+import { countryPath, regionName, type Country } from '../data/countries';
+interface Props {
+  country: Country;
+  index?: number;
+  colourStyles?: readonly string[];
+  /** Approved flag image URL, when one is supplied through the media library. */
+  flag?: string;
+}
+const { country, index, colourStyles, flag } = Astro.props;
+const colours = colourStyles ?? (import.meta.env.DEV ? coloursForCountry(country.slug).map(colour => `--rail:var(${colour.variable})`) : []);
+---
+<a class="card card--link country-card" href={countryPath(country.slug)}>
+  <span class="card__rail" aria-hidden="true">
+    {colours.map((style) => <span style={style}></span>)}
+  </span>
+  <span class="card__body">
+    <CountryFlag name={country.name} slug={country.slug} override={flag} class="country-card__flag" />
+    <span class="country-card__text">
+      <span class="card__meta">
+        {index !== undefined && <span>{String(index + 1).padStart(2, '0')}</span>}
+        <span>{regionName(country.region)}</span>
+      </span>
+      <span class="card__title">{country.name}</span>
+      <span class="card__foot">
+        <span class="card__cue">Open<span aria-hidden="true">&#8594;</span></span>
+      </span>
+    </span>
+  </span>
+</a>

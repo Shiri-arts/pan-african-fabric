@@ -1,0 +1,33 @@
+---
+/**
+ * Compact event row.
+ *
+ * The archive lists events that have already happened, so it is a scannable row
+ * rather than a card: date, title, venue and location, and a thumbnail only when
+ * an approved image exists. Nothing is invented to fill the row, and the whole row
+ * is one link to the event, so keyboard focus lands once per event.
+ */
+import Media from './Media.astro';
+import { eventPath, type EventRecord } from '../data/events';
+import { hasApprovedSource } from '../lib/media';
+interface Props { event: EventRecord; }
+const { event } = Astro.props;
+const place = [event.venue, event.location].filter(Boolean).join(', ');
+const thumbnail = hasApprovedSource(event.hero) ? event.hero : undefined;
+---
+<a class="event-row" href={eventPath(event.slug)}>
+  {thumbnail && (
+    <span class="event-row__thumb" aria-hidden="true">
+      <Media media={{ ...thumbnail, ratio: '1/1', decorative: true }} showCaption={false} sizes="72px" />
+    </span>
+  )}
+  <span class="event-row__date">
+    {event.isoDate ? <time datetime={event.isoDate}>{event.dateLabel}</time> : event.dateLabel}
+  </span>
+  <span class="event-row__title">{event.title}</span>
+  {place && <span class="event-row__place">{place}</span>}
+  <span class="event-row__cue">
+    Details<span aria-hidden="true">&#8594;</span>
+    <span class="visually-hidden">of {event.title}</span>
+  </span>
+</a>

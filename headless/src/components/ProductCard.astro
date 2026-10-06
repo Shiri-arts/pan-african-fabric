@@ -1,0 +1,24 @@
+---
+/**
+ * Editorial product card. Ordering is handled on the detail page by direct email.
+ */
+import Media from './Media.astro';
+import { productPath, type ProductRecord } from '../data/shop';
+interface Props { product: ProductRecord; }
+const { product } = Astro.props;
+const cover = product.gallery[0];
+---
+<a class="card card--link" href={productPath(product.slug)}>
+  {cover && <Media media={cover} showCaption={false} fit="contain" class="product-media product-card__media" />}
+  <span class="card__body">
+    <span class="card__meta">
+      <span>{product.kind}</span>
+      {product.isSpecimen && <span class="badge badge--review">Template specimen</span>}
+    </span>
+    <span class="card__title">{product.title}</span>
+    <span class="card__foot">
+      <span class="badge">{product.availability ?? 'Contact for availability'}</span>
+      <span class="card__cue">View<span aria-hidden="true">&#8594;</span></span>
+    </span>
+  </span>
+</a>

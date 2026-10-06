@@ -1,0 +1,32 @@
+---
+/**
+ * Scroll reveal.
+ *
+ * One IntersectionObserver for the whole page. Elements are only hidden after the
+ * script has claimed them, so nothing disappears when JavaScript is unavailable,
+ * and reduced-motion users are never armed at all.
+ */
+---
+<script>
+  const media = matchMedia('(prefers-reduced-motion: reduce)');
+  const targets = document.querySelectorAll<HTMLElement>('[data-reveal]');
+  if (targets.length && 'IntersectionObserver' in window && !media.matches) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) continue;
+          entry.target.classList.add('is-revealed');
+          observer.unobserve(entry.target);
+        }
+      },
+      // The large top margin means anything already scrolled past counts as
+      // intersecting, so content above the viewport can never stay hidden after an
+      // anchor jump or a restored scroll position.
+      { rootMargin: '100000px 0px -12% 0px', threshold: 0 },
+    );
+    for (const target of targets) {
+      target.classList.add('is-armed');
+      observer.observe(target);
+    }
+  }
+</script>
