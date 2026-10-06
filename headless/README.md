@@ -1,8 +1,8 @@
-# Phase 1 Headless foundation
+# Wix-managed Headless frontend
 
-This isolated Astro/React frontend continues the approved design in `../docs/phase-1/`. The repository root remains the existing Editor/Velo project: run frontend commands **from this directory only**.
+This Astro/React application is the primary frontend for The Pan-African Fabric. Run frontend, CMS validation and Wix preview commands **from this directory only**.
 
-New site: `6dabfd00-04c6-4f6f-8282-fb56b240c160`. Companion app: `7c983a5c-6496-4542-8036-6ffd5a3c71eb`. Existing Editor site `cf6dc8aa-2320-4c66-b52e-44252adf69f3` is explicitly forbidden by CMS tooling.
+Headless site: `6dabfd00-04c6-4f6f-8282-fb56b240c160`. Companion app: `7c983a5c-6496-4542-8036-6ffd5a3c71eb`. The retired Editor site `cf6dc8aa-2320-4c66-b52e-44252adf69f3` remains outside this repository and is explicitly rejected by CMS tooling.
 
 ## Local review
 
